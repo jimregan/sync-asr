@@ -2,6 +2,7 @@ from .elements import TimedElement, TimedWord
 from typing import List
 import json
 
+
 class HuggingFaceJSON(TimedElement):
     words: List[TimedWord]
 
