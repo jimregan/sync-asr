@@ -31,7 +31,7 @@ class VTTInput(TimedElement):
             start = l[0].start
             end = l[-1].end
             text = " ".join([t.text for t in l])
-            return VTTCaption(start, end, text)
+            return VTTCaption(start_time=start, end_time=end, text=text)
         i = 0
         tmp = []
         buf = []
