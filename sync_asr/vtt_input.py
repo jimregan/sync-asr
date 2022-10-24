@@ -45,14 +45,23 @@ class VTTInput(TimedElement):
             start = l[0].start
             end = l[-1].end
             text = " ".join([t.text for t in l])
-            return 
+            return VTTCaption(start, end, text)
         i = 0
         tmp = []
+        buf = []
         while i < len(self.captions):
-            if self.captions[i].
-        for caption in self.captions:
-            if not caption.text.strip()[-1] in _SENT_ENDS:
-                print("foo")
+            if self.captions[i].text[-1] in _SENT_ENDS:
+                buf.append(self.captions[i])
+                if len(buf) == 1:
+                    yield buf[0]
+                else:
+                    yield merge_actual(buf)
+                buf = []
+            else:
+                buf.append(self.captions[i])
+
+
+
 
 
 class VTTCaption(TimedElement):
