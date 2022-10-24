@@ -26,26 +26,30 @@ class VTTInput(TimedElement):
         for caption in captions:
             self.captions.append(VTTCaption(caption))
 
-    def merge_captions(self):
-        def merge_actual(l):
-            start = l[0].start
-            end = l[-1].end
-            text = " ".join([t.text for t in l])
-            return VTTCaption(start, end, text)
-        i = 0
-        tmp = []
-        buf = []
-        while i < len(self.captions):
-            if self.captions[i].text[-1] in _SENT_ENDS:
-                buf.append(self.captions[i])
-                if len(buf) == 1:
-                    tmp.append(buf[0])
-                else:
-                    tmp.append(merge_actual(buf))
-                buf = []
+def merge_captions(ll):
+    def merge_actual(l):
+        start = l[0].start
+        end = l[-1].end
+        text = " ".join([t.text for t in l])
+        return VTTCaption(start, end, text)
+    i = 0
+    tmp = []
+    buf = []
+    while i < len(ll):
+        if ll[i].text[-1] in _SENT_ENDS:
+            buf.append(ll[i])
+            if len(buf) == 1:
+                tmp.append(buf[0])
             else:
-                buf.append(self.captions[i])
-            i += 1
+                tmp.append(merge_actual(buf))
+            buf = []
+        elif i == (len(ll) - 1):
+            tmp.append(ll[-1])
+        else:
+            buf.append(ll[i])
+        i += 1
+    return tmp
+
 
 
 class VTTCaption(TimedElement):
