@@ -1,6 +1,4 @@
 from .elements import TimedElement
-import collections
-from itertools import islice
 
 try:
     import webvtt
@@ -14,18 +12,6 @@ except ImportError:
 
 
 _SENT_ENDS = [".", "?", "!"]
-
-
-# https://docs.python.org/3/library/itertools.html#recipes
-def sliding_window(iterable, n):
-    # sliding_window('ABCDEFG', 4) -> ABCD BCDE CDEF DEFG
-    it = iter(iterable)
-    window = collections.deque(islice(it, n), maxlen=n)
-    if len(window) == n:
-        yield tuple(window)
-    for x in it:
-        window.append(x)
-        yield tuple(window)
 
 
 class VTTInput(TimedElement):
@@ -53,15 +39,13 @@ class VTTInput(TimedElement):
             if self.captions[i].text[-1] in _SENT_ENDS:
                 buf.append(self.captions[i])
                 if len(buf) == 1:
-                    yield buf[0]
+                    tmp.append(buf[0])
                 else:
-                    yield merge_actual(buf)
+                    tmp.append(merge_actual(buf))
                 buf = []
             else:
                 buf.append(self.captions[i])
-
-
-
+            i += 1
 
 
 class VTTCaption(TimedElement):
