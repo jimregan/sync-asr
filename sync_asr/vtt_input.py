@@ -48,8 +48,7 @@ class VTTInput(TimedElement):
             else:
                 buf.append(self.captions[i])
             i += 1
-        return tmp
-
+        self.captions = tmp
 
 
 class VTTCaption(TimedElement):
