@@ -17,8 +17,7 @@ import argparse
 import logging
 import sys
 
-sys.path.insert(0, 'steps')
-import libs.common as common_lib
+from .common import NullstrToNoneAction, StrToBoolAction
 
 logger = logging.getLogger(__name__)
 handler = logging.StreamHandler()
@@ -54,7 +53,7 @@ def get_args():
                         help="Symbol used to contain alignment "
                         "to empty symbol")
     parser.add_argument("--oov-word", type=str, default=None,
-                        action=common_lib.NullstrToNoneAction,
+                        action=NullstrToNoneAction,
                         help="Symbol of OOV word in hypothesis")
     parser.add_argument("--symbol-table", type=argparse.FileType('r'),
                         help="""Symbol table for words in vocabulary. Used
@@ -70,7 +69,7 @@ def get_args():
                         help="Penalty for insertion errors")
 
     parser.add_argument("--align-full-hyp", type=str,
-                        action=common_lib.StrToBoolAction,
+                        action=StrToBoolAction,
                         choices=["true", "false"], default=True,
                         help="""Align full hypothesis i.e. trackback from
                         the end to get the alignment. This is different
