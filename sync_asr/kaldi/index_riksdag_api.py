@@ -2,6 +2,8 @@ import json
 from bs4 import BeautifulSoup
 from pathlib import Path
 import argparse
+import copy
+import re
 
 
 BASE_KEYS = ['videostatus', 'committee', 'type', 'debatepreamble', 'debatetexthtml', 'livestreamurl', 'activelivespeaker', 'id', 'dokid', 'title', 'debatename', 'debatedate', 'debatetype', 'debateurl', 'fromchamber', 'thumbnailurl', 'debateseconds']
@@ -61,7 +63,9 @@ def read_api_json(filename):
         soup = BeautifulSoup(html, 'html.parser')
         count = 1
         for para in soup.find_all("p"):
-            pg = cur
+            if para.text.strip() == "":
+                continue
+            pg = copy.deepcopy(cur)
             pg["text"] = para.text
             pg["paragraph"] = count
             speakers.append(pg)
@@ -71,6 +75,10 @@ def read_api_json(filename):
 
 def clean_text(text):
     text = text.replace("\r\n", " ")
+    while text[-1] in [")", ".", ",", "!", ":", ";", "?"]:
+        text = text[:-1]
+    while text[0] in ["("]:
+        text = text[1:]
     text = text.replace("\n", " ")
     text = text.strip()
     text = text.replace(". ", " ")
@@ -79,6 +87,7 @@ def clean_text(text):
     text = text.replace(":", "")
     text = text.replace("!", "")
     text = text.replace("?", "")
+    text = re.sub("  +", " ", text)
     text = text.lower()
     
     return text
