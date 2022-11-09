@@ -1,5 +1,6 @@
 from typing import List
 
+
 class TimedElement():
     def __init__(self, start_time="", end_time="", text=""):
         self.start_time = start_time
@@ -7,7 +8,7 @@ class TimedElement():
         self.text = text
 
     def __str__(self) -> str:
-        return f"[{self.start_time},{self.end_time} {self.text}"
+        return f"[{self.start_time},{self.end_time}] {self.text}"
 
     def _is_valid_comparison(self, other):
         return (hasattr(other, "start_time") and
