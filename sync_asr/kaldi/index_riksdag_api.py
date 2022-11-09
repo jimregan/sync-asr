@@ -75,12 +75,13 @@ def read_api_json(filename):
 
 def clean_text(text):
     text = text.replace("\r\n", " ")
-    while text[-1] in [")", ".", ",", "!", ":", ";", "?"]:
+    while text[-1] in [")", ".", ",", "!", ":", ";", "?", '"']:
         text = text[:-1]
-    while text[0] in ["("]:
+    while text[0] in ["(", '"']:
         text = text[1:]
     text = text.replace("\n", " ")
     text = text.strip()
+    text = text.replace('"', "")
     text = text.replace(". ", " ")
     text = text.replace(",", " ")
     text = text.replace(";", "")
