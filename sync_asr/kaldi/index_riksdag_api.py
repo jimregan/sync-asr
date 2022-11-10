@@ -103,7 +103,11 @@ def main():
             if doc is None or speakers is None:
                 continue
             for speaker in speakers:
-                docid = f'{doc["streamurl"]}_{speaker["paragraph"]}'
+                if speaker["text"].strip() == "":
+                    continue
+                elif speaker["text"].strip().startswith("STYLEREF Kantrubrik"):
+                    continue
+                docid = f'{doc["streamurl"].split("/")[-1]}_{speaker["paragraph"]}'
                 text = clean_text(speaker["text"])
                 outf.write(f"{docid} {text}\n")
 
