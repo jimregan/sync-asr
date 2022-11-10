@@ -73,9 +73,16 @@ def read_api_json(filename):
     return base, speakers
 
 
+PUNCT_FINAL = [")", ".", ",", "!", ":", ";", "?", '"']
+
+
 def clean_text(text):
     text = text.strip().replace("\r\n", " ")
-    while text[-1] in [")", ".", ",", "!", ":", ";", "?", '"']:
+    if text == "":
+        return ""
+    if len(text) == 1 and text in PUNCT_FINAL:
+        return ""
+    while text[-1] in PUNCT_FINAL:
         text = text[:-1]
     while text[0] in ["(", '"']:
         text = text[1:]
@@ -109,6 +116,8 @@ def main():
                     continue
                 docid = f'{doc["streamurl"].split("/")[-1]}_{speaker["paragraph"]}'
                 text = clean_text(speaker["text"])
+                if text == "":
+                    continue
                 outf.write(f"{docid} {text}\n")
 
 
