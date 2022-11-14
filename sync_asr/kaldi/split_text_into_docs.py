@@ -16,11 +16,16 @@ def get_args():
     to avoid requiring an additional script to create this file (the
     inverse of `doc2text`)
     """)
-    parser.add_argument('TEXT', type=argparse.FileType('r'), help='input file containing utterance ids and text')
-    parser.add_argument('DOC2TEXT', type=argparse.FileType('w'), help='output file containing mapping of documents to text files')
-    parser.add_argument('DOCS', type=argparse.FileType('w'), help='output file containing documents')
-    parser.add_argument('TEXT2DOC', nargs='?', type=argparse.FileType('w'), help='output file containing mapping of text files to documents')
-    parser.add_argument('--max-words', help='Maximum number of words to consider', type=int, default=1000)
+    parser.add_argument('TEXT', type=argparse.FileType('r'),
+        help='input file containing utterance ids and text')
+    parser.add_argument('DOC2TEXT', type=argparse.FileType('w'),
+        help='output file containing mapping of documents to text files')
+    parser.add_argument('DOCS', type=argparse.FileType('w'),
+        help='output file containing documents')
+    parser.add_argument('TEXT2DOC', nargs='?', type=argparse.FileType('w'),
+        help='output file containing mapping of text files to documents')
+    parser.add_argument('--max-words',
+        help='Maximum number of words to consider', type=int, default=1000)
     args = parser.parse_args()
 
     return args
