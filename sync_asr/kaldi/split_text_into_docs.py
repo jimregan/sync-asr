@@ -19,6 +19,9 @@ def get_args():
         utterance1-1 A B
         utterance1-2 C D
         utterance2-1 C B
+    This implementation optionally takes an extra option, text2doc,
+    to avoid requiring an additional script to create this file (the
+    inverse of doc2text)
     """)
     parser.add_argument('TEXT', type=argparse.FileType('r'), help='input file containing utterance ids and text')
     parser.add_argument('DOC2TEXT', type=argparse.FileType('w'), help='output file containing mapping of documents to text files')
