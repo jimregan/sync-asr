@@ -23,6 +23,7 @@ def get_args():
     parser.add_argument('TEXT', type=argparse.FileType('r'), help='input file containing utterance ids and text')
     parser.add_argument('DOC2TEXT', type=argparse.FileType('w'), help='output file containing mapping of documents to text files')
     parser.add_argument('DOCS', type=argparse.FileType('w'), help='output file containing documents')
+    parser.add_argument('TEXT2DOC', nargs='?', type=argparse.FileType('w'), help='output file containing mapping of text files to documents')
     parser.add_argument('--max-words', help='Maximum number of words to consider', type=int, default=1000)
     args = parser.parse_args()
 
@@ -47,6 +48,8 @@ def run(args):
         if num_words <= args.max_words:
             print(line, file=args.DOCS)
             print(f"{utt} {utt}", file=args.DOC2TEXT)
+            if args.TEXT2DOC is not None:
+                print(f"{utt} {utt}", file=args.TEXT2DOC)
             continue
         
         num_docs = int(num_words / args.max_words) + 1
@@ -58,6 +61,8 @@ def run(args):
             end = _local_min(st + words_per_doc, num_words) - 1
             print(f"{utt}-{i} {' '.join(parts[st:end])}", file=args.DOCS)
             print(f"{utt}-{i} {utt}", file=args.DOC2TEXT)
+            if args.TEXT2DOC is not None:
+                print(f"{utt} {utt}-{i}", file=args.TEXT2DOC)
 
 
 def main():
