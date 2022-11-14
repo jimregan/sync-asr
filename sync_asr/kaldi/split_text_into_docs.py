@@ -6,22 +6,15 @@ import argparse
 
 def get_args():
     parser = argparse.ArgumentParser(description="""
-    If 'text' contains:
-        utterance1 A B C D
-        utterance2 C B
-    and you ran:
-        split_text_into_docs.pl --max-words 2 text doc2text docs
-    then 'doc2text' would contain:
-        utterance1-1 utterance1
-        utterance1-2 utterance1
-        utterance2-1 utterance2
-    and 'docs' would contain:
-        utterance1-1 A B
-        utterance1-2 C D
-        utterance2-1 C B
-    This implementation optionally takes an extra option, text2doc,
+    Splits text into utterances that do not exceed `max-words`,
+    where `text` contains an identifier as the first "word" of
+    each line:
+    `docs` contains the split text, with new identifiers,
+    `doc2text` contains a mapping of the original identifiers to
+    the new identifiers in `docs`.
+    This implementation optionally takes an extra option, `text2doc`,
     to avoid requiring an additional script to create this file (the
-    inverse of doc2text)
+    inverse of `doc2text`)
     """)
     parser.add_argument('TEXT', type=argparse.FileType('r'), help='input file containing utterance ids and text')
     parser.add_argument('DOC2TEXT', type=argparse.FileType('w'), help='output file containing mapping of documents to text files')
