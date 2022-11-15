@@ -153,7 +153,6 @@ def read_hfjson(json_file, lowercase=True):
             yield f"{utt}_{count:06}", parts
 
 
-
 def read_ctm(ctm_file, file_and_channel2reco=None):
     """Reads a CTM file and yields elements of a dictionary
         { utterance-id : CTM for the utterance },

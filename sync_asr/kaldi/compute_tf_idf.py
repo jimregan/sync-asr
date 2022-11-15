@@ -6,7 +6,6 @@ import logging
 import sys
 
 import tf_idf
-sys.path.insert(0, 'steps')
 
 logger = logging.getLogger('tf_idf')
 logger.setLevel(logging.INFO)

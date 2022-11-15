@@ -12,8 +12,6 @@ import math
 import re
 import sys
 
-sys.path.insert(0, 'steps')
-
 logger = logging.getLogger('__name__')
 logger.addHandler(logging.NullHandler())
 
