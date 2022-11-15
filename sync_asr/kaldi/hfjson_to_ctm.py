@@ -16,7 +16,7 @@ def get_args():
 def read_hfjson(json_file, lowercase=True):
     outname = json_file.replace(".json", ".ctm")
     with open(json_file) as jsonf, open(outname, "w") as outf:
-        utt = json_file.replace(".json", "")
+        utt = json_file.split("/")[-1].replace(".json", "").replace("_480p", "")
         data = json.load(jsonf)
         if not "chunks" in data:
             raise ValueError(f"File does not appear to contain HuggingFace JSON")
