@@ -1,0 +1,4 @@
+sync_asr/tfidf/
+sync_asr/outdir/
+src_tf_idf.txt
+idf_stats.txt
