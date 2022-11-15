@@ -9,5 +9,5 @@ tdidf_dir = Path(sys.argv[1])
 with open("source2tf_idf.scp", "w") as outfile:
     for file in tdidf_dir.glob("*"):
         stem = file.stem
-        stem = stem.replace(".txt", "")
+        stem = stem.replace(".txt", "").replace("src_tf_idf.", "")
         outfile.write(f"{stem} {file}\n")
