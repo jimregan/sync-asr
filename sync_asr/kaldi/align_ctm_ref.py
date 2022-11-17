@@ -16,9 +16,9 @@ from __future__ import print_function
 import argparse
 import logging
 import sys
+import json
 
-sys.path.insert(0, 'steps')
-import libs.common as common_lib
+from .common import NullstrToNoneAction, StrToBoolAction
 
 logger = logging.getLogger(__name__)
 handler = logging.StreamHandler()
@@ -41,7 +41,7 @@ def get_args():
     --hyp=foo/ctm --output=foo/ctm_edits
     """)
 
-    parser.add_argument("--hyp-format", type=str, choices=["Text", "CTM"],
+    parser.add_argument("--hyp-format", type=str, choices=["Text", "CTM", "hfjson"],
                         default="CTM",
                         help="Format used for the hypothesis")
     parser.add_argument("--reco2file-and-channel", type=argparse.FileType('r'),
@@ -54,7 +54,7 @@ def get_args():
                         help="Symbol used to contain alignment "
                         "to empty symbol")
     parser.add_argument("--oov-word", type=str, default=None,
-                        action=common_lib.NullstrToNoneAction,
+                        action=NullstrToNoneAction,
                         help="Symbol of OOV word in hypothesis")
     parser.add_argument("--symbol-table", type=argparse.FileType('r'),
                         help="""Symbol table for words in vocabulary. Used
@@ -70,7 +70,7 @@ def get_args():
                         help="Penalty for insertion errors")
 
     parser.add_argument("--align-full-hyp", type=str,
-                        action=common_lib.StrToBoolAction,
+                        action=StrToBoolAction,
                         choices=["true", "false"], default=True,
                         help="""Align full hypothesis i.e. trackback from
                         the end to get the alignment. This is different
@@ -134,6 +134,23 @@ def read_text(text_file):
         else:
             yield parts[0], parts[1:]
     text_file.close()
+
+
+def read_hfjson(json_file, lowercase=True):
+    with open(json_file) as jsonf:
+        utt = json_file.replace(".json", "")
+        data = json.load(jsonf)
+        if not "chunks" in data:
+            raise ValueError(f"File does not appear to contain HuggingFace JSON")
+        # utt_id channel_num start_time duration phone_id confidence
+        count = 1
+        for chunk in data["chunks"]:
+            # do stuff
+            word = chunk["text"] if not lowercase else chunk["text"].lower()
+            start = chunk["timestamp"][0]
+            dur = chunk["timestamp"][1] - chunk["timestamp"][0]
+            parts = [utt, 1, start, dur, word, 1.0]
+            yield f"{utt}_{count:06}", parts
 
 
 def read_ctm(ctm_file, file_and_channel2reco=None):
