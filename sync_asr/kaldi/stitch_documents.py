@@ -143,7 +143,7 @@ def main():
     try:
         run(args)
     except:
-        logger.error("Failed to stictch document; got error ",
+        logger.error("Failed to stitch document; got error ",
                      exc_info=True)
         raise SystemExit(1)
     finally:
