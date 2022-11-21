@@ -15,8 +15,11 @@ class TimedElement():
                 hasattr(other, "end_time") and
                 hasattr(other, "text"))
 
-    def duration(self):
-        return self.end_time - self.start_time
+    def get_duration(self):
+        if "duration" in self.__dict__:
+            return self.duration
+        else:
+            return self.end_time - self.start_time
 
     def within(self, other):
         if not self._is_valid_comparison(other):
@@ -67,7 +70,7 @@ class TimedElement():
             return 0.0
         if self.within(other):
             return 100.0
-        return (self.overlap(other) / self.duration()) * 100
+        return (self.overlap(other) / self.get_duration()) * 100
 
     def has_enough_overlap(self, other, cutoff=90):
         return self.pct_overlap(other) >= cutoff
