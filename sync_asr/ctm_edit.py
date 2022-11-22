@@ -14,8 +14,8 @@ class CTMEditLine(TimedWord):
         EDITS = ["cor", "ins", "del", "sub"]
         self.id = parts[0]
         self.channel = parts[1]
-        self.start_time = float(parts[2]) * 1000
-        self.duration = float(parts[3]) * 1000
+        self.start_time = int(float(parts[2]) * 1000)
+        self.duration = int(float(parts[3]) * 1000)
         self.end_time = self.start_time + self.duration
         self.text = parts[4]
         self.confidence = float(parts[5])
@@ -32,10 +32,10 @@ class CTMEditLine(TimedWord):
         out = [
             self.id,
             self.channel,
-            float(self.start_time / 1000),
-            float(self.duration / 1000),
+            str(float(self.start_time / 1000)),
+            str(float(self.duration / 1000)),
             self.text,
-            self.confidence,
+            str(self.confidence),
             self.ref,
             self.edit, 
         ]
