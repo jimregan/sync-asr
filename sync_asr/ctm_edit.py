@@ -4,9 +4,16 @@ from .elements import TimedWord, TimedElement
 class CTMEditLine(TimedWord):
     def __init__(self, *args, **kwargs):
         super(TimedElement, self).__init__(*args, **kwargs)
+        if len(args) >= 1:
+            self.from_line(args[0])
+        elif "from_line" in kwargs:
+            self.from_line(kwargs["from_line"])
 
     def __str__(self) -> str:
         return " ".join(self.as_list())
+
+    def __repr__(self) -> str:
+        return f"{self.id} ({self.start_time, self.end_time}) {self.text}|{self.ref}"
 
     def from_line(self, text: str):
         # AJJacobs_2007P-0001605-0003029 1 0 0.09 <eps> 1.0 <eps> sil tainted
@@ -61,3 +68,11 @@ class CTMEditLine(TimedWord):
         if self.text == comp.lower():
             self.text = self.ref
             self.edit = "cor"
+
+
+def ctm_from_file(filename):
+    ctm_lines = []
+    with open(filename) as input:
+        for line in input.readlines():
+            ctm_lines.append(CTMEditLine(line.strip()))
+    return ctm_lines
