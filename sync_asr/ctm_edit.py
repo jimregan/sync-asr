@@ -8,6 +8,7 @@ class CTMEditLine(TimedWord):
             self.from_line(args[0])
         elif "from_line" in kwargs:
             self.from_line(kwargs["from_line"])
+        self.props = {}
 
     def __str__(self) -> str:
         return " ".join(self.as_list())
@@ -60,14 +61,27 @@ class CTMEditLine(TimedWord):
                 self.text = self.ref
                 self.edit = "cor"
 
+    def set_correct_ref(self):
+        self.text = self.ref
+        self.edit = "cor"
+
+    def set_correct_text(self):
+        self.ref = self.text
+        self.edit = "cor"
+
     def fix_case_difference(self):
         PUNCT = [".", ",", ":", ";", "!", "?", "-"]
         comp = self.ref
         if comp[-1] in PUNCT:
             comp = comp[:-1]
         if self.text == comp.lower():
-            self.text = self.ref
-            self.edit = "cor"
+            self.set_correct_ref()
+
+    def set_prop(self, key, value):
+        self.props[key] = value
+
+    def get_prop(self, key):
+        return self.props[key]
 
 
 def ctm_from_file(filename):
