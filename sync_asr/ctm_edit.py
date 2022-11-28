@@ -98,7 +98,7 @@ def ctm_from_file(filename):
     return ctm_lines
 
 
-def merge_consecutive(ctm_a, ctm_b, text="", joiner="", epsilon="<eps>", edit=""):
+def merge_consecutive(ctm_a, ctm_b, text="", joiner="", epsilon='"<eps>"', edit=""):
     new_ctm = copy.deepcopy(ctm_a)
     new_ctm.end_time = ctm_b.end_time
     if text != "":
