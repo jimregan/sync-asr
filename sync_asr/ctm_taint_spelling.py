@@ -77,7 +77,7 @@ def inline_check_unigram(ctm_lines, speller):
             line.set_prop("spelling", prop)
 
 
-def check_bigrams(ctm_lines, speller):
+def check_bigrams(ctm_lines, speller, try_hyph=False):
     def something_has_eps(a, b):
         return a.has_eps() or b.has_eps()
 
@@ -87,16 +87,18 @@ def check_bigrams(ctm_lines, speller):
         pair = ctm_lines[i:i+2]
 
         text = "".join([pair[0].text, pair[1].text])
-        text_hyph = "-".join([pair[0].text, pair[1].text])
+        if try_hyph:
+            text_hyph = "-".join([pair[0].text, pair[1].text])
         ref = "".join([pair[0].ref, pair[1].text])
-        ref_hyph = "-".join([pair[0].ref, pair[1].ref])
+        if try_hyph:
+            ref_hyph = "-".join([pair[0].ref, pair[1].ref])
 
         if something_has_eps(pair[0], pair[1]) and text.replace('"<eps>"', "") == ref.replace('"<eps>"', ""):
             if speller.check(text):
                 new = merge_consecutive(pair[0], pair[1], text=text)
                 output_ctm.append(new)
                 i += 1
-            elif speller.check(text_hyph):
+            elif try_hyph and speller.check(text_hyph):
                 new = merge_consecutive(pair[0], pair[1], text=text_hyph)
                 output_ctm.append(new)
                 i += 1
@@ -104,7 +106,7 @@ def check_bigrams(ctm_lines, speller):
                 new = merge_consecutive(pair[0], pair[1], text=ref)
                 output_ctm.append(new)
                 i += 1
-            elif speller.check(ref_hyph):
+            elif try_hyph and speller.check(ref_hyph):
                 new = merge_consecutive(pair[0], pair[1], text=ref_hyph)
                 output_ctm.append(new)
                 i += 1
@@ -112,7 +114,7 @@ def check_bigrams(ctm_lines, speller):
                 output_ctm.append(ctm_lines[i])
         else:
             output_ctm.append(ctm_lines[i])
-        if i == len(ctm_lines)-1:
+        if i == len(ctm_lines):
             output_ctm.append(ctm_lines[-1])
     return output_ctm
 
