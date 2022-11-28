@@ -9,7 +9,7 @@ except ImportError:
         pass
 
 import argparse
-from .ctm_edit import CTMEditLine
+from sync_asr.ctm_edit import CTMEditLine
 
 
 class HunspellChecker():
