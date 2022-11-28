@@ -90,7 +90,7 @@ def check_bigrams(ctm_lines, speller):
         ref = "".join([pair[0].ref, pair[1].text])
         ref_hyph = "-".join([pair[0].ref, pair[1].ref])
 
-        if something_has_eps(pair[0], pair[1]) and text.replace("<eps>", "") == ref.replace("<eps>", ""):
+        if something_has_eps(pair[0], pair[1]) and text.replace('"<eps>"', "") == ref.replace('"<eps>"', ""):
             if speller.check(text):
                 new = merge_consecutive(pair[0], pair[1], text=text)
             elif speller.check(text_hyph):
