@@ -57,6 +57,10 @@ def get_args():
                         action='store_true',
                         default=False,
                         help="""Check for split compounds.""")
+    parser.add_argument("--check-bigrams-ref",
+                        action='store_true',
+                        default=False,
+                        help="""Check for split compounds, using a reliable reference""")
     parser.add_argument("ctm_edits_in",
                         type=argparse.FileType('r'),
                         help="""Filename of input ctm-edits file.  Use
@@ -77,9 +81,20 @@ def inline_check_unigram(ctm_lines, speller):
             line.set_prop("spelling", prop)
 
 
-def check_bigrams(ctm_lines, speller, try_hyph=False):
-    def something_has_eps(a, b):
-        return a.has_eps() or b.has_eps()
+def check_bigrams(ctm_lines, speller, try_hyph=False, ref_only=True):
+    def something_has_eps(a, b, ref_only=ref_only):
+        if ref_only:
+            return b.has_eps()
+        else:
+            return a.has_eps() or b.has_eps()
+    
+    def text_equals(a, b, eps='"<eps>"', ref_only=ref_only):
+        text = "".join([a.text, b.text])
+        ref = "".join([a.ref, b.ref])
+        if ref_only:
+            return text == ref.replace(eps, "")
+        else:
+            return text.replace(eps, "") == ref.replace(eps, "")
 
     output_ctm = []
     i = 0
@@ -89,11 +104,11 @@ def check_bigrams(ctm_lines, speller, try_hyph=False):
         text = "".join([pair[0].text, pair[1].text])
         if try_hyph:
             text_hyph = "-".join([pair[0].text, pair[1].text])
-        ref = "".join([pair[0].ref, pair[1].text])
+        ref = "".join([pair[0].ref, pair[1].ref])
         if try_hyph:
             ref_hyph = "-".join([pair[0].ref, pair[1].ref])
 
-        if something_has_eps(pair[0], pair[1]) and text.replace('"<eps>"', "") == ref.replace('"<eps>"', ""):
+        if something_has_eps(pair[0], pair[1]) and text_equals(pair[0], pair[1]):
             if speller.check(text):
                 new = merge_consecutive(pair[0], pair[1], text=text)
                 output_ctm.append(new)
@@ -131,6 +146,8 @@ def main():
             item.fix_case_difference()
     if args.check_bigrams:
         ctm_lines = check_bigrams(ctm_lines, speller)
+    elif args.check_bigrams_ref:
+        ctm_lines = check_bigrams(ctm_lines, speller, ref_only=True)
     inline_check_unigram(ctm_lines, speller)
     for item in ctm_lines:
         print(item)    
