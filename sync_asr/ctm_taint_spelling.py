@@ -69,7 +69,7 @@ def main():
     speller = HunspellChecker(dict=args.dict_path, aff=args.aff_path)
     ctm_lines = []
     for line in args.ctm_edits_in.readlines():
-        ctm_lines.append(CTMEditLine(from_line=line))
+        ctm_lines.append(CTMEditLine(line))
     inline_check_unigram(ctm_lines, speller)
     for item in ctm_lines:
         print(item)    
