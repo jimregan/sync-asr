@@ -3,9 +3,11 @@ import copy
 
 
 class CTMEditLine(TimedWord):
-    def __init__(self, **kwargs):
+    def __init__(self, *args, **kwargs):
         super(TimedElement, self).__init__(**kwargs)
-        if "from_line" in kwargs:
+        if len(args) > 0:
+            self.from_line(args[0])
+        elif "from_line" in kwargs:
             self.from_line(kwargs["from_line"])
         self.props = {}
 
