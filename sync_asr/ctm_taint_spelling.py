@@ -19,14 +19,19 @@ class HunspellChecker():
         self.speller = hunspell.HunSpell(dict, aff)
 
     def check(self, text):
-        return self.speller.spell(text)
+        PUNCT = [".", ",", ":", ";", "!", "?", "-"]
+        comp = text
+        if comp[-1] in PUNCT:
+            comp = comp[:-1]
+
+        return self.speller.spell(comp)
 
     def check_pair(self, text, ref):
-        if self.speller.spell(text) and not self.speller.spell(ref):
+        if self.check(text) and not self.check(ref):
             return "correct_text"
-        elif self.speller.spell(ref) and not self.speller.spell(text):
+        elif self.check(ref) and not self.check(text):
             return "correct_ref"
-        elif self.speller.spell(ref) and self.speller.spell(text):
+        elif self.check(ref) and self.check(text):
             return "correct_both"
         else:
             return "incorrect_both"
