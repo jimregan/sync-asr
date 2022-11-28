@@ -53,6 +53,10 @@ def get_args():
                         action='store_true',
                         default=False,
                         help="""First check case/punctuation differences.""")
+    parser.add_argument("--check-bigrams",
+                        action='store_true',
+                        default=False,
+                        help="""Check for split compounds.""")
     parser.add_argument("ctm_edits_in",
                         type=argparse.FileType('r'),
                         help="""Filename of input ctm-edits file.  Use
@@ -85,13 +89,13 @@ def check_bigrams(ctm_lines, speller):
 
         if text.replace("<eps>", "") == ref.replace("<eps>", ""):
             if speller.check(text):
-                new = merge_consecutive(pair[0], pair[1], text=text.replace("<eps>", ""))
+                new = merge_consecutive(pair[0], pair[1], text=text)
             elif speller.check(text_hyph):
-                new = merge_consecutive(pair[0], pair[1], text=text_hyph.replace("<eps>", ""))
+                new = merge_consecutive(pair[0], pair[1], text=text_hyph)
             elif speller.check(ref):
-                new = merge_consecutive(pair[0], pair[1], text=ref.replace("<eps>", ""))
+                new = merge_consecutive(pair[0], pair[1], text=ref)
             elif speller.check(ref_hyph):
-                new = merge_consecutive(pair[0], pair[1], text=ref_hyph.replace("<eps>", ""))
+                new = merge_consecutive(pair[0], pair[1], text=ref_hyph)
             output_ctm.append(new)
             i += 1
         else:
@@ -107,6 +111,8 @@ def main():
     if args.fix_case_difference:
         for item in ctm_lines:
             item.fix_case_difference()
+    if args.check_bigrams:
+        ctm_lines = check_bigrams(ctm_lines, speller)
     inline_check_unigram(ctm_lines, speller)
     for item in ctm_lines:
         print(item)    
