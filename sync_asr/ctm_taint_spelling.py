@@ -30,6 +30,9 @@ class HunspellChecker():
             return "correct_both"
         else:
             return "incorrect_both"
+    
+    def spell(self, text):
+        return self.speller.spell(text)
 
 
 def get_args():
