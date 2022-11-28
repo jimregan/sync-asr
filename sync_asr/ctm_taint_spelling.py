@@ -113,7 +113,7 @@ def check_bigrams(ctm_lines, speller):
         else:
             output_ctm.append(ctm_lines[i])
         if i == len(ctm_lines)-1:
-            output_ctm.append(ctm_lines[i])
+            output_ctm.append(ctm_lines[-1])
     return output_ctm
 
 def main():
