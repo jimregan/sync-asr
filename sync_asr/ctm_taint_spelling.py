@@ -114,9 +114,11 @@ def check_bigrams(ctm_lines, speller, try_hyph=False):
                 output_ctm.append(ctm_lines[i])
         else:
             output_ctm.append(ctm_lines[i])
+        print("End", i, len(ctm_lines))
         if i == len(ctm_lines):
             output_ctm.append(ctm_lines[-1])
     return output_ctm
+
 
 def main():
     args = get_args()
