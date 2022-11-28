@@ -82,6 +82,7 @@ def check_bigrams(ctm_lines, speller):
         return a.has_eps() or b.has_eps()
 
     output_ctm = []
+    i = 0
     for i in range(len(ctm_lines)-1):
         pair = ctm_lines[i:i+2]
 
@@ -110,6 +111,8 @@ def check_bigrams(ctm_lines, speller):
             else:
                 output_ctm.append(ctm_lines[i])
         else:
+            output_ctm.append(ctm_lines[i])
+        if i == len(ctm_lines)-1:
             output_ctm.append(ctm_lines[i])
     return output_ctm
 
