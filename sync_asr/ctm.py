@@ -41,5 +41,5 @@ def ctm_from_file(filename):
     ctm_lines = []
     with open(filename) as input:
         for line in input.readlines():
-            ctm_lines.append(CTMLine(from_line=line.strip()))
+            ctm_lines.append(CTMLine(line.strip()))
     return ctm_lines
