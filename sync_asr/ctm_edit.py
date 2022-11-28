@@ -1,4 +1,5 @@
 from .elements import TimedWord, TimedElement
+import copy
 
 
 class CTMEditLine(TimedWord):
@@ -49,6 +50,8 @@ class CTMEditLine(TimedWord):
         ]
         if self.tainted:
             out.append("tainted")
+        if self.props:
+            out.append(";".join([f"{a[0]:a[1]}" for a in self.props.items()]))
         return out
     
     def mark_correct_from_list(self, collisions):
@@ -90,3 +93,11 @@ def ctm_from_file(filename):
         for line in input.readlines():
             ctm_lines.append(CTMEditLine(line.strip()))
     return ctm_lines
+
+
+def merge_consecutive(ctm_a, ctm_b, joiner="", epsilon="<eps>"):
+    new_ctm = copy.deepcopy(ctm_a)
+    new_ctm.end_time = ctm_b.end_time
+    new_ctm.text = joiner.join(ctm_a.text, ctm_b.text).replace(epsilon, "")
+    new_ctm.ref = joiner.join(ctm_a.ref, ctm_b.ref).replace(epsilon, "")
+    return new_ctm
