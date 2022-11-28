@@ -44,6 +44,10 @@ def get_args():
                         type=str,
                         default="/usr/share/hunspell/sv_SE.aff",
                         help="""Path to the Hunspell affix file to use""")
+    parser.add_argument("--fix-case-difference",
+                        action='store_true',
+                        default=False,
+                        help="""First check case/punctuation differences.""")
     parser.add_argument("ctm_edits_in",
                         type=argparse.FileType('r'),
                         help="""Filename of input ctm-edits file.  Use
@@ -70,6 +74,9 @@ def main():
     ctm_lines = []
     for line in args.ctm_edits_in.readlines():
         ctm_lines.append(CTMEditLine(line))
+    if args.fix_case_difference:
+        for item in ctm_lines:
+            item.fix_case_difference()
     inline_check_unigram(ctm_lines, speller)
     for item in ctm_lines:
         print(item)    
