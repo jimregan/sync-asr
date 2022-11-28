@@ -9,7 +9,7 @@ except ImportError:
         pass
 
 import argparse
-from sync_asr.ctm_edit import CTMEditLine
+from sync_asr.ctm_edit import CTMEditLine, merge_consecutive
 
 
 class HunspellChecker():
@@ -72,6 +72,31 @@ def inline_check_unigram(ctm_lines, speller):
             prop = speller.check_pair(line.text, line.ref)
             line.set_prop("spelling", prop)
 
+
+def check_bigrams(ctm_lines, speller):
+    output_ctm = []
+    for i in range(len(ctm_lines)-1):
+        pair = ctm_lines[i:i+2]
+
+        text = "".join(pair[0].text, pair[1].text)
+        text_hyph = "-".join(pair[0].text, pair[1].text)
+        ref = "".join(pair[0].ref, pair[1].text)
+        ref_hyph = "-".join(pair[0].ref, pair[1].ref)
+
+        if text.replace("<eps>", "") == ref.replace("<eps>", ""):
+            if speller.check(text):
+                new = merge_consecutive(pair[0], pair[1], text=text.replace("<eps>", ""))
+            elif speller.check(text_hyph):
+                new = merge_consecutive(pair[0], pair[1], text=text_hyph.replace("<eps>", ""))
+            elif speller.check(ref):
+                new = merge_consecutive(pair[0], pair[1], text=ref.replace("<eps>", ""))
+            elif speller.check(ref_hyph):
+                new = merge_consecutive(pair[0], pair[1], text=ref_hyph.replace("<eps>", ""))
+            output_ctm.append(new)
+            i += 1
+        else:
+            output_ctm.append(ctm_lines[i])
+    return output_ctm
 
 def main():
     args = get_args()
