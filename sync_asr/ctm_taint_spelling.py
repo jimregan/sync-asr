@@ -83,7 +83,7 @@ def check_bigrams(ctm_lines, speller, try_hyph=False):
 
     output_ctm = []
     i = 0
-    for i in range(len(ctm_lines)-1):
+    while i < len(ctm_lines)-1:
         pair = ctm_lines[i:i+2]
 
         text = "".join([pair[0].text, pair[1].text])
@@ -114,6 +114,7 @@ def check_bigrams(ctm_lines, speller, try_hyph=False):
                 output_ctm.append(ctm_lines[i])
         else:
             output_ctm.append(ctm_lines[i])
+        i += 1
     if i == len(ctm_lines) - 2:
         output_ctm.append(ctm_lines[-1])
     return output_ctm
