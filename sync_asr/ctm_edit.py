@@ -48,9 +48,9 @@ class CTMEditLine(TimedWord):
             self.ref,
             self.edit, 
         ]
-        if self.tainted:
+        if "tainted" in self.__dict__ and self.tainted:
             out.append("tainted")
-        if self.props:
+        if "props" in self.__dict__ and self.props:
             out.append(";".join([f"{a[0]:a[1]}" for a in self.props.items()]))
         return out
     
