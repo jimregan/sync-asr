@@ -130,7 +130,6 @@ def check_bigrams(ctm_lines, speller, try_hyph=False, ref_only=True):
         else:
             output_ctm.append(ctm_lines[i])
         i += 1
-    print("Blah", i, len(ctm_lines))
     if i == len(ctm_lines) - 1:
         output_ctm.append(ctm_lines[-1])
     return output_ctm
