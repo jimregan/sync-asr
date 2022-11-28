@@ -78,6 +78,8 @@ def inline_check_unigram(ctm_lines, speller):
 
 
 def check_bigrams(ctm_lines, speller):
+    def something_has_eps(a, b):
+        return a.text == "<eps>" or a.ref == "<eps>" or b.text == "<eps>" or b.ref == "<eps>"
     output_ctm = []
     for i in range(len(ctm_lines)-1):
         pair = ctm_lines[i:i+2]
@@ -87,7 +89,7 @@ def check_bigrams(ctm_lines, speller):
         ref = "".join([pair[0].ref, pair[1].text])
         ref_hyph = "-".join([pair[0].ref, pair[1].ref])
 
-        if text.replace("<eps>", "") == ref.replace("<eps>", ""):
+        if something_has_eps(pair[0], pair[1]) and text.replace("<eps>", "") == ref.replace("<eps>", ""):
             if speller.check(text):
                 new = merge_consecutive(pair[0], pair[1], text=text)
             elif speller.check(text_hyph):
