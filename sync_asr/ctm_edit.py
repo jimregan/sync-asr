@@ -51,7 +51,7 @@ class CTMEditLine(TimedWord):
         if "tainted" in self.__dict__ and self.tainted:
             out.append("tainted")
         if "props" in self.__dict__ and self.props:
-            out.append(";".join([f"{a[0]:a[1]}" for a in self.props.items()]))
+            out.append(";".join([f"{a[0]}:{a[1]}" for a in self.props.items()]))
         return out
     
     def mark_correct_from_list(self, collisions):
