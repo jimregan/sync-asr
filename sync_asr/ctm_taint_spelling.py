@@ -79,7 +79,8 @@ def inline_check_unigram(ctm_lines, speller):
 
 def check_bigrams(ctm_lines, speller):
     def something_has_eps(a, b):
-        return a.text == "<eps>" or a.ref == "<eps>" or b.text == "<eps>" or b.ref == "<eps>"
+        return a.has_eps() or b.has_eps()
+
     output_ctm = []
     for i in range(len(ctm_lines)-1):
         pair = ctm_lines[i:i+2]

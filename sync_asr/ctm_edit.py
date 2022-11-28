@@ -86,6 +86,9 @@ class CTMEditLine(TimedWord):
     def get_prop(self, key):
         return self.props[key]
 
+    def has_eps(self, eps="<eps>"):
+        return self.text == eps or self.ref == eps
+
 
 def ctm_from_file(filename):
     ctm_lines = []
