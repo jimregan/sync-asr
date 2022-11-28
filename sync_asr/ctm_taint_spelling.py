@@ -82,10 +82,10 @@ def check_bigrams(ctm_lines, speller):
     for i in range(len(ctm_lines)-1):
         pair = ctm_lines[i:i+2]
 
-        text = "".join(pair[0].text, pair[1].text)
-        text_hyph = "-".join(pair[0].text, pair[1].text)
-        ref = "".join(pair[0].ref, pair[1].text)
-        ref_hyph = "-".join(pair[0].ref, pair[1].ref)
+        text = "".join([pair[0].text, pair[1].text])
+        text_hyph = "-".join([pair[0].text, pair[1].text])
+        ref = "".join([pair[0].ref, pair[1].text])
+        ref_hyph = "-".join([pair[0].ref, pair[1].ref])
 
         if text.replace("<eps>", "") == ref.replace("<eps>", ""):
             if speller.check(text):
