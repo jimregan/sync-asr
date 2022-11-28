@@ -101,6 +101,7 @@ def ctm_from_file(filename):
 def merge_consecutive(ctm_a, ctm_b, text="", joiner="", epsilon='"<eps>"', edit=""):
     new_ctm = copy.deepcopy(ctm_a)
     new_ctm.end_time = ctm_b.end_time
+    new_ctm.duration = (new_ctm.end_time - new_ctm.start_time) / 1000
     if text != "":
         new_ctm.text = joiner.join([ctm_a.text, ctm_b.text]).replace(epsilon, "")
         new_ctm.ref = joiner.join([ctm_a.ref, ctm_b.ref]).replace(epsilon, "")
