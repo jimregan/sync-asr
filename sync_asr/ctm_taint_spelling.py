@@ -93,14 +93,22 @@ def check_bigrams(ctm_lines, speller):
         if something_has_eps(pair[0], pair[1]) and text.replace('"<eps>"', "") == ref.replace('"<eps>"', ""):
             if speller.check(text):
                 new = merge_consecutive(pair[0], pair[1], text=text)
+                output_ctm.append(new)
+                i += 1
             elif speller.check(text_hyph):
                 new = merge_consecutive(pair[0], pair[1], text=text_hyph)
+                output_ctm.append(new)
+                i += 1
             elif speller.check(ref):
                 new = merge_consecutive(pair[0], pair[1], text=ref)
+                output_ctm.append(new)
+                i += 1
             elif speller.check(ref_hyph):
                 new = merge_consecutive(pair[0], pair[1], text=ref_hyph)
-            output_ctm.append(new)
-            i += 1
+                output_ctm.append(new)
+                i += 1
+            else:
+                output_ctm.append(ctm_lines[i])
         else:
             output_ctm.append(ctm_lines[i])
     return output_ctm
