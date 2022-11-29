@@ -13,11 +13,10 @@ from sync_asr.ctm_edit import CTMEditLine, merge_consecutive
 
 
 class HunspellChecker():
-    def __init__(self, dict, aff, pairs=None):
+    def __init__(self, dict, aff):
         self.dict = dict
         self.aff = aff
         self.speller = hunspell.HunSpell(dict, aff)
-        self.pairs = pairs
 
     def check(self, text):
         PUNCT = [".", ",", ":", ";", "!", "?", "-"]
