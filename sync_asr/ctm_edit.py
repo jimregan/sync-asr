@@ -61,6 +61,12 @@ class CTMEditLine(TimedWord):
             out.append(";".join([f"{a[0]}:{a[1]}" for a in self.props.items()]))
         return out
     
+    # 1. make the mark and sweep more general, self contained, and simple to pass through - just flag
+    # 1.1. check, e.g., for Patreon texts
+    # 2. double check
+    # 3. make the correction separately
+    # 3.1. double check with something else (e.g., forced aligner)
+    # If more than one error type is present, make sure they don't compete
     def mark_correct_from_list(self, collisions, case_punct=False):
         def checksout(ref, col):
             return ((type(col) == str and ref == col) or \
