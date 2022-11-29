@@ -62,10 +62,12 @@ class CTMEditLine(TimedWord):
             return ((type(col) == str and ref == col) or \
                 (type(col) == list and ref in col))
         if self.text in collisions:
+            orig_text = self.text
             collision = collisions[self.text]
             if checksout(self.ref, collision):
                 self.text = self.ref
                 self.edit = "cor"
+                self.set_prop("collision", f"{orig_text}_{self.ref}")
 
     def set_correct_ref(self):
         self.text = self.ref
