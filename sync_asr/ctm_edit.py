@@ -13,6 +13,7 @@ class CTMEditLine(TimedWord):
         self.verbose = False
         if "verbose" in kwargs:
             self.verbose = True
+        self.PUNCT = [".", ",", ":", ";", "!", "?", "-"]
 
     def __str__(self) -> str:
         return " ".join(self.as_list())
@@ -60,18 +61,23 @@ class CTMEditLine(TimedWord):
             out.append(";".join([f"{a[0]}:{a[1]}" for a in self.props.items()]))
         return out
     
-    def mark_correct_from_list(self, collisions):
+    def mark_correct_from_list(self, collisions, case_punct=False):
         def checksout(ref, col):
             return ((type(col) == str and ref == col) or \
                 (type(col) == list and ref in col))
+        work_ref = self.ref
+        if case_punct:
+            work_ref = self.ref.lower()
+            if self.ref[-1] in self.PUNCT:
+                work_ref = work_ref[:-1]
         if self.text in collisions:
             orig_text = self.text
             collision = collisions[self.text]
-            if checksout(self.ref, collision):
+            if checksout(work_ref, collision):
                 self.text = self.ref
                 self.edit = "cor"
                 if self.verbose:
-                    self.set_prop("collision", f"{orig_text}_{self.ref}")
+                    self.set_prop("collision", f"{orig_text}_{work_ref}")
 
     def set_correct_ref(self):
         self.text = self.ref
@@ -82,9 +88,8 @@ class CTMEditLine(TimedWord):
         self.edit = "cor"
 
     def fix_case_difference(self):
-        PUNCT = [".", ",", ":", ";", "!", "?", "-"]
         comp = self.ref
-        if comp[-1] in PUNCT:
+        if comp[-1] in self.PUNCT:
             comp = comp[:-1]
         if self.text == comp.lower():
             self.set_correct_ref()

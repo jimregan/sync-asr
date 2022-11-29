@@ -158,7 +158,10 @@ def main():
     speller = HunspellChecker(dict=args.dict_path, aff=args.aff_path)
     ctm_lines = []
     for line in args.ctm_edits_in.readlines():
-        ctm_lines.append(CTMEditLine(line))
+        ctmedit = CTMEditLine(line)
+        if args.confusion_pairs:
+            ctmedit.mark_correct_from_list(pairs)
+        ctm_lines.append(ctmedit)
     if args.fix_case_difference:
         for item in ctm_lines:
             item.fix_case_difference()
