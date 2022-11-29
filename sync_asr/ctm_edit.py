@@ -10,6 +10,9 @@ class CTMEditLine(TimedWord):
         elif "from_line" in kwargs:
             self.from_line(kwargs["from_line"])
         self.props = {}
+        self.verbose = False
+        if "verbose" in kwargs:
+            self.verbose = True
 
     def __str__(self) -> str:
         return " ".join(self.as_list())
@@ -67,7 +70,8 @@ class CTMEditLine(TimedWord):
             if checksout(self.ref, collision):
                 self.text = self.ref
                 self.edit = "cor"
-                self.set_prop("collision", f"{orig_text}_{self.ref}")
+                if self.verbose:
+                    self.set_prop("collision", f"{orig_text}_{self.ref}")
 
     def set_correct_ref(self):
         self.text = self.ref
