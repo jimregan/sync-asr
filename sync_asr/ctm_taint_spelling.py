@@ -13,10 +13,11 @@ from sync_asr.ctm_edit import CTMEditLine, merge_consecutive
 
 
 class HunspellChecker():
-    def __init__(self, dict, aff):
+    def __init__(self, dict, aff, pairs=None):
         self.dict = dict
         self.aff = aff
         self.speller = hunspell.HunSpell(dict, aff)
+        self.pairs = pairs
 
     def check(self, text):
         PUNCT = [".", ",", ":", ";", "!", "?", "-"]
@@ -61,6 +62,10 @@ def get_args():
                         action='store_true',
                         default=False,
                         help="""Check for split compounds, using a reliable reference""")
+    parser.add_argument("--confusion-pairs",
+                        type=argparse.FileType('r'),
+                        required=False,
+                        help="""Name of file containing confusion pairs to apply.""")
     parser.add_argument("ctm_edits_in",
                         type=argparse.FileType('r'),
                         help="""Filename of input ctm-edits file.  Use
@@ -135,8 +140,22 @@ def check_bigrams(ctm_lines, speller, try_hyph=False, ref_only=True):
     return output_ctm
 
 
+def read_confusion_pairs(file):
+    pairs = {}
+    for line in file.readlines():
+        k, v = line.split()
+        if k not in pairs:
+            pairs[k] = dict()
+        pairs[k].append(v)
+    if file is not None:
+        file.close()
+    return pairs
+
+
 def main():
     args = get_args()
+    if args.confusion_pairs:
+        pairs = read_confusion_pairs(args.confusion_pairs)
     speller = HunspellChecker(dict=args.dict_path, aff=args.aff_path)
     ctm_lines = []
     for line in args.ctm_edits_in.readlines():
