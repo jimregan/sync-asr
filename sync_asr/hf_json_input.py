@@ -1,5 +1,4 @@
 from .elements import TimedWordSentence, TimedWord
-from typing import List
 import json
 
 
