@@ -58,7 +58,7 @@ def test_timed_word():
 def test_timed_word_sentence():
     tw1 = TimedWord(0, 200, "test"),
     tw2 = TimedWord(200, 400, "test2")
-    timed_words = [tw1, tw2]
+    timed_words = list(tw1, tw2)
     tws = TimedWordSentence(timed_words)
     assert tws.start_time == 0
     assert tws.end_time == 400
