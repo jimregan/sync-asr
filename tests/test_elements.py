@@ -15,3 +15,22 @@ def test_has_overlap():
     te1 = TimedElement(0, 100, "test")
     te2 = TimedElement(10, 110, "test")
     assert te1.has_overlap(te2) == True
+
+
+def test_within():
+    te1 = TimedElement(0, 100, "test")
+    te2 = TimedElement(10, 110, "test")
+    assert te1.within(te2) == False
+    te3 = TimedElement(00, 120, "test")
+    assert te2.within(te3) == True
+
+
+def test_overlap():
+    te1 = TimedElement(0, 100, "test")
+    te2 = TimedElement(10, 110, "test")
+    assert te1.overlap(te2) == 90
+
+def test_pct_overlap():
+    te1 = TimedElement(0, 100, "test")
+    te2 = TimedElement(10, 110, "test")
+    assert te1.pct_overlap(te2) == 90.0
