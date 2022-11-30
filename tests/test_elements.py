@@ -1,4 +1,4 @@
-from sync_asr.elements import TimedElement, TimedSentence
+from sync_asr.elements import TimedElement, TimedSentence, TimedWord, TimedWordSentence
 
 
 def test_timed_element():
@@ -42,3 +42,13 @@ def test_timed_sentence():
     assert ts.start_time == 0
     assert ts.end_time == 10
     assert ts.get_words() == ["this", "is", "a", "test"]
+
+
+def test_timed_word():
+    tw = TimedWord(0, 200, "test")
+    assert tw.start_time == 0
+    assert tw.end_time == 200
+    assert tw.text == "test"
+    assert tw.get_duration() == 200
+    tw2 = TimedWord(10, 180, "es")
+    assert (tw > tw2) == True
