@@ -6,6 +6,7 @@ class TimedElement():
         self.start_time = start_time
         self.end_time = end_time
         self.text = text
+        self.duration = end_time - start_time
 
     def __str__(self) -> str:
         return f"[{self.start_time},{self.end_time}] {self.text}"
@@ -79,7 +80,7 @@ class TimedElement():
 
 class TimedSentence(TimedElement):
     def __init__(self, start_time="", end_time="", text=""):
-        super(TimedElement, self).__init__(start_time, end_time, text)
+        super().__init__(start_time, end_time, text)
 
     def get_words(self):
         if not "words" in self.__dict__:
@@ -89,16 +90,20 @@ class TimedSentence(TimedElement):
 
 class TimedWord(TimedElement):
     def __init__(self, start_time="", end_time="", text=""):
-        super(TimedElement, self).__init__(start_time, end_time, text)
+        super().__init__(start_time, end_time, text)
 
 
 class TimedWordSentence(TimedElement):
     def __init__(self, words: List[TimedWord]):
+        assert type(words) == list
         start_time = words[0].start_time
         end_time = words[-1].end_time
         text = " ".join([w.text for w in words])
-        super.__init__(start_time, end_time, text)
+        super().__init__(start_time, end_time, text)
         self.words = words
 
-    def words_indexed(self):
-        return zip(self.words, range(0, len(self.words)))
+    def words_indexed(self, zipped=False):
+        if zipped:
+            return zip(self.words, range(0, len(self.words)))
+        else:
+            return [w for w in zip(self.words, range(0, len(self.words)))]
