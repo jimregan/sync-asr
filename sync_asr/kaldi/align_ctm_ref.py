@@ -168,23 +168,6 @@ def read_text(text_file):
     text_file.close()
 
 
-def read_hfjson(json_file, lowercase=True):
-    with open(json_file) as jsonf:
-        utt = json_file.replace(".json", "")
-        data = json.load(jsonf)
-        if not "chunks" in data:
-            raise ValueError(f"File does not appear to contain HuggingFace JSON")
-        # utt_id channel_num start_time duration phone_id confidence
-        count = 1
-        for chunk in data["chunks"]:
-            # do stuff
-            word = chunk["text"] if not lowercase else chunk["text"].lower()
-            start = chunk["timestamp"][0]
-            dur = chunk["timestamp"][1] - chunk["timestamp"][0]
-            parts = [utt, 1, start, dur, word, 1.0]
-            yield f"{utt}_{count:06}", parts
-
-
 def read_ctm(ctm_file, file_and_channel2reco=None):
     """Reads a CTM file and yields elements of a dictionary
         { utterance-id : CTM for the utterance },
