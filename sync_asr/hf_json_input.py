@@ -9,7 +9,7 @@ class HuggingFaceJSON(TimedElement):
             self._load(filename)
         elif filename == "":
             self._grab(data)
-        self.words: List[TimedWord] = []
+        self.words = []
 
     def _load(self, filename):
         with open(filename) as jsonf:
