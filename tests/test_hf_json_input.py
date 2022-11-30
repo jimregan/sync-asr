@@ -1,7 +1,14 @@
 from sync_asr.hf_json_input import HuggingFaceJSON
+import json
 
 
 # https://en.wiktionary.org/wiki/File:En-au-sick_as_a_dog.ogg
+# >>> input = "En-au-sick_as_a_dog.ogg"
+# >>> from transformers import pipeline
+# >>> model = "jonatasgrosman/wav2vec2-large-xlsr-53-english"
+# >>> pipe = pipeline(model=model)
+# >>> import json
+# >>> json.dumps(output)
 _SAMPLE = """
 {
   "text": "sick as a dog",
@@ -40,5 +47,6 @@ _SAMPLE = """
 
 
 def test_huggingface_json():
-    hf_json = HuggingFaceJSON(data=_SAMPLE)
+    json_sample = json.loads(_SAMPLE)
+    hf_json = HuggingFaceJSON(data=json_sample)
     assert len(hf_json.words) == 4
