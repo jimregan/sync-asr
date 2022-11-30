@@ -22,6 +22,6 @@ class HuggingFaceJSON(TimedElement):
         if warn and not "chunks" in data:
             raise ValueError(f"Data does not appear to contain HuggingFace JSON")
         for chunk in data["chunks"]:
-            self.words.append(TimedWord(start_time=chunk["timestamp"][0],
-                                        end_time=chunk["timestamp"][1]),
-                                        text=chunk["text"])
+            self.words.append(TimedWord(start_time=int(chunk["timestamp"][0] * 1000),
+                                        end_time=int(chunk["timestamp"][1] * 1000),
+                                        text=chunk["text"]))
