@@ -2,12 +2,9 @@ from .elements import TimedWord, TimedElement
 
 
 class CTMLine(TimedWord):
-    def __init__(self, *args, **kwargs):
-        super(TimedElement, self).__init__(*args, **kwargs)
-        if len(args) >= 1:
-            self.from_line(args[0])
-        elif "from_line" in kwargs:
-            self.from_line(kwargs["from_line"])
+    def __init__(self, from_line=""):
+        super().__init__(*args, **kwargs)
+        self.from_line(from_line)
 
     def __str__(self) -> str:
         return " ".join(self.as_list())
