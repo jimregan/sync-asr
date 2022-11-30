@@ -21,7 +21,7 @@ class CTMEditLine(TimedWord):
     def from_line(self, text: str):
         # AJJacobs_2007P-0001605-0003029 1 0 0.09 <eps> 1.0 <eps> sil tainted
         parts = text.strip().split()
-        EDITS = ["cor", "ins", "del", "sub"]
+        EDITS = ["cor", "ins", "del", "sub", "sil"]
         self.id = parts[0]
         self.channel = parts[1]
         self.start_time = int(float(parts[2]) * 1000)
