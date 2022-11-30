@@ -9,6 +9,7 @@ def test_timed_element():
     assert te.get_duration() == 200
     te2 = TimedElement(10, 180, "es")
     assert (te > te2) == True
+    assert f"{te}" == "[0,200] test"
 
 
 def test_has_overlap():
