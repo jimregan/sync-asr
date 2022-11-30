@@ -38,7 +38,7 @@ class CTMEditLine(TimedWord):
             if parts[8] == "tainted":
                 self.tainted = True
         # Extension to the format
-        if len(parts) > 8 and (":" in parts[-1] and ";" in parts[-1]):
+        if len(parts) > 8 and ":" in parts[-1]:
             self.props = { k:v for k,v in (p.split(":") for p in parts[-1].split(";")) }
 
     def as_list(self):
