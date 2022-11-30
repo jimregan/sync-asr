@@ -28,7 +28,7 @@ def test_ctmline2():
 
 def test_ctmline3():
     ctm_line = CTMEditLine(_SAMPLE3)
-    assert ctm_line.tainted == False
+    assert "tainted" not in ctm_line.__dict__
     assert "spelling" in ctm_line.props
     assert ctm_line.props["spelling"] == "both"
 
