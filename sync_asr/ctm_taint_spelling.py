@@ -9,7 +9,7 @@ except ImportError:
         pass
 
 import argparse
-from sync_asr.ctm_edit import CTMEditLine, merge_consecutive
+from .ctm_edit import CTMEditLine, merge_consecutive
 
 
 class HunspellChecker():
@@ -175,19 +175,4 @@ def main():
 
 
 if __name__ == '__main__':
-    if __package__ is None:
-        from pathlib import Path
-        import sys
-
-        file = Path(__file__).resolve()
-        parent, top = file.parent, file.parents[3]
-
-        sys.path.append(str(top))
-        try:
-            sys.path.remove(str(parent))
-        except ValueError: # Already removed
-            pass
-
-        import sync_asr
-        __package__ = 'sync_asr'
     main()
