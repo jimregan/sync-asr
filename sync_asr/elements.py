@@ -7,6 +7,7 @@ class TimedElement():
         self.end_time = end_time
         self.text = text
         self.duration = end_time - start_time
+        self.verbose = False
 
     def __str__(self) -> str:
         return f"[{self.start_time},{self.end_time}] {self.text}"
