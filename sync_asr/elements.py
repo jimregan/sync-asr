@@ -80,7 +80,7 @@ class TimedElement():
 
 class TimedSentence(TimedElement):
     def __init__(self, start_time="", end_time="", text=""):
-        super(TimedElement, self).__init__(start_time, end_time, text)
+        super().__init__(start_time, end_time, text)
 
     def get_words(self):
         if not "words" in self.__dict__:
@@ -90,7 +90,7 @@ class TimedSentence(TimedElement):
 
 class TimedWord(TimedElement):
     def __init__(self, start_time="", end_time="", text=""):
-        super(TimedElement, self).__init__(start_time, end_time, text)
+        super().__init__(start_time, end_time, text)
 
 
 class TimedWordSentence(TimedElement):
@@ -98,7 +98,7 @@ class TimedWordSentence(TimedElement):
         start_time = words[0].start_time
         end_time = words[-1].end_time
         text = " ".join([w.text for w in words])
-        super.__init__(start_time, end_time, text)
+        super().__init__(start_time, end_time, text)
         self.words = words
 
     def words_indexed(self):
