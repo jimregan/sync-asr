@@ -1,3 +1,12 @@
+.eggs/
+pygramadan.egg-info/
+pygramadan/__pycache__/
+tests/__pycache__/
+*~
+*.swp
+scripts/__pycache__/
+build/
+dist/
 sync_asr/tfidf/
 sync_asr/outdir/
 src_tf_idf.txt
