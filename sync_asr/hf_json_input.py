@@ -19,6 +19,8 @@ class HuggingFaceJSON(TimedElement):
             self._grab(data, False)
 
     def _grab(self, data, warn=True):
+        if type(data) == str:
+            data = json.loads(data)
         if warn and not "chunks" in data:
             raise ValueError(f"Data does not appear to contain HuggingFace JSON")
         for chunk in data["chunks"]:
