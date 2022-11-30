@@ -19,10 +19,10 @@ class HuggingFaceJSON(TimedElement):
                 raise ValueError(f"File {filename} does not appear to contain HuggingFace JSON")
             self._grab(data, False)
 
-    def _grab(self, data, warn=True):
+    def _grab(self, data):
         if type(data) == str:
             data = json.loads(data)
-        if warn and not "chunks" in data:
+        if self.verbose and (not "chunks" in data or type(data["chunks"]) != list):
             raise ValueError(f"Data does not appear to contain HuggingFace JSON")
         for chunk in data["chunks"]:
             if self.verbose:
