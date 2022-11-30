@@ -8,15 +8,18 @@ def get_args():
     """)
     parser.add_argument('files', type=str, nargs='+', help='files to process')
     parser.add_argument('--lower', help='lowercase words', action='store_true', default=True)
+    parser.add_argument('--riksdag', help='Riksdag-specific fixes', action='store_true', default=True)
     args = parser.parse_args()
 
     return args
 
 
-def read_hfjson(json_file, lowercase=True):
+def read_hfjson(json_file, lowercase=True, riksdag=False):
     outname = json_file.replace(".json", ".ctm")
     with open(json_file) as jsonf, open(outname, "w") as outf:
-        utt = json_file.split("/")[-1].replace(".json", "").replace("_480p", "")
+        utt = json_file.split("/")[-1].replace(".json", "")
+        if riksdag:
+            utt = utt.replace("_480p", "")
         data = json.load(jsonf)
         if not "chunks" in data:
             raise ValueError(f"File does not appear to contain HuggingFace JSON")
