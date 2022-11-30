@@ -16,5 +16,5 @@ def test_ctmline():
 
 def test_as_list():
     ctm_line = CTMLine(_SAMPLE)
-    exp = ["AJJacobs_2007P-0001605-0003029", "1", 0.0, 0.09, "<eps>", 1.0]
+    exp = ["AJJacobs_2007P-0001605-0003029", "1", "0.0", "0.09", "<eps>", "1.0"]
     assert ctm_line.as_list() == exp
