@@ -1,4 +1,4 @@
-from .elements import TimedWord, TimedElement
+from .elements import TimedWord
 
 
 class CTMLine(TimedWord):
