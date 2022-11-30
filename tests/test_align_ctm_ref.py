@@ -23,4 +23,4 @@ def test_smith_waterman_alignment():
         del_score=-1, ins_score=-1, eps_symbol="-", align_full_hyp=True)
 
     assert output == _EXP
-    assert score == 0
+    assert score == 6
