@@ -3,8 +3,11 @@ from .elements import TimedWord, TimedElement
 
 class CTMLine(TimedWord):
     def __init__(self, from_line=""):
-        super().__init__(*args, **kwargs)
         self.from_line(from_line)
+        start_time = self.start_time
+        end_time = self.end_time
+        text = self.text
+        super().__init__(start_time, end_time, text)
 
     def __str__(self) -> str:
         return " ".join(self.as_list())
