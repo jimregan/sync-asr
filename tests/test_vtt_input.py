@@ -26,4 +26,8 @@ def test_vtt_input():
     if not can_run:
         return
     vtt_input = VTTInput(f"{TEST_DIR}/sample.vtt")
+    assert len(vtt_input.captions) == 3
+    assert vtt_input.captions[0].start_time == 1000
+    assert vtt_input.captions[0].end_time == 4000
+    assert vtt_input.captions[0].text == "Never drink liquid nitrogen."
     
