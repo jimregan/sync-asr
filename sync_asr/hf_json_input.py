@@ -9,9 +9,7 @@ class HuggingFaceJSON(TimedElement):
             self._load(filename)
         elif filename == "":
             self._grab(data)
-        #self.words: List[TimedWord] = []
-        self.verbose = True
-        self.words = []
+        self.words: List[TimedWord] = []
 
     def _load(self, filename):
         with open(filename) as jsonf:
@@ -23,10 +21,8 @@ class HuggingFaceJSON(TimedElement):
     def _grab(self, data):
         if type(data) == str:
             data = json.loads(data)
-        if self.verbose and (not "chunks" in data or type(data["chunks"]) != list):
+        if not "chunks" in data or type(data["chunks"]) != list:
             raise ValueError(f"Data does not appear to contain HuggingFace JSON")
-        if self.verbose and len(data["chunks"]) == 0:
-            raise ValueError(f"Data appears to lack content")
         for chunk in data["chunks"]:
             if self.verbose:
                 print(f'Reading chunk: {chunk["timestamp"][0]}:{chunk["timestamp"][1]} {chunk["text"]}')
