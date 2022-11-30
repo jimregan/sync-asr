@@ -9,6 +9,6 @@ def test_ctmline():
     assert ctm_line.id == "AJJacobs_2007P-0001605-0003029"
     assert ctm_line.channel == "1"
     assert ctm_line.start_time == 0
-    assert ctm_line.duration == 900
+    assert ctm_line.duration == 90
     assert ctm_line.text == "<eps>"
     assert ctm_line.confidence == 1.0
