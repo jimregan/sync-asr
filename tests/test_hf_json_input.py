@@ -48,5 +48,8 @@ _SAMPLE = """
 
 def test_huggingface_json():
     json_sample = json.loads(_SAMPLE)
+    assert "chunks" in json_sample
+    assert type(json_sample["chunks"]) == list
+    assert len(json_sample["chunks"]) == 4
     hf_json = HuggingFaceJSON(data=json_sample)
     assert len(hf_json.words) == 4
