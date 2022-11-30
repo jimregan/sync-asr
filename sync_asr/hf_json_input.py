@@ -24,6 +24,8 @@ class HuggingFaceJSON(TimedElement):
             data = json.loads(data)
         if self.verbose and (not "chunks" in data or type(data["chunks"]) != list):
             raise ValueError(f"Data does not appear to contain HuggingFace JSON")
+        if self.verbose and len(data["chunks"]) == 0:
+            raise ValueError(f"Data appears to lack content")
         for chunk in data["chunks"]:
             if self.verbose:
                 print(f'Reading chunk: {chunk["timestamp"][0]}:{chunk["timestamp"][1]} {chunk["text"]}')
