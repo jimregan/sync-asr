@@ -7,6 +7,8 @@ class HuggingFaceJSON(TimedElement):
     def __init__(self, data=None, filename=""):
         if data is None and filename != "":
             self._load(filename)
+        elif filename != "":
+            self.grab(data)
         self.words: List[TimedWord] = []
 
     def _load(self, filename):
