@@ -52,3 +52,15 @@ def test_timed_word():
     assert tw.get_duration() == 200
     tw2 = TimedWord(10, 180, "es")
     assert (tw > tw2) == True
+
+
+def test_timed_word_sentence():
+    timed_words = [
+        TimedWord(0, 200, "test"),
+        TimedWord(200, 400, "test2")
+    ]
+    tws = TimedWordSentence(timed_words)
+    assert tws.start_time == 0
+    assert tws.end_time == 400
+    assert tws.text == "test test2"
+    #assert tws.words_indexed() == [()]
