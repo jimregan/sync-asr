@@ -1,18 +1,15 @@
-from .elements import TimedWord, TimedElement
+from .elements import TimedWord
 import copy
 
 
 class CTMEditLine(TimedWord):
-    def __init__(self, *args, **kwargs):
-        super(TimedElement, self).__init__(**kwargs)
-        if len(args) > 0:
-            self.from_line(args[0])
-        elif "from_line" in kwargs:
-            self.from_line(kwargs["from_line"])
-        self.props = {}
-        self.verbose = False
-        if "verbose" in kwargs:
-            self.verbose = True
+    def __init__(self, from_line="", verbose=False):
+        self.from_line(from_line)
+        start_time = self.start_time
+        end_time = self.end_time
+        text = self.text
+        super().__init__(start_time, end_time, text)
+        self.verbose = verbose
         self.PUNCT = [".", ",", ":", ";", "!", "?", "-"]
 
     def __str__(self) -> str:
