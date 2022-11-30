@@ -18,13 +18,13 @@ class HuggingFaceJSON(TimedElement):
                 raise ValueError(f"File {filename} does not appear to contain HuggingFace JSON")
             self._grab(data, False)
 
-    def _grab(self, data):
+    def _grab(self, data, warn=False):
         if type(data) == str:
             data = json.loads(data)
         if not "chunks" in data or type(data["chunks"]) != list:
             raise ValueError(f"Data does not appear to contain HuggingFace JSON")
         for chunk in data["chunks"]:
-            if self.verbose:
+            if warn:
                 print(f'Reading chunk: {chunk["timestamp"][0]}:{chunk["timestamp"][1]} {chunk["text"]}')
             self.words.append(TimedWord(start_time=int(chunk["timestamp"][0] * 1000),
                                         end_time=int(chunk["timestamp"][1] * 1000),
