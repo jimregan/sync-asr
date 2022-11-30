@@ -63,4 +63,5 @@ def test_timed_word_sentence():
     assert tws.start_time == 0
     assert tws.end_time == 400
     assert tws.text == "test test2"
-    #assert tws.words_indexed() == [()]
+    wi = [('test', 0), ('test2', 1)]
+    assert tws.words_indexed() == wi
