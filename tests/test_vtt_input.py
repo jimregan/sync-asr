@@ -4,7 +4,7 @@ import os
 
 can_run = True
 try:
-    import webvtt
+    from webvtt.structures import Caption
 except ImportError:
     can_run = False
 
@@ -13,8 +13,17 @@ TEST_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
 def test_vtt_caption():
-    pass
+    if not can_run:
+        return
+    caption = Caption("00:01.000", "00:04.000", "Never drink liquid nitrogen.")
+    vtt_caption = VTTCaption(caption)
+    assert vtt_caption.start_time == 1000
+    assert vtt_caption.end_time == 4000
+    assert vtt_caption.text == "Never drink liquid nitrogen."
 
 
 def test_vtt_input():
-    pass
+    if not can_run:
+        return
+    vtt_input = VTTInput(f"{TEST_DIR}/sample.vtt")
+    

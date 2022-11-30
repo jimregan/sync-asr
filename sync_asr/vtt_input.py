@@ -19,6 +19,7 @@ class VTTInput(TimedElement):
         self.splittable = False
         self.merge_next = False
         self._load(filename)
+        super().__init__(self.start_time, self.end_time, self.text)
 
     def _load(self, filename):
         captions = webvtt.read(filename)
