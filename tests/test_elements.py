@@ -30,6 +30,7 @@ def test_overlap():
     te2 = TimedElement(10, 110, "test")
     assert te1.overlap(te2) == 90
 
+
 def test_pct_overlap():
     te1 = TimedElement(0, 100, "test")
     te2 = TimedElement(10, 110, "test")
