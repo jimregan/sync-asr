@@ -56,13 +56,12 @@ def test_timed_word():
 
 
 def test_timed_word_sentence():
-    timed_words = [
-        TimedWord(0, 200, "test"),
-        TimedWord(200, 400, "test2")
-    ]
+    tw1 = TimedWord(0, 200, "test"),
+    tw2 = TimedWord(200, 400, "test2")
+    timed_words = [tw1, tw2]
     tws = TimedWordSentence(timed_words)
     assert tws.start_time == 0
     assert tws.end_time == 400
     assert tws.text == "test test2"
-    wi = [('test', 0), ('test2', 1)]
+    wi = [(tw1, 0), (tw2, 1)]
     assert tws.words_indexed() == wi
