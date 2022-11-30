@@ -1,15 +1,15 @@
-from .elements import TimedElement, TimedWord
+from .elements import TimedWord, TimedWordSentence
 from typing import List
 import json
 
 
-class HuggingFaceJSON(TimedElement):
+class HuggingFaceJSON(TimedWordSentence):
     def __init__(self, data=None, filename=""):
+        self.words = []
         if data is None and filename != "":
             self._load(filename)
         elif filename == "":
             self._grab(data)
-        self.words = []
 
     def _load(self, filename):
         with open(filename) as jsonf:
