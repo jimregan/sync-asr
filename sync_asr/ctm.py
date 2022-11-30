@@ -16,7 +16,13 @@ class CTMLine(TimedWord):
         return f"{self.id} ({self.start_time, self.end_time}) {self.text}"
 
     def from_line(self, text: str):
-        # AJJacobs_2007P-0001605-0003029 1 0 0.09 <eps> 1.0
+        """
+        Reads a single CTM line:
+
+        AJJacobs_2007P-0001605-0003029 1 0 0.09 <eps> 1.0
+
+        :param text: the string to read from
+        """
         parts = text.strip().split()
         self.id = parts[0]
         self.channel = parts[1]
@@ -27,6 +33,11 @@ class CTMLine(TimedWord):
         self.confidence = float(parts[5])
 
     def as_list(self):
+        """
+        returns a list containing the pieces of a CTM line, for use in
+        other processing. Makes start_time and duration into fractions
+        of a second, instead of milliseconds.
+        """
         return [
             self.id,
             self.channel,
