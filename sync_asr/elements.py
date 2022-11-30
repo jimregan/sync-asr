@@ -102,4 +102,4 @@ class TimedWordSentence(TimedElement):
         self.words = words
 
     def words_indexed(self):
-        return zip(self.words, range(0, len(self.words)))
+        return [w for w in zip(self.words, range(0, len(self.words)))]
