@@ -95,6 +95,7 @@ class TimedWord(TimedElement):
 
 class TimedWordSentence(TimedElement):
     def __init__(self, words: List[TimedWord]):
+        assert type(words) == list
         start_time = words[0].start_time
         end_time = words[-1].end_time
         text = " ".join([w.text for w in words])
