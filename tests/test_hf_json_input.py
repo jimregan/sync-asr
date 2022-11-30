@@ -55,3 +55,5 @@ def test_huggingface_json():
     assert len(hf_json.words) == 4
     hf_json2 = HuggingFaceJSON(data=_SAMPLE)
     assert len(hf_json2.words) == 4
+    assert hf_json.start_time == 280
+    assert hf_json.end_time == 960
