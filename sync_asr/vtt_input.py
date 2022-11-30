@@ -62,12 +62,12 @@ class VTTCaption(TimedElement):
             for req in reqd:
                 if not req in kwargs:
                     raise ValueError(f"Missing required argument {req}")
-            super(TimedElement, self).__init__(kwargs["start_time"],
-                                               kwargs["end_time"],
-                                               kwargs["text"])
+            super().__init__(kwargs["start_time"],
+                             kwargs["end_time"],
+                             kwargs["text"])
 
-        super(TimedElement, self).__init__(start_time=start,
-                                           end_time=end,
-                                           text=text)
+        super().__init__(start_time=start,
+                         end_time=end,
+                         text=text)
         self.start_original = caption.start
         self.end_original = caption.end
