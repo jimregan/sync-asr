@@ -18,7 +18,6 @@ import logging
 import sys
 import json
 
-from .common import NullstrToNoneAction, StrToBoolAction
 
 logger = logging.getLogger(__name__)
 handler = logging.StreamHandler()
@@ -28,6 +27,39 @@ handler.setFormatter(formatter)
 logger.setLevel(logging.DEBUG)
 
 verbose_level = 0
+
+
+def str_to_bool(value):
+    if value == "true":
+        return True
+    elif value == "false":
+        return False
+    else:
+        raise ValueError
+
+
+class StrToBoolAction(argparse.Action):
+    """ A custom action to convert bools from shell format i.e., true/false
+        to python format i.e., True/False """
+
+    def __call__(self, parser, namespace, values, option_string=None):
+        try:
+            setattr(namespace, self.dest, str_to_bool(values))
+        except ValueError:
+            raise Exception(
+                "Unknown value {0} for --{1}".format(values, self.dest))
+
+
+class NullstrToNoneAction(argparse.Action):
+    """ A custom action to convert empty strings passed by shell to None in
+    python. This is necessary as shell scripts print null strings when a
+    variable is not specified. We could use the more apt None in python. """
+
+    def __call__(self, parser, namespace, values, option_string=None):
+        if values.strip() == "":
+            setattr(namespace, self.dest, None)
+        else:
+            setattr(namespace, self.dest, values)
 
 
 def get_args():
