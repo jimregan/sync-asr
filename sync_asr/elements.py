@@ -46,6 +46,7 @@ class TimedElement():
             return self.start_time < other.end_time
 
     def contained_duration(self, other):
+        # FIXME
         if not hasattr(other, "duration"):
             return NotImplemented
 
@@ -77,16 +78,18 @@ class TimedElement():
 
 
 class TimedSentence(TimedElement):
-    def __init__(self, *args, **kwargs):
-        super(TimedElement, self).__init__(*args, **kwargs)
+    def __init__(self, start_time="", end_time="", text=""):
+        super(TimedElement, self).__init__(start_time, end_time, text)
 
     def get_words(self):
-        return self.text.split(" ")
+        if not "words" in self.__dict__:
+            self.words = self.text.split(" ")
+        return self.words
 
 
 class TimedWord(TimedElement):
-    def __init__(self, *args, **kwargs):
-        super(TimedElement, self).__init__(*args, **kwargs)
+    def __init__(self, start_time="", end_time="", text=""):
+        super(TimedElement, self).__init__(start_time, end_time, text)
 
 
 class TimedWordSentence(TimedElement):
