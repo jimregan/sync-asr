@@ -2,6 +2,8 @@ from sync_asr.ctm_edit import CTMEditLine
 
 
 _SAMPLE = "AJJacobs_2007P-0001605-0003029 1 0 0.09 <eps> 1.0 <eps> sil tainted"
+_SAMPLE2 = "AJJacobs_2007P-0001605-0003029 1 0 0.09 <eps> 1.0 <eps> sil tainted spelling:both"
+_SAMPLE3 = "AJJacobs_2007P-0001605-0003029 1 0 0.09 <eps> 1.0 <eps> sil spelling:both"
 
 
 def test_ctmline():
@@ -15,6 +17,20 @@ def test_ctmline():
     assert ctm_line.ref == "<eps>"
     assert ctm_line.edit == "sil"
     assert ctm_line.tainted == True
+
+
+def test_ctmline2():
+    ctm_line = CTMEditLine(_SAMPLE2)
+    assert ctm_line.tainted == True
+    assert "spelling" in ctm_line.props
+    assert ctm_line.props["spelling"] == "both"
+
+
+def test_ctmline3():
+    ctm_line = CTMEditLine(_SAMPLE3)
+    assert ctm_line.tainted == False
+    assert "spelling" in ctm_line.props
+    assert ctm_line.props["spelling"] == "both"
 
 
 def test_as_list():
