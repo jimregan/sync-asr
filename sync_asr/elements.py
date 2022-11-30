@@ -6,6 +6,7 @@ class TimedElement():
         self.start_time = start_time
         self.end_time = end_time
         self.text = text
+        self.duration = end_time - start_time
 
     def __str__(self) -> str:
         return f"[{self.start_time},{self.end_time}] {self.text}"
@@ -15,8 +16,11 @@ class TimedElement():
                 hasattr(other, "end_time") and
                 hasattr(other, "text"))
 
-    def duration(self):
-        return self.end_time - self.start_time
+    def get_duration(self):
+        if "duration" in self.__dict__:
+            return self.duration
+        else:
+            return self.end_time - self.start_time
 
     def within(self, other):
         if not self._is_valid_comparison(other):
@@ -43,6 +47,7 @@ class TimedElement():
             return self.start_time < other.end_time
 
     def contained_duration(self, other):
+        # FIXME
         if not hasattr(other, "duration"):
             return NotImplemented
 
@@ -67,32 +72,38 @@ class TimedElement():
             return 0.0
         if self.within(other):
             return 100.0
-        return (self.overlap(other) / self.duration()) * 100
+        return (self.overlap(other) / self.get_duration()) * 100
 
     def has_enough_overlap(self, other, cutoff=90):
         return self.pct_overlap(other) >= cutoff
 
 
 class TimedSentence(TimedElement):
-    def __init__(self, *args, **kwargs):
-        super(TimedElement, self).__init__(*args, **kwargs)
+    def __init__(self, start_time="", end_time="", text=""):
+        super().__init__(start_time, end_time, text)
 
     def get_words(self):
-        return self.text.split(" ")
+        if not "words" in self.__dict__:
+            self.words = self.text.split(" ")
+        return self.words
 
 
 class TimedWord(TimedElement):
-    def __init__(self, *args, **kwargs):
-        super(TimedElement, self).__init__(*args, **kwargs)
+    def __init__(self, start_time="", end_time="", text=""):
+        super().__init__(start_time, end_time, text)
 
 
 class TimedWordSentence(TimedElement):
     def __init__(self, words: List[TimedWord]):
+        assert type(words) == list
         start_time = words[0].start_time
         end_time = words[-1].end_time
         text = " ".join([w.text for w in words])
-        super.__init__(start_time, end_time, text)
+        super().__init__(start_time, end_time, text)
         self.words = words
 
-    def words_indexed(self):
-        return zip(self.words, range(0, len(self.words)))
+    def words_indexed(self, zipped=False):
+        if zipped:
+            return zip(self.words, range(0, len(self.words)))
+        else:
+            return [w for w in zip(self.words, range(0, len(self.words)))]
