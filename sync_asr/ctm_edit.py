@@ -4,16 +4,12 @@ import copy
 
 class CTMEditLine(TimedWord):
     def __init__(self, *args, **kwargs):
-        super(TimedElement, self).__init__(**kwargs)
-        if len(args) > 0:
+        super(TimedElement, self).__init__(*args, **kwargs)
+        if len(args) >= 1:
             self.from_line(args[0])
         elif "from_line" in kwargs:
             self.from_line(kwargs["from_line"])
         self.props = {}
-        self.verbose = False
-        if "verbose" in kwargs:
-            self.verbose = True
-        self.PUNCT = [".", ",", ":", ";", "!", "?", "-"]
 
     def __str__(self) -> str:
         return " ".join(self.as_list())
@@ -37,12 +33,9 @@ class CTMEditLine(TimedWord):
             self.edit = parts[7]
         else:
             raise ValueError(f"Unknown edit type: {parts[7]}")
-        if len(parts) >= 9:
+        if len(parts) == 9:
             if parts[8] == "tainted":
                 self.tainted = True
-        # Extension to the format
-        if len(parts) > 8 and (":" in parts[-1] and ";" in parts[-1]):
-            self.props = { k:v for k,v in (p.split(":") for p in parts[-1].split(";")) }
 
     def as_list(self):
         out = [
@@ -55,29 +48,21 @@ class CTMEditLine(TimedWord):
             self.ref,
             self.edit, 
         ]
-        if "tainted" in self.__dict__ and self.tainted:
+        if self.tainted:
             out.append("tainted")
-        if "props" in self.__dict__ and self.props:
-            out.append(";".join([f"{a[0]}:{a[1]}" for a in self.props.items()]))
+        if self.props:
+            out.append(";".join([f"{a[0]:a[1]}" for a in self.props.items()]))
         return out
     
-    def mark_correct_from_list(self, collisions, case_punct=False):
+    def mark_correct_from_list(self, collisions):
         def checksout(ref, col):
             return ((type(col) == str and ref == col) or \
                 (type(col) == list and ref in col))
-        work_ref = self.ref
-        if case_punct:
-            work_ref = self.ref.lower()
-            if self.ref[-1] in self.PUNCT:
-                work_ref = work_ref[:-1]
         if self.text in collisions:
-            orig_text = self.text
             collision = collisions[self.text]
-            if checksout(work_ref, collision):
+            if checksout(self.ref, collision):
                 self.text = self.ref
                 self.edit = "cor"
-                if self.verbose:
-                    self.set_prop("collision", f"{orig_text}_{work_ref}")
 
     def set_correct_ref(self):
         self.text = self.ref
@@ -88,8 +73,9 @@ class CTMEditLine(TimedWord):
         self.edit = "cor"
 
     def fix_case_difference(self):
+        PUNCT = [".", ",", ":", ";", "!", "?", "-"]
         comp = self.ref
-        if comp[-1] in self.PUNCT:
+        if comp[-1] in PUNCT:
             comp = comp[:-1]
         if self.text == comp.lower():
             self.set_correct_ref()
@@ -100,9 +86,6 @@ class CTMEditLine(TimedWord):
     def get_prop(self, key):
         return self.props[key]
 
-    def has_eps(self, eps='"<eps>"'):
-        return self.text == eps or self.ref == eps
-
 
 def ctm_from_file(filename):
     ctm_lines = []
@@ -112,19 +95,9 @@ def ctm_from_file(filename):
     return ctm_lines
 
 
-def merge_consecutive(ctm_a, ctm_b, text="", joiner="", epsilon='"<eps>"', edit=""):
+def merge_consecutive(ctm_a, ctm_b, joiner="", epsilon="<eps>"):
     new_ctm = copy.deepcopy(ctm_a)
     new_ctm.end_time = ctm_b.end_time
-    new_ctm.duration = new_ctm.end_time - new_ctm.start_time
-    if text == "":
-        new_ctm.text = joiner.join([ctm_a.text, ctm_b.text]).replace(epsilon, "")
-        new_ctm.ref = joiner.join([ctm_a.ref, ctm_b.ref]).replace(epsilon, "")
-        if edit == "":
-            new_ctm.edit = "cor"
-        else:
-            new_ctm.edit = edit
-    else:
-        new_ctm.text = text
-        new_ctm.ref = text
-        new_ctm.edit = "cor"
+    new_ctm.text = joiner.join(ctm_a.text, ctm_b.text).replace(epsilon, "")
+    new_ctm.ref = joiner.join(ctm_a.ref, ctm_b.ref).replace(epsilon, "")
     return new_ctm
