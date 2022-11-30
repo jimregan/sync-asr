@@ -1,4 +1,4 @@
-from sync_asr.elements import TimedElement
+from sync_asr.elements import TimedElement, TimedSentence
 
 
 def test_timed_element():
@@ -35,3 +35,10 @@ def test_pct_overlap():
     te1 = TimedElement(0, 100, "test")
     te2 = TimedElement(10, 110, "test")
     assert te1.pct_overlap(te2) == 90.0
+
+
+def test_timed_sentence():
+    ts = TimedSentence(0, 10, "this is a test")
+    assert ts.start_time == 0
+    assert ts.end_time == 10
+    assert ts.get_words() == ["this", "is", "a", "test"]
