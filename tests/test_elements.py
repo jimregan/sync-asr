@@ -56,7 +56,7 @@ def test_timed_word():
 
 
 def test_timed_word_sentence():
-    tw1 = TimedWord(0, 200, "test"),
+    tw1 = TimedWord(0, 200, "test")
     tw2 = TimedWord(200, 400, "test2")
     timed_words = [tw1, tw2]
     assert type(timed_words) == list
