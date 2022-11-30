@@ -1,9 +1,9 @@
-from .elements import TimedElement, TimedWord
+from .elements import TimedWordSentence, TimedWord
 from typing import List
 import json
 
 
-class HuggingFaceJSON(TimedElement):
+class HuggingFaceJSON(TimedWordSentence):
     def __init__(self, data=None, filename=""):
         if data is None:
             words = self._load(filename)
