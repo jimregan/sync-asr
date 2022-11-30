@@ -4,12 +4,10 @@ import json
 
 
 class HuggingFaceJSON(TimedElement):
-    words: List[TimedWord]
-
     def __init__(self, data=None, filename=""):
-        self.foo = "foo"
         if data is None and filename != "":
             self._load(filename)
+        self.words: List[TimedWord] = []
 
     def _load(self, filename):
         with open(filename) as jsonf:
