@@ -41,7 +41,7 @@ def main():
                 text = clean_text(pair["text"])
                 if text == "":
                     continue
-                text_to_doc["vidid"].append(pair["docid"])
+                text_to_doc[vidid].append(pair["docid"])
                 outf.write(f'{pair["docid"]} {text}\n')
     if args.text_to_doc:
         with open(args.text_to_doc, "w") as outf:
