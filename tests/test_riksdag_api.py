@@ -9,4 +9,4 @@ def test_riksdag_api():
     file = f"{TEST_DIR}/H001CU21"
     rdapi = RiksdagAPI(filename=file)
     assert "videodata" in rdapi.__dict__
-    assert "streamurls" in rdapi.videodata
+    assert "streamurl" in rdapi.videodata
