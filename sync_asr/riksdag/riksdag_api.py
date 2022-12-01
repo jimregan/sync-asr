@@ -51,7 +51,14 @@ class RiksdagAPI():
 
     def get_speaker_elements(self):
         if type(self.videodata) == list:
-            pass
+            viddata = self.videodata
+        else:
+            viddata = [self.videodata]
+        output = []
+        for vd in viddata:
+            for speaker in vd["speakers"]:
+                output.append(SpeakerElement(speaker))
+        return output
 
     def get_vidid(self):
         base = self.videodata["streamurl"]
