@@ -21,7 +21,6 @@ class SpeakerElement(TimedElement):
         self.end_time = self.start_time + self.duration
         self.text = " ".join(p for p in speaker["paragraphs"])
         self.paragraphs = speaker["paragraphs"]
-        self.raw = speaker
         super().__init__(self.start_time, self.end_time, self.text)
 
 
@@ -112,7 +111,7 @@ def get_speaker_paragraphs(html):
         soup = BeautifulSoup(html, 'html.parser')
         paragraphs = []
         for para in soup.find_all("p"):
-            if para.text.strip() != "":
+            if para.text.strip() != "" and not para.text.strip().startswith("STYLEREF Kantrubrik"):
                 paragraphs.append(para.text.strip())
         return paragraphs
     else:
