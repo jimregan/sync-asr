@@ -57,7 +57,6 @@ def read_api_json(data, filename, verbose=False):
     assert "url" in data["videodata"][0]["streams"]["files"][0]
     base["streamurl"] = data["videodata"][0]["streams"]["files"][0]["url"]
 
-
     if not "speakers" in data["videodata"][0] or data["videodata"][0]["speakers"] is None:
         if verbose:
             print(f"No 'speakers' key found in {filename}")
