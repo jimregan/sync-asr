@@ -53,6 +53,14 @@ class RiksdagAPI():
         if type(self.videodata) == list:
             pass
 
+    def get_vidid(self):
+        base = self.videodata["streamurl"]
+        if "/" in base:
+            parts = base.split("/")
+            return parts[-1]
+        else:
+            return base
+
     def get_paragraphs_with_ids(self):
         if type(self.videodata) == list:
             viddata = self.videodata
@@ -64,7 +72,7 @@ class RiksdagAPI():
             for speaker in vd["speakers"]:
                 paragraph_num = 1
                 for paragraph in speaker["paragraphs"]:
-                    docid = f'{self.videodata["streamurl"]}_{speaker_turn}_{paragraph_num}'
+                    docid = f'{self.get_vidid()}_{speaker_turn}_{paragraph_num}'
                     output.append({"docid": docid, "text": paragraph})
                     paragraph_num += 1
                 speaker_turn += 1
