@@ -112,7 +112,7 @@ def read_videodata(videodata, filename="", verbose=False, nullify=True):
             paragraphs.append(copy.deepcopy(pg))
             count += 1
         cur["paragraphs"] = copy.deepcopy(paragraphs)
-        speakers.append(cur)
+        speakers.append(copy.deepcopy(cur))
     base["speakers"] = speakers
     return base
 
