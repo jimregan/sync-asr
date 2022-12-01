@@ -25,7 +25,7 @@ class SpeakerElement(TimedElement):
 
 
 class RiksdagAPI():
-    def __init__(self, data=None, filename="", verbose=False):
+    def __init__(self, data=None, filename="", verbose=False, nullify=False):
         api_data = data
         if data is None:
             with open(filename) as fp:
@@ -43,7 +43,7 @@ class RiksdagAPI():
 
         video_data_tmp = []
         for videodata in api_data["videodata"]:
-            video_data_tmp.append(read_videodata(videodata, filename, verbose))
+            video_data_tmp.append(read_videodata(videodata, filename, verbose, nullify))
         if len(video_data_tmp) == 1:
             self.videodata = video_data_tmp[0]
         else:
@@ -52,6 +52,23 @@ class RiksdagAPI():
     def get_speaker_elements(self):
         if type(self.videodata) == list:
             pass
+
+    def get_paragraphs_with_ids(self):
+        if type(self.videodata) == list:
+            viddata = self.videodata
+        else:
+            viddata = [self.videodata]
+        output = []
+        for vd in viddata:
+            speaker_turn = 1
+            for speaker in vd["speakers"]:
+                paragraph_num = 1
+                for paragraph in speaker["paragraphs"]:
+                    docid = f'{self.videodata["streamurl}"]}_{speaker_turn}_{paragraph_num}'
+                    output.append({"docid": docid, "text": paragraph})
+                    paragraph_num += 1
+                speaker_turn += 1
+        return output
 
 
 def read_videodata(videodata, filename="", verbose=False, nullify=True):
