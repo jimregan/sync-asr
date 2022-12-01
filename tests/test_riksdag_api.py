@@ -22,3 +22,9 @@ def test_speaker_element():
     assert se.speaker_name == "Ola Johansson"
     assert se.paragraphs[0].startswith("Herr talman! Det blir lite")
     assert se.text.startswith("Herr talman! Det blir lite")
+
+
+def test_get_paragraphs_with_ids():
+    file = f"{TEST_DIR}/H001CU21"
+    rdapi = RiksdagAPI(filename=file)
+    assert rdapi.get_paragraphs_with_ids() == ""
