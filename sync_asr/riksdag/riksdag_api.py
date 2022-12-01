@@ -64,7 +64,7 @@ class RiksdagAPI():
             for speaker in vd["speakers"]:
                 paragraph_num = 1
                 for paragraph in speaker["paragraphs"]:
-                    docid = f'{self.videodata["streamurl}"]}_{speaker_turn}_{paragraph_num}'
+                    docid = f'{self.videodata["streamurl"]}_{speaker_turn}_{paragraph_num}'
                     output.append({"docid": docid, "text": paragraph})
                     paragraph_num += 1
                 speaker_turn += 1
