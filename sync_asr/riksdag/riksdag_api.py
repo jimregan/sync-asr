@@ -100,15 +100,19 @@ def read_videodata(videodata, filename="", verbose=False, nullify=True):
         ending = f" ({cur['party']})"
         if cur["speaker"].endswith(ending):
             cur["speaker"] = cur["speaker"][:-len(ending)]
-        html = speaker["anftext"]
-        soup = BeautifulSoup(html, 'html.parser')
-        cur["paragraphs"] = []
-        for para in soup.find_all("p"):
-            if para.text.strip() != "":
-                cur["paragraphs"].append(para.text.strip())
+        cur["paragraphs"] = get_speaker_paragraphs(speaker["anftext"])
         speakers.append(copy.deepcopy(cur))
     base["speakers"] = speakers
     return base
+
+
+def get_speaker_paragraphs(html):
+    soup = BeautifulSoup(html, 'html.parser')
+    paragraphs = []
+    for para in soup.find_all("p"):
+        if para.text.strip() != "":
+            paragraphs.append(para.text.strip())
+    return paragraphs
 
 
 PUNCT_FINAL = [")", ".", ",", "!", ":", ";", "?", '"']
