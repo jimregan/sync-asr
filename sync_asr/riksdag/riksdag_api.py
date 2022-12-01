@@ -107,7 +107,7 @@ def read_videodata(videodata, filename="", verbose=False, nullify=True):
 
 
 def get_speaker_paragraphs(html):
-    if ("<p> in html") or ("<P>" in html):
+    if "<p>" in html or "<P>" in html:
         soup = BeautifulSoup(html, 'html.parser')
         paragraphs = []
         for para in soup.find_all("p"):
