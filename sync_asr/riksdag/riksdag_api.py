@@ -104,9 +104,8 @@ def read_videodata(videodata, filename="", verbose=False, nullify=True):
         soup = BeautifulSoup(html, 'html.parser')
         cur["paragraphs"] = []
         for para in soup.find_all("p"):
-            if para.text.strip() == "":
-                continue
-            cur["paragraphs"].append(para.text)
+            if para.text.strip() != "":
+                cur["paragraphs"].append(para.text.strip())
         speakers.append(copy.deepcopy(cur))
     base["speakers"] = speakers
     return base
