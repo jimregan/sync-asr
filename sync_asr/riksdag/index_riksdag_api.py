@@ -9,9 +9,9 @@ def get_args():
     """)
     parser.add_argument('dir', type=str, help='directory containing API JSON')
     parser.add_argument('output', type=str, help='output file name')
-    parser.add_argument('text_to_doc', type=str, required=False,
+    parser.add_argument('texttodoc', type=str, required=False,
         help="output file to write list of documents with their subdocuments")
-    parser.add_argument('doc_to_text', type=str, required=False,
+    parser.add_argument('doctotext', type=str, required=False,
         help="output file to write list of subdocuments with their documents")
     args = parser.parse_args()
 
@@ -43,12 +43,12 @@ def main():
                     continue
                 text_to_doc["vidid"].append(pair["docid"])
                 outf.write(f'{pair["docid"]} {text}\n')
-    if args.text_to_doc:
-        with open(args.text_to_doc, "w") as outf:
+    if args.texttodoc:
+        with open(args.texttodoc, "w") as outf:
             for k in text_to_doc:
                 outf.write(f'{k} {" ".join(text_to_doc[k])}\n')
-    if args.doc_to_text:
-        with open(args.doc_to_text, "w") as outf:
+    if args.doctotext:
+        with open(args.doctotext, "w") as outf:
             for k in text_to_doc:
                 for v in text_to_doc[k]:
                     outf.write(f'{v} {k}\n')
