@@ -13,7 +13,7 @@ BASE_KEYS = [
 
 
 class RiksdagAPI():
-    def __init__(self, data, filename="", verbose=False):
+    def __init__(self, data=None, filename="", verbose=False):
         api_data = data
         if data is None:
             with open(filename) as fp:
