@@ -31,14 +31,14 @@ class RiksdagAPI():
 
         video_data_tmp = []
         for videodata in api_data["videodata"]:
-            video_data_tmp.append(_read_single_videodata(videodata, filename, verbose))
+            video_data_tmp.append(read_videodata(videodata, filename, verbose))
         if len(video_data_tmp) == 1:
             self.videodata = video_data_tmp[0]
         else:
             self.videodata = video_data_tmp
 
 
-def _read_single_videodata(videodata, filename="", verbose=False, nullify=True):
+def read_videodata(videodata, filename="", verbose=False, nullify=True):
     base = {}
     for key in BASE_KEYS:
         base[key] = videodata[key]
