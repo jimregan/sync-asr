@@ -2,12 +2,12 @@
 from setuptools import find_packages, setup
 
 setup(
-    name='pygramadan',
+    name='sync_asr',
     packages=find_packages(exclude=("scripts",)),
     version='0.0.1',
-    description='Library for working with Bunachar Náisiúnta Moirfeolaíochta',
-    author='',
-    license='MIT',
+    description='Library for synchronising ASR output with reference text',
+    author="Jim O'Regan",
+    license='Apache License 2.0',
     classifiers=[
         "Development Status :: 2 - Pre-Alpha",
         "Intended Audience :: Developers",
