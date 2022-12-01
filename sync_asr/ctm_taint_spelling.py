@@ -5,8 +5,11 @@ except ImportError:
     print("Hint: pip install hunspell")
     if __name__ == '__main__':
         quit()
+
+
     class HunspellChecker():
         pass
+
 
 import argparse
 from .ctm_edit import CTMEditLine, merge_consecutive
