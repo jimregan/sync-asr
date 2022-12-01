@@ -1,6 +1,5 @@
 import json
 from bs4 import BeautifulSoup
-from pathlib import Path
 import copy
 import re
 
@@ -30,10 +29,13 @@ class RiksdagAPI():
         if not "videodata" in api_data:
             raise ValueError("Data does not appear to contain Riksdag API output")
 
-        if len(api_data["videodata"]) > 1:
-            if verbose:
-                print(f"More than one 'videodata' in {filename}")
-            self.has_multiple_videodata = True
+        video_data_tmp = []
+        for videodata in api_data["videodata"]:
+            video_data_tmp.append(_read_single_videodata(videodata, filename, verbose))
+        if len(video_data_tmp) == 1:
+            self.videodata = video_data_tmp[0]
+        else:
+            self.videodata = video_data_tmp
 
 
 def _read_single_videodata(videodata, filename="", verbose=False, nullify=True):
