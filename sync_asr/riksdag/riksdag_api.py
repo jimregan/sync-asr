@@ -106,12 +106,12 @@ def read_videodata(videodata, filename="", verbose=False, nullify=True):
         for para in soup.find_all("p"):
             if para.text.strip() == "":
                 continue
-            pg = copy.deepcopy(cur)
+            pg = {}
             pg["text"] = para.text
             pg["number"] = count
-            paragraphs.append(pg)
+            paragraphs.append(copy.deepcopy(pg))
             count += 1
-        cur["paragraphs"] = paragraphs
+        cur["paragraphs"] = copy.deepcopy(paragraphs)
         speakers.append(cur)
     base["speakers"] = speakers
     return base
