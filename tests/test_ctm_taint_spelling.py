@@ -1,4 +1,5 @@
 from sync_asr.ctm_taint_spelling import HunspellChecker
+from pathlib import Path
 
 can_run = True
 try:
@@ -12,9 +13,11 @@ SWE_AFF = "/usr/share/hunspell/sv_SE.aff"
 
 
 def test_hunspell_checker():
-    speller = HunspellChecker(SWE_DICT, SWE_AFF)
-    assert speller.check("blåbär") == True
-    assert speller.check_pair("blåbär", "blåbär") == "correct_both"
-    assert speller.check_pair("blåbär", "blabär") == "correct_text"
-    assert speller.check_pair("blåbar", "blåbär") == "correct_ref"
-    assert speller.check_pair("blåbar", "blabär") == "incorrect_both"
+    can_run = (Path(SWE_DICT).exists() and Path(SWE_AFF).exists())
+    if can_run:
+        speller = HunspellChecker(SWE_DICT, SWE_AFF)
+        assert speller.check("blåbär") == True
+        assert speller.check_pair("blåbär", "blåbär") == "correct_both"
+        assert speller.check_pair("blåbär", "blabär") == "correct_text"
+        assert speller.check_pair("blåbar", "blåbär") == "correct_ref"
+        assert speller.check_pair("blåbar", "blabär") == "incorrect_both"
