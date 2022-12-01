@@ -30,12 +30,11 @@ def main():
             doc = rdapi.videodata
             if "speakers" not in doc:
                 continue
-            for speaker in doc["speakers"]:
-                docid = f'{doc["streamurl"].split("/")[-1]}_{speaker["paragraph"]}'
-                text = clean_text(speaker["text"])
+            for pair in rdapi.get_paragraphs_with_ids():
+                text = clean_text(pair["text"])
                 if text == "":
                     continue
-                outf.write(f"{docid} {text}\n")
+                outf.write(f'{pair["docid"]} {text}\n')
 
 
 if __name__ == '__main__':
