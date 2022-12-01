@@ -1,12 +1,6 @@
-import json
-from bs4 import BeautifulSoup
 from pathlib import Path
 import argparse
-import copy
-from .riksdag_api import clean_text
-
-
-BASE_KEYS = ['videostatus', 'committee', 'type', 'debatepreamble', 'debatetexthtml', 'livestreamurl', 'activelivespeaker', 'id', 'dokid', 'title', 'debatename', 'debatedate', 'debatetype', 'debateurl', 'fromchamber', 'thumbnailurl', 'debateseconds']
+from .riksdag_api import RiksdagAPI, clean_text
 
 
 def get_args():
@@ -22,66 +16,7 @@ def get_args():
 
 def read_api_json_file(filename):
     infile = str(filename)
-    with open(infile) as input:
-        data = json.load(input)
-    return read_api_json(data, filename)
-
-
-def read_api_json(data, filename, verbose=False):
-    if type(data) == str:
-        data = json.loads(data)
-    assert "videodata" in data
-
-    if verbose:
-        print(f"Reading {filename}")
-
-    if len(data["videodata"]) > 1:
-        raise ValueError(f"More than one 'videodata' in {filename}")
-
-    base = {}
-    for key in BASE_KEYS:
-        base[key] = data["videodata"][0][key]
-
-    if not "streams" in data["videodata"][0] or data["videodata"][0]["streams"] is None:
-        if verbose:
-            print(f"No 'streams' key found in {filename}")
-        return None, None
-    assert "streams" in data["videodata"][0]
-    if not "files" in data["videodata"][0]["streams"] or data["videodata"][0]["streams"]["files"] is None:
-        if verbose:
-            print(f"No 'files' key found in {filename}")
-    assert "files" in data["videodata"][0]["streams"]
-    if len(data["videodata"][0]["streams"]["files"]) > 1:
-        if verbose:
-            print(f"More than one stream: {filename}")
-    assert "url" in data["videodata"][0]["streams"]["files"][0]
-    base["streamurl"] = data["videodata"][0]["streams"]["files"][0]["url"]
-
-    if not "speakers" in data["videodata"][0] or data["videodata"][0]["speakers"] is None:
-        if verbose:
-            print(f"No 'speakers' key found in {filename}")
-        return None, None
-    speakers = []
-    for speaker in data["videodata"][0]["speakers"]:
-        cur = {}
-        for key in ["start", "duration", "party", "subid", "active", "number"]:
-            cur[key] = speaker[key]
-        cur["speaker"] = speaker["text"]
-        ending = f" ({cur['party']})"
-        if cur["speaker"].endswith(ending):
-            cur["speaker"] = cur["speaker"][:-len(ending)]
-        html = speaker["anftext"]
-        soup = BeautifulSoup(html, 'html.parser')
-        count = 1
-        for para in soup.find_all("p"):
-            if para.text.strip() == "":
-                continue
-            pg = copy.deepcopy(cur)
-            pg["text"] = para.text
-            pg["paragraph"] = count
-            speakers.append(pg)
-            count += 1
-    return base, speakers
+    return RiksdagAPI(filename=filename, nullify=True)
 
 
 def main():
@@ -89,14 +24,13 @@ def main():
     API_OUTPUT = Path(args.dir)
     with open(args.output, "w") as outf:
         for file in API_OUTPUT.glob("*"):
-            doc, speakers = read_api_json_file(file)
-            if doc is None or speakers is None:
+            rdapi = read_api_json_file(file)
+            if rdapi is None:
                 continue
-            for speaker in speakers:
-                if speaker["text"].strip() == "":
-                    continue
-                elif speaker["text"].strip().startswith("STYLEREF Kantrubrik"):
-                    continue
+            doc = rdapi.videodata
+            if "speakers" not in doc:
+                continue
+            for speaker in doc["speakers"]:
                 docid = f'{doc["streamurl"].split("/")[-1]}_{speaker["paragraph"]}'
                 text = clean_text(speaker["text"])
                 if text == "":
