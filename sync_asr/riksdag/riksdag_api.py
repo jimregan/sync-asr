@@ -16,6 +16,10 @@ BASE_KEYS = [
 class SpeakerElement(TimedElement):
     def __init__(self, speaker):
         self.speaker_name = speaker["speaker"]
+        self.start_time = int(speaker["start"] * 1000)
+        self.duration = int(speaker["duration"] * 1000)
+        self.end_time = self.start_time + self.duration
+        self.text = " ".join(p["text"] for p in speaker["paragraphs"])
 
 
 class RiksdagAPI():
