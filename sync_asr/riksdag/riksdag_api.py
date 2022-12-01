@@ -107,12 +107,16 @@ def read_videodata(videodata, filename="", verbose=False, nullify=True):
 
 
 def get_speaker_paragraphs(html):
-    soup = BeautifulSoup(html, 'html.parser')
-    paragraphs = []
-    for para in soup.find_all("p"):
-        if para.text.strip() != "":
-            paragraphs.append(para.text.strip())
-    return paragraphs
+    if ("<p> in html") or ("<P>" in html):
+        soup = BeautifulSoup(html, 'html.parser')
+        paragraphs = []
+        for para in soup.find_all("p"):
+            if para.text.strip() != "":
+                paragraphs.append(para.text.strip())
+        return paragraphs
+    else:
+        text = html.strip().replace("\r\n", "\n").replace("\r", "\n")
+        return text.split("\n")
 
 
 PUNCT_FINAL = [")", ".", ",", "!", ":", ";", "?", '"']
