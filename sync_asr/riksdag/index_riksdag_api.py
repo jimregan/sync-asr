@@ -7,12 +7,12 @@ def get_args():
     parser = argparse.ArgumentParser(description="""
     Convert a directory of Riksdag API output to Kaldi text format
     """)
-    parser.add_argument('dir', type=str, help='directory containing API JSON')
-    parser.add_argument('output', type=str, help='output file name')
     parser.add_argument('--text-to-doc', type=str, required=False,
         help="output file to write list of documents with their subdocuments")
     parser.add_argument('--doc-to-text', type=str, required=False,
         help="output file to write list of subdocuments with their documents")
+    parser.add_argument('dir', type=str, help='directory containing API JSON')
+    parser.add_argument('output', type=str, help='output file name')
     args = parser.parse_args()
 
     return args
