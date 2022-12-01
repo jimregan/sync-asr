@@ -19,7 +19,7 @@ class SpeakerElement(TimedElement):
         self.start_time = int(speaker["start"] * 1000)
         self.duration = int(speaker["duration"] * 1000)
         self.end_time = self.start_time + self.duration
-        self.text = " ".join(p["text"] for p in speaker["paragraphs"])
+        self.text = " ".join(p for p in speaker["paragraphs"])
         self.paragraphs = speaker["paragraphs"]
 
 
@@ -101,17 +101,12 @@ def read_videodata(videodata, filename="", verbose=False, nullify=True):
             cur["speaker"] = cur["speaker"][:-len(ending)]
         html = speaker["anftext"]
         soup = BeautifulSoup(html, 'html.parser')
-        count = 1
         paragraphs = []
         for para in soup.find_all("p"):
             if para.text.strip() == "":
                 continue
-            pg = {}
-            pg["text"] = para.text
-            pg["number"] = count
-            paragraphs.append(copy.deepcopy(pg))
-            count += 1
-        cur["paragraphs"] = copy.deepcopy(paragraphs)
+            paragraphs.append(para.text)
+        cur["paragraphs"] = paragraphs
         speakers.append(copy.deepcopy(cur))
     base["speakers"] = speakers
     return base
