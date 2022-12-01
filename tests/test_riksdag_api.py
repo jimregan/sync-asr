@@ -36,4 +36,8 @@ def test_get_speaker_elements():
     file = f"{TEST_DIR}/H001CU21"
     rdapi = RiksdagAPI(filename=file)
     se = rdapi.get_speaker_elements()
-    assert se[0] == ""
+    assert se[0].start_time == 14000
+    assert se[0].duration == 233000
+    assert se[0].speaker_name == "Ola Johansson"
+    assert se[0].paragraphs[0].startswith("Herr talman! Det blir lite")
+    assert se[0].text.startswith("Herr talman! Det blir lite")
