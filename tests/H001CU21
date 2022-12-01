@@ -1,0 +1,62 @@
+{
+  "videodata": [
+    {
+      "videostatus": 2,
+      "committee": null,
+      "type": null,
+      "debatepreamble": null,
+      "debatetexthtml": null,
+      "livestreamurl": null,
+      "activelivespeaker": null,
+      "id": "",
+      "dokid": "H001CU21",
+      "title": "Nedsättning av en byggsanktionsavgift",
+      "debatename": "Debatt om förslag",
+      "debatedate": "22 maj 2013",
+      "debatetype": "bet",
+      "debateurl": "/sv/webb-tv/video/debatt-om-forslag/nedsattning-av-en-byggsanktionsavgift_H001CU21",
+      "fromchamber": true,
+      "thumbnailurl": "https://mhdownload.riksdagen.se/posterframe/2442207160019927321.jpg",
+      "debateseconds": 252,
+      "streams": {
+        "files": [
+          {
+            "mimetype": "mp4",
+            "url": "VOD1/PAL169/2442207160019927321",
+            "videofileurl": "https://mamstream.riksdagen.se/VOD1/_definst_/smil:PAL169/2442207160019927321.smil/playlist.m3u8",
+            "audiofileurl": "https://mhdownload.riksdagen.se/VOD1/PAL169/2442207160019927321_aud.mp3",
+            "downloadfileurl": "https://mhdownload.riksdagen.se/VOD1/PAL169/2442207160019927321_480p.mp4",
+            "bandwidth": [
+              {
+                "name": "Hög kvalitet",
+                "quality": 2000,
+                "mimetype": "video/mp4",
+                "url": "https://mamstream.riksdagen.se/VOD1/_definst_/smil:PAL169/2442207160019927321.smil/playlist.m3u8",
+                "downloadurl": "https://mhdownload.riksdagen.se/VOD1/PAL169/2442207160019927321_480p.mp4"
+              }
+            ]
+          }
+        ]
+      },
+      "speakers": [
+        {
+          "start": 14,
+          "duration": 233,
+          "text": "Ola Johansson (C)",
+          "party": "C",
+          "subid": "263DE6D4-3AB5-4F7C-B78C-C636B2265A44",
+          "active": false,
+          "number": 116,
+          "anftext": "\r\nHerr talman! Det blir lite favorit i repris här.\r\nI debatten om byggande och bostadspolitik hamnar regler ofta i fokus för kritiken. En byggbroms som behöver avskaffas är detaljreglering och krångliga bestämmelser som kommunernas plan- och byggkontor och byggnadsnämnder har att bevaka att vi medborgare följer.\r\nByggsanktionsavgiften, som är det som vi ska diskutera, är en avgift som tas ut vid olovligt byggande eller ett så kallat svartbygge. Det är ett begrepp som de flesta kan relatera till.\r\nByggsanktionsavgiften tas ut av kommunen med stöd av plan- och bygglagen. Avgiften är bestämd utifrån åtgärden, och storleken regleras genom plan- och byggförordningens 9 kap. Den är baserad på det prisbasbelopp som gäller för det år beslut om byggsanktionsavgiften fattas. För den som inte vet det är prisbasbeloppet 44 500 kronor för 2013. Ett halvt basbelopp är sanktionsavgiften som man har rätt att ta ut för en byggnad om högst 150 kvadratmeter.\r\nDet går kanske an om det är fråga om ett byggföretag med en totalentreprenad som går ut på att sälja den färdigställda villan till en köpare. Man kan förvänta sig att ett sådant företag vet vad som gäller och skulle vara berett att stå för kostanden om någonting skulle bli fel. Men för självbyggaren och hemmafixaren kan ett sådant litet fel som att man flyttar in i den tillbyggda delen av huset innan man har hunnit med att meddela byggnadsnämnden sitt slutbesked kosta över 22 000 kronor, det vill säga halva prisbasbeloppet - detta trots att utbyggnaden har utförts helt i enlighet med det bygglov som har beviljats.\r\nI ett annat fall har man ansökt om bygglov och skickat in alla papper, men byggnadsnämnden dröjer med sitt förhandsbesked längre än de tio dagar som den nya lagen kräver. Om beslutet när det väl kommer är positivt fast den sökande redan har påbörjat arbetet i förvissningen om att ansökan ska godkännas blir påföljden åter en avgift på 22 250 kronor. Trots att myndigheten, byggnadsnämnden, är den som har gjort formaliafelet genom att inte ge förhandsbeskedet i tid, är det byggherren, den enskilde, som måste betala. Om det dessutom är fler åtgärder som har utförts felaktigt kan avgift på avgift tas ut.\r\nDet finns många exempel, och även om det är enklast att tala om konsekvenserna för enskilda personer som bygger själva, så är storleken på dessa avgifter någonting som kan skapa osäkerhet också vid större byggen. Därmed är den här lilla förändringen också en viktig regelförenkling för att åstadkomma ett ökat bostadsbyggande.\r\nEn sanktionsavgift ska enligt propositionen kunna halveras eller sättas ned till en fjärdedel av halva prisbasbeloppet om det fel som har begåtts är litet, om det inte har gjorts med uppsåt och om det förutom att det finns formella fel inte påverkar säkerhet eller miljö eller har någon annan effekt på omgivningen. Det finns en risk att tolkningen av vad som är ett litet fel kan bli besvärlig för byggnadsnämnderna. Samtidigt tror jag att många känner att det är rätt skönt att inte behöva klämma åt sina kommuninvånare värre än vad som är rimligt med höga avgifter.\r\nHerr talman! Centerpartiet välkomnar detta eftersom det ökar den enskildes frihet och underlättar för den som vill bygga till eller förändra användningen i någon del av sin egen bostad och fastighet. Därför yrkar jag bifall till utskottets förslag i betänkandet och till propositionen.\r\n(Applåder)\r\n",
+          "partyimgurl": "https://www.riksdagen.se/imagevault/publishedmedia/dk6wckn8bcs55858mzgg/Centerpartiet_logo_symbol_pos-320x320-luft.jpg",
+          "partycode": "C",
+          "commissionerimgurl": "https://data.riksdagen.se/filarkiv/bilder/ledamot/728bd800-61df-4b9a-86ed-1fe3d8479f14_160.jpg",
+          "commissionerurl": "https://www.riksdagen.se/sv/ledamoter-partier/ledamot/ola-johansson_728bd800-61df-4b9a-86ed-1fe3d8479f14",
+          "description": null,
+          "committee": null
+        }
+      ],
+      "agendalist": null
+    }
+  ]
+}
