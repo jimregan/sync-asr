@@ -21,6 +21,7 @@ class SpeakerElement(TimedElement):
         self.end_time = self.start_time + self.duration
         self.text = " ".join(p for p in speaker["paragraphs"])
         self.paragraphs = speaker["paragraphs"]
+        self.raw = speaker
 
 
 class RiksdagAPI():
