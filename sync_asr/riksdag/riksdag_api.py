@@ -20,6 +20,7 @@ class SpeakerElement(TimedElement):
         self.duration = int(speaker["duration"] * 1000)
         self.end_time = self.start_time + self.duration
         self.text = " ".join(p["text"] for p in speaker["paragraphs"])
+        self.paragraphs = speaker["paragraphs"]
 
 
 class RiksdagAPI():
@@ -50,6 +51,7 @@ class RiksdagAPI():
     def get_speaker_elements(self):
         if type(self.videodata) == list:
             pass
+
 
 def read_videodata(videodata, filename="", verbose=False, nullify=True):
     base = {}
