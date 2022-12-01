@@ -2,6 +2,7 @@ import json
 from bs4 import BeautifulSoup
 import copy
 import re
+from sync_asr.elements import TimedElement
 
 
 BASE_KEYS = [
@@ -10,6 +11,11 @@ BASE_KEYS = [
     'debatename', 'debatedate', 'debatetype', 'debateurl', 'fromchamber',
     'thumbnailurl', 'debateseconds'
 ]
+
+
+class SpeakerElement(TimedElement):
+    def __init__(self, speaker):
+        self.speaker_name = speaker["speaker"]
 
 
 class RiksdagAPI():
@@ -37,6 +43,9 @@ class RiksdagAPI():
         else:
             self.videodata = video_data_tmp
 
+    def get_speaker_elements(self):
+        if type(self.videodata) == list:
+            pass
 
 def read_videodata(videodata, filename="", verbose=False, nullify=True):
     base = {}
@@ -87,15 +96,18 @@ def read_videodata(videodata, filename="", verbose=False, nullify=True):
         html = speaker["anftext"]
         soup = BeautifulSoup(html, 'html.parser')
         count = 1
+        paragraphs = []
         for para in soup.find_all("p"):
             if para.text.strip() == "":
                 continue
             pg = copy.deepcopy(cur)
             pg["text"] = para.text
-            pg["paragraph"] = count
-            speakers.append(pg)
+            pg["number"] = count
+            paragraphs.append(pg)
             count += 1
-    base["speakers"] = speaker
+        cur["paragraphs"] = paragraphs
+        speakers.append(cur)
+    base["speakers"] = speakers
     return base
 
 
