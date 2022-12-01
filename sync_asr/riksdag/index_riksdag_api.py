@@ -20,35 +20,47 @@ def get_args():
     return args
 
 
-def read_api_json(filename):
+def read_api_json_file(filename):
     infile = str(filename)
     with open(infile) as input:
         data = json.load(input)
+    return read_api_json(data, filename)
+
+
+def read_api_json(data, filename, verbose=False):
+    if type(data) == str:
+        data = json.loads(data)
     assert "videodata" in data
-    print(f"Reading {filename}")
+
+    if verbose:
+        print(f"Reading {filename}")
 
     if len(data["videodata"]) > 1:
-        print(f"More than one 'videodata' in {infile}")
+        raise ValueError(f"More than one 'videodata' in {filename}")
 
     base = {}
     for key in BASE_KEYS:
         base[key] = data["videodata"][0][key]
 
     if not "streams" in data["videodata"][0] or data["videodata"][0]["streams"] is None:
-        print(f"No 'streams' key found in {filename}")
+        if verbose:
+            print(f"No 'streams' key found in {filename}")
         return None, None
     assert "streams" in data["videodata"][0]
     if not "files" in data["videodata"][0]["streams"] or data["videodata"][0]["streams"]["files"] is None:
-        print(f"No 'files' key found in {filename}")
+        if verbose:
+            print(f"No 'files' key found in {filename}")
     assert "files" in data["videodata"][0]["streams"]
     if len(data["videodata"][0]["streams"]["files"]) > 1:
-        print(f"More than one stream: {infile}")
+        if verbose:
+            print(f"More than one stream: {filename}")
     assert "url" in data["videodata"][0]["streams"]["files"][0]
     base["streamurl"] = data["videodata"][0]["streams"]["files"][0]["url"]
 
 
     if not "speakers" in data["videodata"][0] or data["videodata"][0]["speakers"] is None:
-        print(f"No 'speakers' key found in {filename}")
+        if verbose:
+            print(f"No 'speakers' key found in {filename}")
         return None, None
     speakers = []
     for speaker in data["videodata"][0]["speakers"]:
@@ -106,7 +118,7 @@ def main():
     API_OUTPUT = Path(args.dir)
     with open(args.output, "w") as outf:
         for file in API_OUTPUT.glob("*"):
-            doc, speakers = read_api_json(file)
+            doc, speakers = read_api_json_file(file)
             if doc is None or speakers is None:
                 continue
             for speaker in speakers:
