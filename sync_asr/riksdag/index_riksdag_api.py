@@ -3,7 +3,7 @@ from bs4 import BeautifulSoup
 from pathlib import Path
 import argparse
 import copy
-import re
+from .riksdag_api import clean_text
 
 
 BASE_KEYS = ['videostatus', 'committee', 'type', 'debatepreamble', 'debatetexthtml', 'livestreamurl', 'activelivespeaker', 'id', 'dokid', 'title', 'debatename', 'debatedate', 'debatetype', 'debateurl', 'fromchamber', 'thumbnailurl', 'debateseconds']
@@ -82,34 +82,6 @@ def read_api_json(data, filename, verbose=False):
             speakers.append(pg)
             count += 1
     return base, speakers
-
-
-PUNCT_FINAL = [")", ".", ",", "!", ":", ";", "?", '"']
-
-
-def clean_text(text):
-    text = text.strip().replace("\r\n", " ")
-    if text == "":
-        return ""
-    if len(text) == 1 and text in PUNCT_FINAL:
-        return ""
-    while text[-1] in PUNCT_FINAL:
-        text = text[:-1]
-    while text[0] in ["(", '"']:
-        text = text[1:]
-    text = text.replace("\n", " ")
-    text = text.strip()
-    text = text.replace('"', "")
-    text = text.replace(". ", " ")
-    text = text.replace(", ", " ")
-    text = text.replace(";", "")
-    text = text.replace(": ", " ")
-    text = text.replace("!", "")
-    text = text.replace("?", "")
-    text = re.sub("  +", " ", text)
-    text = text.lower()
-    
-    return text
 
 
 def main():

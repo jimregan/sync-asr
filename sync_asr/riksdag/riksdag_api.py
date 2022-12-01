@@ -95,4 +95,31 @@ def _read_single_videodata(videodata, filename="", verbose=False, nullify=True):
             count += 1
     base["speakers"] = speaker
     return base
-        
+
+
+PUNCT_FINAL = [")", ".", ",", "!", ":", ";", "?", '"']
+
+
+def clean_text(text):
+    text = text.strip().replace("\r\n", " ")
+    if text == "":
+        return ""
+    if len(text) == 1 and text in PUNCT_FINAL:
+        return ""
+    while text[-1] in PUNCT_FINAL:
+        text = text[:-1]
+    while text[0] in ["(", '"']:
+        text = text[1:]
+    text = text.replace("\n", " ")
+    text = text.strip()
+    text = text.replace('"', "")
+    text = text.replace(". ", " ")
+    text = text.replace(", ", " ")
+    text = text.replace(";", "")
+    text = text.replace(": ", " ")
+    text = text.replace("!", "")
+    text = text.replace("?", "")
+    text = re.sub("  +", " ", text)
+    text = text.lower()
+    return text
+
