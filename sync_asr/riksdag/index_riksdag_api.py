@@ -34,7 +34,7 @@ def main():
                 continue
             doc = rdapi.videodata
             vidid = rdapi.get_vidid()
-            text_to_doc["vidid"] = []
+            text_to_doc[vidid] = []
             if "speakers" not in doc:
                 continue
             for pair in rdapi.get_paragraphs_with_ids():
