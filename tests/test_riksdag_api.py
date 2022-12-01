@@ -30,3 +30,10 @@ def test_get_paragraphs_with_ids():
     pairs = rdapi.get_paragraphs_with_ids()
     assert pairs[0]["docid"] == "2442207160019927321_1_1"
     assert pairs[0]["text"].startswith("Herr talman!")
+
+
+def test_get_speaker_elements():
+    file = f"{TEST_DIR}/H001CU21"
+    rdapi = RiksdagAPI(filename=file)
+    se = rdapi.get_speaker_elements()
+    assert se[0] == ""
