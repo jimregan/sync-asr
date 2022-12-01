@@ -8,4 +8,5 @@ TEST_DIR = os.path.dirname(os.path.abspath(__file__))
 def test_riksdag_api():
     file = f"{TEST_DIR}/H001CU21"
     rdapi = RiksdagAPI(filename=file)
-    assert "streamurls" in rdapi.__dict__
+    assert "videodata" in rdapi.__dict__
+    assert "streamurls" in rdapi.videodata
