@@ -96,7 +96,7 @@ def rd_similarity_score_function(x, y):
 
 def align_ctm_with_riksdag(pairs: List[FilteredPair],
                            similarity_score_function=default_similarity_score_function,
-                           del_score=1, ins_score=1,
+                           del_score=-1, ins_score=-1,
                            eps_symbol="<eps>", align_full_hyp=True):
     aligned_pairs = []
 
@@ -112,3 +112,35 @@ def align_ctm_with_riksdag(pairs: List[FilteredPair],
         aligned_pairs.append(output)
 
     return aligned_pairs
+
+
+def run(args):
+    del_score = -args.deletion_penalty
+    ins_score = -args.insertion_penalty
+
+    ctmlines = []
+    for line in args.ctm_in.readlines():
+        ctmlines.append(CTMLine(line.strip()))
+    rdapi = RiksdagAPI(args.rdapi_in.read())
+
+    pairs = filter_ctm_with_riksdag(ctmlines, rdapi)
+    output = align_ctm_with_riksdag(pairs, rd_similarity_score_function)
+    for element in output:
+        print(element)
+
+def main():
+    args = get_args()
+
+    try:
+        run(args)
+    except Exception:
+        print("Failed to align ref and hypotheses; "
+              "got exception ", exc_info=True)
+        raise SystemExit(1)
+    finally:
+        args.ctm_in.close()
+        args.rdapi_in.close()
+
+
+if __name__ == '__main__':
+    main()
