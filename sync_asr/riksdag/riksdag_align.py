@@ -153,7 +153,7 @@ def main():
         run(args)
     except Exception as e:
         print("Failed to align ref and hypotheses; "
-              "got exception ", e)
+              "got exception ", type(e), e)
         raise SystemExit(1)
     finally:
         args.ctm_in.close()
