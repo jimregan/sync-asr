@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from copy import deepcopy
 from ..kaldi.align_ctm_ref import get_ctm_edits, smith_waterman_alignment
 import string
+import argparse
 
 
 @dataclass
@@ -12,6 +13,33 @@ class FilteredPair():
     ctmlines: List[CTMLine]
     riksdag_segments: SpeakerElement
     speaker_name: str = ""
+
+
+def get_args():
+    parser = argparse.ArgumentParser(description="""
+    Align CTM with Riksdag API text
+    """)
+    # Arguments from align_ctm_ref.py
+    parser.add_argument("--eps-symbol", type=str, default="-",
+                        help="Symbol used to contain alignment "
+                        "to empty symbol")
+    parser.add_argument("--correct-score", type=int, default=1,
+                        help="Score for correct matches")
+    parser.add_argument("--substitution-penalty", type=int, default=1,
+                        help="Penalty for substitution errors")
+    parser.add_argument("--deletion-penalty", type=int, default=1,
+                        help="Penalty for deletion errors")
+    parser.add_argument("--insertion-penalty", type=int, default=1,
+                        help="Penalty for insertion errors")
+    parser.add_argument("ctm_in",
+                        type=argparse.FileType('r'),
+                        help="""Filename of input CTM file.  Use
+                        /dev/stdin for standard input.""")
+    parser.add_argument("rdapi_in",
+                        type=argparse.FileType('r'),
+                        help="""Filename of Riksdag API file.""")
+    args = parser.parse_args()
+    return args
 
 
 # TODO: this assumes there is always a 'within' case
