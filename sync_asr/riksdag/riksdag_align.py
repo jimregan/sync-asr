@@ -44,12 +44,14 @@ def get_args():
 
 # TODO: this assumes there is always a 'within' case
 # which may not be true, in which case, breakage happens
-def filter_ctm_with_riksdag(ctmlines, riksdag_output):
+def filter_ctm_with_riksdag(ctmlines, rdapi):
     within = False
     start = True
 
     last_i = i = j = 0
     pairs = []
+
+    riksdag_output = rdapi.get_speaker_elements()
 
     while (i < len(ctmlines) - 1) and (j < len(riksdag_output)):
         if (start or not within) and ctmlines[i].end_time < riksdag_output[j].start_time:
