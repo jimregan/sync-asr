@@ -1,5 +1,5 @@
 from .riksdag_api import RiksdagAPI, SpeakerElement
-from ..ctm import CTMLine
+from ..ctm import CTMLine, ctm_list_to_lines
 from typing import List
 from dataclasses import dataclass
 from copy import deepcopy
@@ -134,7 +134,7 @@ def run(args):
 
     for pair in pairs:
         if pair.riksdag_segments is not None:
-            ctm_text.append([f"{t}" for t in pair.ctmlines])
+            ctm_text.append(ctm_list_to_lines(pair.ctmlines))
 
     assert len(ctm_text) == len(output)
     ctm_edits = []
@@ -151,9 +151,9 @@ def main():
 
     try:
         run(args)
-    except Exception:
+    except Exception as e:
         print("Failed to align ref and hypotheses; "
-              "got exception ", exc_info=True)
+              "got exception ", e)
         raise SystemExit(1)
     finally:
         args.ctm_in.close()
