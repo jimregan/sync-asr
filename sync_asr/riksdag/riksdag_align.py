@@ -24,10 +24,8 @@ def filter_ctm_with_riksdag(ctmlines, riksdag_output):
 
     while (i < len(ctmlines) - 1) and (j < len(riksdag_output)):
         if (start or not within) and ctmlines[i].end_time < riksdag_output[j].start_time:
-            print("a", i, last_i, j)
             i += 1
         elif within and ctmlines[i].end_time <= riksdag_output[j].end_time:
-            print("b", i, last_i, j)
             i += 1
         else:
             if within:
@@ -35,7 +33,6 @@ def filter_ctm_with_riksdag(ctmlines, riksdag_output):
                 spkr = riksdag_output[j].text
                 within = False
                 j += 1
-                print("c", i, last_i, j)
             else:
                 if start:
                     start = False
@@ -43,11 +40,11 @@ def filter_ctm_with_riksdag(ctmlines, riksdag_output):
                 spkr = ""
                 # check if we're not going straight into another within
                 within = True
-                print("d", i, last_i, j)
             pairs.append(FilteredPair(deepcopy(ctmlines[last_i:i]), rd, spkr))
             last_i = i
             i += 1
     if i < len(ctmlines):
         pairs.append(FilteredPair(deepcopy(ctmlines[last_i:-1]), None, ""))
     return pairs
+
 
