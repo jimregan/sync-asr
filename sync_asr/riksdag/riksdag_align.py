@@ -129,8 +129,11 @@ def run(args):
 
     pairs = filter_ctm_with_riksdag(ctmlines, rdapi)
     output = align_ctm_with_riksdag(pairs, rd_similarity_score_function)
+
+    ctm_edits = []
     for element in output:
-        print(element)
+        ctm_edits += get_ctm_edits(element, ctmlines)
+    print(ctm_edits)
 
 def main():
     args = get_args()
