@@ -140,11 +140,13 @@ def run(args):
     assert len(ctm_text) == len(output)
     ctm_edits = []
     for i in range(len(output)):
+        print(output[i], ctm_text[i])
         ctm_edits.append(get_ctm_edits(output[i], ctm_text[i]))
 
-    for ctm_edit in ctm_edits:
-        for line in ctm_edit:
-            print(line)
+
+#    for ctm_edit in ctm_edits:
+#        for line in ctm_edit:
+#            print(line)
 
 
 def main():
