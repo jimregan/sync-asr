@@ -98,7 +98,7 @@ def rd_similarity_score_function(x, y):
 
 
 def align_ctm_with_riksdag(pairs: List[FilteredPair],
-                           similarity_score_function=default_similarity_score_function,
+                           similarity_score_func=default_similarity_score_function,
                            del_score=-1, ins_score=-1,
                            eps_symbol="<eps>", align_full_hyp=True):
     aligned_pairs = []
@@ -109,9 +109,10 @@ def align_ctm_with_riksdag(pairs: List[FilteredPair],
             right_text = pair.riksdag_segments.text
             output, score = smith_waterman_alignment(left_text,
                                                     right_text,
-                                                    similarity_score_function,
+                                                    similarity_score_func,
                                                     del_score, ins_score,
-                                                    eps_symbol, align_full_hyp)
+                                                    eps_symbol,
+                                                    align_full_hyp)
             aligned_pairs.append(output)
 
     return aligned_pairs
