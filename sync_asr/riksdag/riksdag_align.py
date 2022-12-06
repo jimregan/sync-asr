@@ -136,6 +136,7 @@ def run(args):
         if pair.riksdag_segments is not None:
             ctm_text.append(ctm_list_to_lines(pair.ctmlines))
 
+    print(len(ctm_text), len(output))
     assert len(ctm_text) == len(output)
     ctm_edits = []
     for i in range(len(output)):
