@@ -12,28 +12,42 @@ class FilteredPair():
     speaker_name: str = ""
 
 
+# TODO: this assumes there is always a 'within' case
+# which may not be true, in which case, breakage happens
 def filter_ctm_with_riksdag(ctmlines, riksdag_output):
-    ctm_i = 0
-    rd_i = 0
+    within = False
+    start = True
 
+    last_i = i = j = 0
     pairs = []
-    cur = []
 
-    # for i in ctmlines
-    #  for j in rd:
-    #   if i < first rd line:
-    #     add to 
-    while rd_i < len(riksdag_output):
-        while ctm_i < len(ctmlines):
-            if ctmlines[ctm_i].end_time < riksdag_output[rd_i].start_time:
-                cur.append(ctmlines[ctm_i])
+
+    while (i < len(ctmlines) - 1) and (j < len(riksdag_output)):
+        if (start or not within) and ctmlines[i].end_time < riksdag_output[j].start_time:
+            print("a", i, last_i, j)
+            i += 1
+        elif within and ctmlines[i].end_time <= riksdag_output[j].end_time:
+            print("b", i, last_i, j)
+            i += 1
+        else:
+            if within:
+                rd = riksdag_output[j]
+                spkr = riksdag_output[j].text
+                within = False
+                j += 1
+                print("c", i, last_i, j)
             else:
-                if rd_i == 0:
-                    cur_pair = FilteredPair(deepcopy(cur), None)
-                #elif 
-                else:
-                    pass
-                pairs.append(cur_pair)
-                cur = []
-                rd_i += 1
+                if start:
+                    start = False
+                rd = None
+                spkr = ""
+                # check if we're not going straight into another within
+                within = True
+                print("d", i, last_i, j)
+            pairs.append(FilteredPair(deepcopy(ctmlines[last_i:i]), rd, spkr))
+            last_i = i
+            i += 1
+    if i < len(ctmlines):
+        pairs.append(FilteredPair(deepcopy(ctmlines[last_i:-1]), None, ""))
+    return pairs
 
