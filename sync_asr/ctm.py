@@ -1,4 +1,5 @@
 from .elements import TimedWord
+from typing import List
 
 
 class CTMLine(TimedWord):
@@ -46,6 +47,9 @@ class CTMLine(TimedWord):
             self.text,
             str(self.confidence),
         ]
+    
+    def ctm_text(self):
+        return " ".join(self.as_list())
 
 
 def ctm_from_file(filename):
@@ -54,3 +58,7 @@ def ctm_from_file(filename):
         for line in input.readlines():
             ctm_lines.append(CTMLine(line.strip()))
     return ctm_lines
+
+
+def ctm_list_to_lines(ctmlines: List[CTMLine]) -> List[str]:
+    return [c.ctm_text() for c in ctmlines]
