@@ -6,6 +6,7 @@ from copy import deepcopy
 from ..kaldi.align_ctm_ref import get_ctm_edits, smith_waterman_alignment
 import string
 import argparse
+from .corrections import get_corrections
 
 
 @dataclass
@@ -94,10 +95,15 @@ def default_similarity_score_function(x, y):
 def rd_equals(x, y):
     left = x
     right = y.lower()
+    corr = get_corrections()
     if len(right) > 1:
         while right[-1] in string.punctuation:
             right = right[:-1]
-    return left == right
+    if left == right:
+        return True
+    elif left in corr and corr[left] == right:
+        return True
+    return False
 
 
 def rd_similarity_score_function(x, y):
