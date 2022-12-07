@@ -3,8 +3,11 @@ import copy
 
 
 class CTMEditLine(TimedWord):
-    def __init__(self, from_line="", verbose=False):
-        self.from_line(from_line)
+    def __init__(self, from_line="", from_kaldi_list=None, verbose=False):
+        if from_line != "":
+            self.from_line(from_line)
+        elif from_kaldi_list is not None:
+            self.from_list(from_kaldi_list, True)
         start_time = self.start_time
         end_time = self.end_time
         text = self.text
@@ -21,14 +24,24 @@ class CTMEditLine(TimedWord):
     def from_line(self, text: str):
         # AJJacobs_2007P-0001605-0003029 1 0 0.09 <eps> 1.0 <eps> sil tainted
         parts = text.strip().split()
+        self.from_list(parts, False)
+
+    def from_list(self, parts, kaldi_list=False):
         EDITS = ["cor", "ins", "del", "sub", "sil"]
         self.id = parts[0]
         self.channel = parts[1]
-        self.start_time = int(float(parts[2]) * 1000)
-        self.duration = int(float(parts[3]) * 1000)
+        if kaldi_list:
+            self.start_time = int(parts[2] * 1000)
+            self.duration = int(parts[3] * 1000)
+        else:
+            self.start_time = int(float(parts[2]) * 1000)
+            self.duration = int(float(parts[3]) * 1000)
         self.end_time = self.start_time + self.duration
         self.text = parts[4]
-        self.confidence = float(parts[5])
+        if kaldi_list:
+            self.confidence = parts[5]
+        else:
+            self.confidence = float(parts[5])
         self.ref = parts[6]
         if parts[7] in EDITS:
             self.edit = parts[7]
@@ -75,6 +88,11 @@ class CTMEditLine(TimedWord):
                 self.edit = "cor"
                 if self.verbose:
                     self.set_prop("collision", f"{orig_text}_{work_ref}")
+
+    def mark_correct_from_function(self, comparison_function):
+        if comparison_function(self.text, self.ref):
+            self.edit = "cor"
+            self.text = self.ref        
 
     def set_correct_ref(self):
         self.text = self.ref
