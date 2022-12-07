@@ -21,6 +21,19 @@ class FilteredPair():
     def riksdag_words(self):
         return self.riksdag_segments.text.split()
 
+    def get_ctm_id(self):
+        return self.ctmlines[0].id
+
+    def check_ctm_ids(self):
+        base = self.ctmlines[0].id
+        for line in self.ctmlines:
+            if line.id != base:
+                return False
+        return True
+
+    def get_ctm_channel(self):
+        return self.ctmlines[0].channel
+
 
 def get_args():
     parser = argparse.ArgumentParser(description="""
