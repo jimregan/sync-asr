@@ -116,7 +116,8 @@ def align_ctm_with_riksdag(pairs: List[FilteredPair],
                                                     align_full_hyp)
             aligned_pairs.append((output, pair.ctmlines))
             output_hyp_words = [x[0] for x in output]
-            assert len(output_hyp_words) == len(ctm_words), f"Error in alignmnt: {len(output_hyp_words)} {len(ctm_words)}"
+            cleaned_hyp_words = [x for x in output_hyp_words if x != "<eps>"]
+            assert len(cleaned_hyp_words) == len(ctm_words), f"Error in alignmnt: {len(cleaned_hyp_words)} {len(ctm_words)}"
     return aligned_pairs
 
 
