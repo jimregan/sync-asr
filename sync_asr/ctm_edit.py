@@ -89,6 +89,11 @@ class CTMEditLine(TimedWord):
                 if self.verbose:
                     self.set_prop("collision", f"{orig_text}_{work_ref}")
 
+    def mark_correct_from_function(self, comparison_function):
+        if comparison_function(self.text, self.ref):
+            self.edit = "cor"
+            self.text = self.ref        
+
     def set_correct_ref(self):
         self.text = self.ref
         self.edit = "cor"
