@@ -129,10 +129,6 @@ def run(args):
     pairs = filter_ctm_with_riksdag(ctmlines, rdapi)
     output = align_ctm_with_riksdag(pairs, rd_similarity_score_function)
 
-    ctm_text = []
-
-    print(len(ctm_text), len(output))
-    assert len(ctm_text) == len(output), "len(ctm_text) == len(output)"
     ctm_edits = []
     for pair in output:
         ctm_tmp = [p.ctm_list() for p in pair[1]]
