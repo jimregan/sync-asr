@@ -14,6 +14,12 @@ class FilteredPair():
     riksdag_segments: SpeakerElement
     speaker_name: str = ""
 
+    def ctm_words(self):
+        return [t.text for t in self.ctmlines]
+
+    def riksdag_words(self):
+        return self.riksdag_segments.text.split()
+
 
 def get_args():
     parser = argparse.ArgumentParser(description="""
@@ -105,14 +111,14 @@ def align_ctm_with_riksdag(pairs: List[FilteredPair],
 
     for pair in pairs:
         if pair.riksdag_segments is not None:
-            ctm_words = [t.text for t in pair.ctmlines]
-            right_text = pair.riksdag_segments.text.split()
+            ctm_words = pair.ctm_words()
+            riksdag_words = pair.riksdag_words()
             output, score = smith_waterman_alignment(ctm_words,
-                                                    right_text,
-                                                    similarity_score_func,
-                                                    del_score, ins_score,
-                                                    eps_symbol,
-                                                    align_full_hyp)
+                                                     riksdag_words,
+                                                     similarity_score_func,
+                                                     del_score, ins_score,
+                                                     eps_symbol,
+                                                     align_full_hyp)
             aligned_pairs.append((output, pair.ctmlines))
             output_hyp_words = [x[0] for x in output]
             cleaned_hyp_words = [x for x in output_hyp_words if x != "<eps>"]
