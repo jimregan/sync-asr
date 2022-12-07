@@ -136,7 +136,7 @@ def run(args):
     assert len(ctm_text) == len(output)
     ctm_edits = []
     for pair in output:
-        ctm_edits.append(get_ctm_edits(pair[0], pair[1]))
+        ctm_edits.append(get_ctm_edits(pair[0], [p.split() for p in pair[1]]))
 
     for ctm_edit in ctm_edits:
         for line in ctm_edit:
