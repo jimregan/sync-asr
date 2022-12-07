@@ -48,6 +48,19 @@ class CTMLine(TimedWord):
             str(self.confidence),
         ]
     
+    def ctm_list(self):
+        """
+        returns a list suitable for plugging into get_ctm_edits
+        """
+        return [
+            self.id,
+            self.channel,
+            float(self.start_time / 1000),
+            float(self.duration / 1000),
+            self.text,
+            self.confidence,
+        ]
+    
     def ctm_text(self):
         return " ".join(self.as_list())
 
