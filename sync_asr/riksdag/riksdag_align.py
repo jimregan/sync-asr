@@ -106,10 +106,9 @@ def align_ctm_with_riksdag(pairs: List[FilteredPair],
     for pair in pairs:
         if pair.riksdag_segments is not None:
             ctm_words = [t.text for t in pair.ctmlines]
-            left_text = " ".join(ctm_words)
-            right_text = pair.riksdag_segments.text
-            output, score = smith_waterman_alignment(left_text.split(),
-                                                    right_text.split(),
+            right_text = pair.riksdag_segments.text.split()
+            output, score = smith_waterman_alignment(ctm_words,
+                                                    right_text,
                                                     similarity_score_func,
                                                     del_score, ins_score,
                                                     eps_symbol,
