@@ -1,5 +1,6 @@
 from .riksdag_api import RiksdagAPI, SpeakerElement
 from ..ctm import CTMLine
+from ..ctm_edit import CTMEditLine
 from typing import List
 from dataclasses import dataclass
 from copy import deepcopy
@@ -171,7 +172,8 @@ def run(args):
         for ctm_edit in ctm_edits:
             for line in ctm_edit:
                 actual = [ctm_id, ctm_channel] + line
-                print(" ".join(actual))
+                ctm_edit = CTMEditLine(from_kaldi_list=actual)
+                print(ctm_edit)
 
 def main():
     args = get_args()
