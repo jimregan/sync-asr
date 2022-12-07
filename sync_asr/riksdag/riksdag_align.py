@@ -113,7 +113,7 @@ def align_ctm_with_riksdag(pairs: List[FilteredPair],
                                                     del_score, ins_score,
                                                     eps_symbol,
                                                     align_full_hyp)
-            aligned_pairs.append(output)
+            aligned_pairs.append((output, pair.ctmlines))
 
     return aligned_pairs
 
@@ -132,21 +132,15 @@ def run(args):
 
     ctm_text = []
 
-    for pair in pairs:
-        if pair.riksdag_segments is not None:
-            ctm_text.append(ctm_list_to_lines(pair.ctmlines))
-
     print(len(ctm_text), len(output))
     assert len(ctm_text) == len(output)
     ctm_edits = []
-    for i in range(len(output)):
-        print(output[i], ctm_text[i])
-        ctm_edits.append(get_ctm_edits(output[i], ctm_text[i]))
+    for pair in output:
+        ctm_edits.append(get_ctm_edits(pair[0], pair[1]))
 
-
-#    for ctm_edit in ctm_edits:
-#        for line in ctm_edit:
-#            print(line)
+    for ctm_edit in ctm_edits:
+        for line in ctm_edit:
+            print(line)
 
 
 def main():
