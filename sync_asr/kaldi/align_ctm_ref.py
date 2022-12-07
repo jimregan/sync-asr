@@ -457,8 +457,8 @@ def get_ctm_edits(alignment_output, ctm_array, eps_symbol="<eps>",
             ctm_pos = hyp_prev_i
             # This is true because we cannot have errors at the end because
             # that will decrease the smith-waterman alignment score.
-            assert ctm_pos < ctm_len, "ctm_pos < ctm_len"
-            assert len(ctm_array[ctm_pos]) == 4, "len(ctm_array[ctm_pos]) == 4"
+            assert ctm_pos < ctm_len
+            assert len(ctm_array[ctm_pos]) == 4
 
             if hyp_prev_i == hyp_i:
                 assert hyp_word == eps_symbol, "hyp_word == eps_symbol"
@@ -472,8 +472,8 @@ def get_ctm_edits(alignment_output, ctm_array, eps_symbol="<eps>",
                             ref_word, edit_type]
                 ctm_edits.append(ctm_line)
             else:
-                assert hyp_i == hyp_prev_i + 1, "hyp_i == hyp_prev_i + 1"
-                assert hyp_word == ctm_array[ctm_pos][2], f"hyp_word == ctm_array[ctm_pos][2] ({hyp_word} {ctm_array[ctm_pos][2]})"
+                assert hyp_i == hyp_prev_i + 1
+                assert hyp_word == ctm_array[ctm_pos][2]
                 # This is the normal case, where there are 2 entries where
                 # they hyp-words match up.
                 ctm_line = list(ctm_array[ctm_pos])
@@ -486,7 +486,7 @@ def get_ctm_edits(alignment_output, ctm_array, eps_symbol="<eps>",
                         hyp_word=eps_symbol, ref_word=ref_word,
                         duration=0.0, eps_symbol=eps_symbol,
                         oov_word=oov_word, symbol_table=symbol_table)
-                    assert edit_type == 'del', "edit_type == 'del'"
+                    assert edit_type == 'del'
                     ctm_edits.append([current_time, 0.0, eps_symbol, 1.0,
                                       ref_word, edit_type])
 
@@ -494,7 +494,7 @@ def get_ctm_edits(alignment_output, ctm_array, eps_symbol="<eps>",
                         hyp_word=eps_symbol, ref_word=eps_symbol,
                         duration=ctm_line[1], eps_symbol=eps_symbol,
                         oov_word=oov_word, symbol_table=symbol_table)
-                    assert edit_type == 'sil', "edit_type == 'sil'"
+                    assert edit_type == 'sil'
                     ctm_line.extend([eps_symbol, edit_type])
                     ctm_edits.append(ctm_line)
                 else:
