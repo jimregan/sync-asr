@@ -155,8 +155,10 @@ def shift_epsilons(ctmedits: List[CTMEditLine], comparison=None, forward=False, 
     def set_eps(ctmedit):
         if ref:
             ctmedit.ref = epsilon
+            ctmedit.edit = "ins"
         else:
             ctmedit.text = epsilon
+            ctmedit.edit = "del"
 
     if forward:
         ctmedits.reverse()
@@ -182,9 +184,11 @@ def shift_epsilons(ctmedits: List[CTMEditLine], comparison=None, forward=False, 
                     if comparison(text, other):
                         if ref:
                             first_line.text = first_line.ref = second_line.ref
+                            first_line.edit = "cor"
                             set_eps(second_line)
                         else:
-                            second_line.text = second_line.ref = first_line.ref
+                            first_line.text = first_line.ref = second_line.text
+                            first_line.edit = "cor"
                             set_eps(first_line)
                     break
         i += 1
