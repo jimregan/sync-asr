@@ -121,8 +121,8 @@ def align_ctm_with_riksdag(pairs: List[FilteredPair],
         if pair.riksdag_segments is not None:
             ctm_words = pair.ctm_words()
             riksdag_words = pair.riksdag_words()
-            output, score = smith_waterman_alignment(ctm_words,
-                                                     riksdag_words,
+            output, score = smith_waterman_alignment(riksdag_words,
+                                                     ctm_words,
                                                      similarity_score_func,
                                                      del_score, ins_score,
                                                      eps_symbol,
@@ -130,7 +130,7 @@ def align_ctm_with_riksdag(pairs: List[FilteredPair],
             aligned_pairs.append((output, pair.ctmlines))
             output_hyp_words = [x[0] for x in output]
             cleaned_hyp_words = [x for x in output_hyp_words if x != "<eps>"]
-            assert len(cleaned_hyp_words) == len(ctm_words), f"Error in alignment: {len(cleaned_hyp_words)} {len(ctm_words)}: {output}"
+            assert len(cleaned_hyp_words) == len(ctm_words), f"Error in alignment: {len(cleaned_hyp_words)} {len(ctm_words)}: {}"
     return aligned_pairs
 
 
