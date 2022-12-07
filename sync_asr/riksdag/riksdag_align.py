@@ -103,14 +103,6 @@ def rd_similarity_score_function(x, y):
     return -1
 
 
-#def double_check_alignment_hyp(output, ctm_words):
-#    output_hyp_words = [x[0] for x in output]
-#    cleaned_hyp_words = [x for x in output_hyp_words if x != "<eps>"]
-#    if len(cleaned_hyp_words) == len(ctm_words):
-#        for i in range(len(cleaned_hyp_words)):
-#            pass
-
-
 def align_ctm_with_riksdag(pairs: List[FilteredPair],
                            similarity_score_func=default_similarity_score_function,
                            del_score=-1, ins_score=-1,
@@ -128,9 +120,6 @@ def align_ctm_with_riksdag(pairs: List[FilteredPair],
                                                      eps_symbol,
                                                      align_full_hyp)
             aligned_pairs.append((output, pair.ctmlines))
-            output_hyp_words = [x[0] for x in output]
-            cleaned_hyp_words = [x for x in output_hyp_words if x != "<eps>"]
-            assert len(cleaned_hyp_words) == len(ctm_words), f"Error in alignment: {len(cleaned_hyp_words)} {len(ctm_words)}: {output}"
     return aligned_pairs
 
 
