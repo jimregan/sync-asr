@@ -114,6 +114,7 @@ def align_ctm_with_riksdag(pairs: List[FilteredPair],
                                                     eps_symbol,
                                                     align_full_hyp)
             aligned_pairs.append((output, pair.ctmlines))
+            print(output, pair.ctmlines)
     return aligned_pairs
 
 
