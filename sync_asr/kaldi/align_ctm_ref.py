@@ -472,8 +472,8 @@ def get_ctm_edits(alignment_output, ctm_array, eps_symbol="<eps>",
                             ref_word, edit_type]
                 ctm_edits.append(ctm_line)
             else:
-                assert hyp_i == hyp_prev_i + 1
-                assert hyp_word == ctm_array[ctm_pos][2]
+                assert hyp_i == hyp_prev_i + 1, "hyp_i == hyp_prev_i + 1"
+                assert hyp_word == ctm_array[ctm_pos][2], "hyp_word == ctm_array[ctm_pos][2]"
                 # This is the normal case, where there are 2 entries where
                 # they hyp-words match up.
                 ctm_line = list(ctm_array[ctm_pos])
