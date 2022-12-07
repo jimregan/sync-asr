@@ -105,7 +105,8 @@ def align_ctm_with_riksdag(pairs: List[FilteredPair],
 
     for pair in pairs:
         if pair.riksdag_segments is not None:
-            left_text = " ".join([t.text for t in pair.ctmlines])
+            ctm_words = [t.text for t in pair.ctmlines]
+            left_text = " ".join(ctm_words)
             right_text = pair.riksdag_segments.text
             output, score = smith_waterman_alignment(left_text.split(),
                                                     right_text.split(),
@@ -114,7 +115,8 @@ def align_ctm_with_riksdag(pairs: List[FilteredPair],
                                                     eps_symbol,
                                                     align_full_hyp)
             aligned_pairs.append((output, pair.ctmlines))
-            print(output, pair.ctmlines, left_text, right_text)
+            output_hyp_words = [x[0] for x in output]
+            assert len(output_hyp_words) == len(ctm_words), f"Error in alignmnt: {len(output_hyp_words)} {len(ctm_words)}"
     return aligned_pairs
 
 
