@@ -461,7 +461,7 @@ def get_ctm_edits(alignment_output, ctm_array, eps_symbol="<eps>",
             assert len(ctm_array[ctm_pos]) == 4
 
             if hyp_prev_i == hyp_i:
-                assert hyp_word == eps_symbol, "hyp_word == eps_symbol"
+                assert hyp_word == eps_symbol
                 # These are deletions as there are no CTM entries
                 # corresponding to these alignments.
                 edit_type = get_edit_type(
