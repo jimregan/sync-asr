@@ -21,9 +21,6 @@ class FilteredPair():
     def riksdag_words(self):
         return self.riksdag_segments.text.split()
 
-    def get_ctm_channel(self):
-        return self.ctmlines[0].channel
-
 
 def get_ctm_id_from_list(ctmlines):
     return ctmlines[0].id
@@ -35,6 +32,10 @@ def check_ctm_ids(ctmlines):
         if line.id != base:
             return False
     return True
+
+
+def get_ctm_channel(ctmlines):
+    return ctmlines[0].channel
 
 
 def get_args():
@@ -164,10 +165,13 @@ def run(args):
         ctm_tmp = [p.ctm_list() for p in pair[1]]
         ctm_edits.append(get_ctm_edits(pair[0], ctm_tmp))
 
-    for ctm_edit in ctm_edits:
-        for line in ctm_edit:
-            print(line)
-
+    if check_ctm_ids(pair[1]):
+        ctm_id = get_ctm_id_from_list(pair[1])
+        ctm_channel = get_ctm_channel(pair[1])
+        for ctm_edit in ctm_edits:
+            for line in ctm_edit:
+                actual = [ctm_id, ctm_channel] + line
+                print(" ".join(actual))
 
 def main():
     args = get_args()
