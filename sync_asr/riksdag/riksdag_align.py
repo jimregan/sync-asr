@@ -91,14 +91,17 @@ def default_similarity_score_function(x, y):
     return -1
 
 
-def rd_similarity_score_function(x, y):
+def rd_equals(x, y):
     left = x
     right = y.lower()
     if len(right) > 1:
         while right[-1] in string.punctuation:
             right = right[:-1]
+    return left == right
 
-    if left == right:
+
+def rd_similarity_score_function(x, y):
+    if rd_equals(x, y):
         return 1
     return -1
 
