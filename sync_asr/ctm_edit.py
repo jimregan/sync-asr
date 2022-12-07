@@ -1,5 +1,4 @@
 from .elements import TimedWord
-from typing import List
 import copy
 
 
@@ -144,56 +143,3 @@ def merge_consecutive(ctm_a, ctm_b, text="", joiner="", epsilon='"<eps>"', edit=
         new_ctm.ref = text
         new_ctm.edit = "cor"
     return new_ctm
-
-
-def shift_epsilons(ctmedits: List[CTMEditLine], comparison=None, forward=False, ref=True, epsilon="<eps>"):
-    def is_eps(ctmedit):
-        if ref:
-            return ctmedit.ref == epsilon
-        else:
-            return ctmedit.text == epsilon
-    def set_eps(ctmedit):
-        if ref:
-            ctmedit.ref = epsilon
-            ctmedit.edit = "ins"
-        else:
-            ctmedit.text = epsilon
-            ctmedit.edit = "del"
-
-    if forward:
-        ctmedits.reverse()
-
-    if comparison is None:
-        comparison = lambda x, y: x == y
-
-    i = j = 0
-    while i < len(ctmedits) - 1:
-        first_line = ctmedits[i]
-        if not is_eps(first_line):
-            continue
-        else:
-            text = first_line.text if ref else first_line.ref
-            j = i + 1
-            while j < len(ctmedits) - 1:
-                second_line = ctmedits[j]
-                if not is_eps(second_line):
-                    j += 1
-                    continue
-                else:
-                    other = second_line.ref if ref else second_line.text
-                    if comparison(text, other):
-                        if ref:
-                            first_line.text = first_line.ref = second_line.ref
-                            first_line.edit = "cor"
-                            set_eps(second_line)
-                        else:
-                            first_line.text = first_line.ref = second_line.text
-                            first_line.edit = "cor"
-                            set_eps(first_line)
-                    break
-        i += 1
-
-    if forward:
-        ctmedits.reverse()
-
-    return ctmedits
