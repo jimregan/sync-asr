@@ -173,6 +173,7 @@ def run(args):
             for line in ctm_edit:
                 actual = [ctm_id, ctm_channel] + line
                 ctm_edit = CTMEditLine(from_kaldi_list=actual)
+                ctm_edit.mark_correct_from_function(rd_equals)
                 print(ctm_edit)
 
 def main():
