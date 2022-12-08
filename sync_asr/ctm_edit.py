@@ -179,7 +179,7 @@ def shift_epsilons(ctmedits: List[CTMEditLine], comparison=None, forward=False, 
             while j < len(ctmedits):
                 second_line = ctmedits[j]
                 text = first_line.text if ref else second_line.text
-                if not is_eps(second_line):
+                if is_eps(second_line):
                     crap.append(f"OK {i}, {j}, {second_line}")
                     j += 1
                     continue
