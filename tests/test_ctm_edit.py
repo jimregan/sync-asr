@@ -34,14 +34,14 @@ AJJacobs_2007P-0001605-0003029 1 0 0.09 foo 1.0 foo cor
 AJJacobs_2007P-0001605-0003029 1 0.1 0.09 <eps> 1.0 bar ins
 AJJacobs_2007P-0001605-0003029 1 0.2 0.09 <eps> 1.0 bar ins
 """
-_SAMPLE5 = """
-AJJacobs_2007P-0001605-0003029 1 0 0.09 bar 1.0 foo sub
-AJJacobs_2007P-0001605-0003029 1 0.1 0.09 bar 1.0 <eps> ins
-AJJacobs_2007P-0001605-0003029 1 0.2 0.09 foo 1.0 <eps> ins
+_SAMPLE7 = """
+AJJacobs_2007P-0001605-0003029 1 0 0.09 foo 1.0 bar sub
+AJJacobs_2007P-0001605-0003029 1 0.1 0.09 <eps> 1.0 bar ins
+AJJacobs_2007P-0001605-0003029 1 0.2 0.09 <eps> 1.0 foo ins
 """
-_EXP5 = """
-AJJacobs_2007P-0001605-0003029 1 0 0.09 bar 1.0 <eps> ins
-AJJacobs_2007P-0001605-0003029 1 0.1 0.09 bar 1.0 <eps> ins
+_EXP7 = """
+AJJacobs_2007P-0001605-0003029 1 0 0.09 <eps> 1.0 bar ins
+AJJacobs_2007P-0001605-0003029 1 0.1 0.09 <eps> 1.0 bar ins
 AJJacobs_2007P-0001605-0003029 1 0.2 0.09 foo 1.0 foo cor
 """
 
