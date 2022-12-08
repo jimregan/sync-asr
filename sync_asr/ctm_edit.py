@@ -160,6 +160,7 @@ def shift_epsilons(ctmedits: List[CTMEditLine], comparison=None, forward=False, 
             ctmedit.text = epsilon
             ctmedit.edit = "del"
     crap = []
+    crap.append("wtf")
 
     if forward:
         ctmedits.reverse()
@@ -168,14 +169,14 @@ def shift_epsilons(ctmedits: List[CTMEditLine], comparison=None, forward=False, 
         comparison = lambda x, y: x == y
 
     i = j = 0
-    while i < len(ctmedits) - 1:
+    while i < len(ctmedits):
         first_line = ctmedits[i]
         if not is_eps(first_line):
             i += 1
             continue
         else:
             j = i + 1
-            while j < len(ctmedits) - 1:
+            while j < len(ctmedits):
                 second_line = ctmedits[j]
                 text = first_line.text if ref else second_line.text
                 if not is_eps(second_line):
