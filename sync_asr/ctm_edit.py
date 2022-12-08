@@ -21,6 +21,13 @@ class CTMEditLine(TimedWord):
 
     def __repr__(self) -> str:
         return f"{self.id} ({self.start_time, self.end_time}) {self.text}|{self.ref}"
+    
+    def __eq__(self, other):
+        return self.id == other.id and \
+               self.start_time == other.start_time and \
+               self.end_time == other.end_time and \
+               self.text == other.text and \
+               self.ref == other.ref
 
     def from_line(self, text: str):
         # AJJacobs_2007P-0001605-0003029 1 0 0.09 <eps> 1.0 <eps> sil tainted
