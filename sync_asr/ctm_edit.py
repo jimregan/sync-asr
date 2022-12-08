@@ -154,7 +154,7 @@ def merge_consecutive(ctm_a, ctm_b, text="", joiner="", epsilon='"<eps>"', edit=
     return new_ctm
 
 
-def shift_epsilons(ctmedits: List[CTMEditLine], comparison=None, forward=False, ref=True, epsilon="<eps>"):
+def shift_epsilons(ctmedits: List[CTMEditLine], comparison=None, backward=False, ref=True, epsilon="<eps>"):
     def is_eps(ctmedit):
         if ref:
             return ctmedit.ref == epsilon
@@ -168,7 +168,7 @@ def shift_epsilons(ctmedits: List[CTMEditLine], comparison=None, forward=False, 
             ctmedit.text = epsilon
             ctmedit.edit = "del"
 
-    if forward:
+    if backward:
         ctmedits.reverse()
 
     if comparison is None:
@@ -202,7 +202,7 @@ def shift_epsilons(ctmedits: List[CTMEditLine], comparison=None, forward=False, 
                     break
         i += 1
 
-    if forward:
+    if backward:
         ctmedits.reverse()
 
     return ctmedits
