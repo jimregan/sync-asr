@@ -173,7 +173,7 @@ def shift_epsilons(ctmedits: List[CTMEditLine], comparison=None, forward=False, 
             i += 1
             continue
         else:
-            text = first_line.text if ref else first_line.ref
+            text = first_line.text if ref else second_line.text
             j = i + 1
             while j < len(ctmedits) - 1:
                 second_line = ctmedits[j]
@@ -182,7 +182,7 @@ def shift_epsilons(ctmedits: List[CTMEditLine], comparison=None, forward=False, 
                     j += 1
                     continue
                 else:
-                    other = second_line.ref if ref else second_line.text
+                    other = second_line.ref if ref else first_line.ref
                     if comparison(text, other):
                         if ref:
                             print("First (1.1)")
@@ -201,9 +201,9 @@ def shift_epsilons(ctmedits: List[CTMEditLine], comparison=None, forward=False, 
                             print(first_line)
                             print("Second (2.1)")
                             print(second_line)
-                            first_line.text = first_line.ref = second_line.text
+                            first_line.text = first_line.ref
                             first_line.edit = "cor"
-                            set_eps(first_line)
+                            set_eps(second_line)
                             print("First (2.2)")
                             print(first_line)
                             print("Second (2.2)")
