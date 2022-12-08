@@ -52,6 +52,5 @@ def test_as_list():
 def test_shift_epsilons():
     ctmlines4 = [CTMEditLine(x) for x in _SAMPLE4.split("\n") if x != ""]
     explines4 = [CTMEditLine(x) for x in _EXP4.split("\n") if x != ""]
-    ctmout, crap = shift_epsilons(ctmlines4, comparison=None, forward=False, ref=True)
-    #assert crap == []
+    ctmout = shift_epsilons(ctmlines4, comparison=None, forward=False, ref=True)
     assert explines4 == ctmout

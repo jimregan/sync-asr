@@ -166,8 +166,6 @@ def shift_epsilons(ctmedits: List[CTMEditLine], comparison=None, forward=False, 
         else:
             ctmedit.text = epsilon
             ctmedit.edit = "del"
-    crap = []
-    crap.append("wtf")
 
     if forward:
         ctmedits.reverse()
@@ -187,40 +185,23 @@ def shift_epsilons(ctmedits: List[CTMEditLine], comparison=None, forward=False, 
                 second_line = ctmedits[j]
                 text = first_line.text if ref else second_line.text
                 if is_eps(second_line):
-                    crap.append(f"OK {i}, {j}, {second_line}")
                     j += 1
                     continue
                 else:
                     other = second_line.ref if ref else first_line.ref
                     if comparison(text, other):
                         if ref:
-                            crap.append("First (1.1)")
-                            crap.append(first_line)
-                            crap.append("Second (1.1)")
-                            crap.append(second_line)
                             first_line.text = first_line.ref = second_line.ref
                             first_line.edit = "cor"
                             set_eps(second_line)
-                            crap.append("First (1.2)")
-                            crap.append(first_line)
-                            crap.append("Second (1.2)")
-                            crap.append(second_line)
                         else:
-                            crap.append("First (2.1)")
-                            crap.append(first_line)
-                            crap.append("Second (2.1)")
-                            crap.append(second_line)
                             first_line.text = first_line.ref
                             first_line.edit = "cor"
                             set_eps(second_line)
-                            crap.append("First (2.2)")
-                            crap.append(first_line)
-                            crap.append("Second (2.2)")
-                            crap.append(second_line)
                     break
         i += 1
 
     if forward:
         ctmedits.reverse()
 
-    return ctmedits, crap
+    return ctmedits
