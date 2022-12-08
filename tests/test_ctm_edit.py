@@ -24,6 +24,26 @@ AJJacobs_2007P-0001605-0003029 1 0 0.09 bar 1.0 <eps> ins
 AJJacobs_2007P-0001605-0003029 1 0.1 0.09 bar 1.0 <eps> ins
 AJJacobs_2007P-0001605-0003029 1 0.2 0.09 foo 1.0 foo cor
 """
+_SAMPLE6 = """
+AJJacobs_2007P-0001605-0003029 1 0 0.09 <eps> 1.0 foo ins
+AJJacobs_2007P-0001605-0003029 1 0.1 0.09 <eps> 1.0 bar ins
+AJJacobs_2007P-0001605-0003029 1 0.2 0.09 foo 1.0 bar sub
+"""
+_EXP6 = """
+AJJacobs_2007P-0001605-0003029 1 0 0.09 foo 1.0 foo cor
+AJJacobs_2007P-0001605-0003029 1 0.1 0.09 <eps> 1.0 bar ins
+AJJacobs_2007P-0001605-0003029 1 0.2 0.09 <eps> 1.0 bar ins
+"""
+_SAMPLE5 = """
+AJJacobs_2007P-0001605-0003029 1 0 0.09 bar 1.0 foo sub
+AJJacobs_2007P-0001605-0003029 1 0.1 0.09 bar 1.0 <eps> ins
+AJJacobs_2007P-0001605-0003029 1 0.2 0.09 foo 1.0 <eps> ins
+"""
+_EXP5 = """
+AJJacobs_2007P-0001605-0003029 1 0 0.09 bar 1.0 <eps> ins
+AJJacobs_2007P-0001605-0003029 1 0.1 0.09 bar 1.0 <eps> ins
+AJJacobs_2007P-0001605-0003029 1 0.2 0.09 foo 1.0 foo cor
+"""
 
 
 def test_ctmline():
@@ -68,3 +88,7 @@ def test_shift_epsilons():
     explines5 = [CTMEditLine(x) for x in _EXP5.split("\n") if x != ""]
     ctmout = shift_epsilons(ctmlines5, comparison=None, backward=True, ref=True)
     assert explines5 == ctmout
+    ctmlines6 = [CTMEditLine(x) for x in _SAMPLE6.split("\n") if x != ""]
+    explines6 = [CTMEditLine(x) for x in _EXP6.split("\n") if x != ""]
+    ctmout = shift_epsilons(ctmlines6, comparison=None, backward=False, ref=False)
+    assert explines6 == ctmout
