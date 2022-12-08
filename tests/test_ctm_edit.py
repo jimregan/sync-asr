@@ -92,3 +92,7 @@ def test_shift_epsilons():
     explines6 = [CTMEditLine(x) for x in _EXP6.split("\n") if x != ""]
     ctmout = shift_epsilons(ctmlines6, comparison=None, backward=False, ref=False)
     assert explines6 == ctmout
+    ctmlines7 = [CTMEditLine(x) for x in _SAMPLE7.split("\n") if x != ""]
+    explines7 = [CTMEditLine(x) for x in _EXP7.split("\n") if x != ""]
+    ctmout = shift_epsilons(ctmlines7, comparison=None, backward=True, ref=False)
+    assert explines7 == ctmout
