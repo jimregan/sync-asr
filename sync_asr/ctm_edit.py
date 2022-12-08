@@ -1,4 +1,5 @@
 from .elements import TimedWord
+from typing import List
 import copy
 
 
@@ -20,6 +21,14 @@ class CTMEditLine(TimedWord):
 
     def __repr__(self) -> str:
         return f"{self.id} ({self.start_time, self.end_time}) {self.text}|{self.ref}"
+    
+    def __eq__(self, other):
+        return self.id == other.id and \
+               self.start_time == other.start_time and \
+               self.end_time == other.end_time and \
+               self.text == other.text and \
+               self.ref == other.ref and \
+               self.edit == other.edit
 
     def from_line(self, text: str):
         # AJJacobs_2007P-0001605-0003029 1 0 0.09 <eps> 1.0 <eps> sil tainted
@@ -143,3 +152,57 @@ def merge_consecutive(ctm_a, ctm_b, text="", joiner="", epsilon='"<eps>"', edit=
         new_ctm.ref = text
         new_ctm.edit = "cor"
     return new_ctm
+
+
+def shift_epsilons(ctmedits: List[CTMEditLine], comparison=None, backward=False, ref=True, epsilon="<eps>"):
+    def is_eps(ctmedit):
+        if ref:
+            return ctmedit.ref == epsilon
+        else:
+            return ctmedit.text == epsilon
+    def set_eps(ctmedit):
+        if ref:
+            ctmedit.ref = epsilon
+            ctmedit.edit = "ins"
+        else:
+            ctmedit.text = epsilon
+            ctmedit.edit = "del"
+
+    if backward:
+        ctmedits.reverse()
+
+    if comparison is None:
+        comparison = lambda x, y: x == y
+
+    i = j = 0
+    while i < len(ctmedits):
+        first_line = ctmedits[i]
+        if not is_eps(first_line):
+            i += 1
+            continue
+        else:
+            j = i + 1
+            while j < len(ctmedits):
+                second_line = ctmedits[j]
+                text = first_line.text if ref else second_line.text
+                if is_eps(second_line):
+                    j += 1
+                    continue
+                else:
+                    other = second_line.ref if ref else first_line.ref
+                    if comparison(text, other):
+                        if ref:
+                            first_line.text = first_line.ref = second_line.ref
+                            first_line.edit = "cor"
+                            set_eps(second_line)
+                        else:
+                            first_line.text = first_line.ref
+                            first_line.edit = "cor"
+                            set_eps(second_line)
+                    break
+        i += 1
+
+    if backward:
+        ctmedits.reverse()
+
+    return ctmedits
