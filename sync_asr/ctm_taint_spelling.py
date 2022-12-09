@@ -1,3 +1,7 @@
+from typing import List
+from .ctm_edit import CTMEditLine
+
+
 try:
     import hunspell
 except ImportError:
@@ -68,6 +72,9 @@ class HunspellChecker():
 
 
 def get_args():
+    """
+    Get arguments for command line interface
+    """
     parser = argparse.ArgumentParser(
         """Checks a CTMEdit file for spelling errors""")
 
@@ -103,7 +110,14 @@ def get_args():
     return args
 
 
-def inline_check_unigram(ctm_lines, speller):
+def inline_check_unigram(ctm_lines: List[CTMEditLine], speller: HunspellChecker):
+    """
+    Check individual words in a list of CTMEditLine for spelling errors.
+    Operates inline (no return value)
+
+    :param ctm_lines: a list of CTMEditLine to check
+    :param speller: the spell checker to use
+    """
     for line in ctm_lines:
         if line.edit == "cor":
             if speller.check(line.text):
@@ -115,7 +129,9 @@ def inline_check_unigram(ctm_lines, speller):
             line.set_prop("spelling", prop)
 
 
-def check_bigrams(ctm_lines, speller, try_hyph=False, ref_only=True):
+def check_bigrams(ctm_lines: List[CTMEditLine],
+                  speller: HunspellChecker,
+                  try_hyph=False, ref_only=True):
     def something_has_eps(a, b, ref_only=ref_only):
         if ref_only:
             return b.has_eps()
