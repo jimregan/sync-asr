@@ -186,6 +186,9 @@ def check_bigrams(ctm_lines: List[CTMEditLine],
 
 
 def read_confusion_pairs(file):
+    """
+    Read a list of confusion pairs (confusable words) from a file
+    """
     pairs = {}
     for line in file.readlines():
         k, v = line.split()
