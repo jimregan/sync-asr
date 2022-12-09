@@ -16,12 +16,27 @@ from .ctm_edit import CTMEditLine, merge_consecutive
 
 
 class HunspellChecker():
-    def __init__(self, dict, aff):
+    """
+    Class to encapsulate a Hunspell spell checker
+
+    :param str dict: Path to the dictionary to use
+    :param str aff: Path to the dictionary's affix file
+    """
+    def __init__(self, dict: str, aff: str):
+        """
+        Constructor method
+        """
         self.dict = dict
         self.aff = aff
         self.speller = hunspell.HunSpell(dict, aff)
 
-    def check(self, text):
+    def check(self, text: str) -> bool:
+        """
+        Check spelling using the Hunspell checker.
+
+        :param str text: the word to check
+        :return: True if correctly spelled
+        """
         PUNCT = [".", ",", ":", ";", "!", "?", "-"]
         comp = text
         if comp[-1] in PUNCT:
@@ -29,7 +44,19 @@ class HunspellChecker():
 
         return self.speller.spell(comp)
 
-    def check_pair(self, text, ref):
+    def check_pair(self, text: str, ref: str) -> str:
+        """
+        Check a pair of spellings, typically corresponding to
+        a hypothesis from an ASR system, and a reference text
+
+        :param str text: text to check, typically from ASR output
+        :param str ref: text to check, typically reference text
+        :return: string representing the results of both checks:
+            | "correct_text" if only text is correct
+            | "correct_ref" if only ref is correct
+            | "correct_both" if both are correct
+            | "incorrect_both" if both are incorrect
+        """
         if self.check(text) and not self.check(ref):
             return "correct_text"
         elif self.check(ref) and not self.check(text):
