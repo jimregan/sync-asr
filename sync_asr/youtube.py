@@ -49,17 +49,13 @@ def check_licence(filename):
 
 
 def check_info_json(dirname, keep_info=True):
-    verbose = True
     dirpath = Path(dirname)
     for info_json in dirpath.glob("*.info.json"):
         if not check_licence(str(info_json)):
             stem = info_json.stem.replace(".info", "")
             for skipped in dirpath.glob(f"{stem}.*"):
-                print("Checking", str(skipped), stem)
                 if keep_info and str(skipped).endswith(".info.json"):
                     continue
                 else:
-                    if verbose:
-                        print("Deleting", str(skipped))
                     skipped.unlink()
 
