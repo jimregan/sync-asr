@@ -1,3 +1,5 @@
+import json
+from pathlib import Path
 try:
     import youtube_dl
 except ImportError:
@@ -20,9 +22,6 @@ _YDL_OPTS = {
 }
 
 
-_LIC="Creative Commons Attribution license (reuse allowed)"
-
-
 class YoutubeWrapper:
     """
     Wrapper around youtube-dl
@@ -38,3 +37,24 @@ class YoutubeWrapper:
 
     def run(self):
         self.ydl.download(self.urls)
+
+
+def check_licence(filename):
+    LIC="Creative Commons Attribution license (reuse allowed)"
+    with open(filename) as jsonf:
+        data = json.load(jsonf)
+        if data["license"] == LIC:
+            return True
+    return False
+
+
+def check_info_json(dirname, keep_info=True):
+    dirpath = Path(dirname)
+    for info_json in dirpath.glob("*.info.json"):
+        if not check_licence(str(info_json)):
+            stem = info_json.stem
+            for skipped in dirpath.glob(f"{stem}.*"):
+                if keep_info and str(skipped).endswith(".info.json"):
+                    continue
+                else:
+                    skipped.unlink()
