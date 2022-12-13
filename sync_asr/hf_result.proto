@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+message Result {
+  string text = 1;
+  repeated Chunk chunks = 2;
+}
+
+message Chunk {
+  string text = 1;
+  TimeStamp timestamp = 2;
+}
+
+message TimeStamp {
+  float start_time = 1;
+  float end_time = 2;
+}
