@@ -1,0 +1,10 @@
+syntax = "proto3";
+
+message CTMLine {
+  string id = 1;
+  int32 channel = 2;
+  float start_time = 3;
+  float duration = 4;
+  string text = 5;
+  float confidence = 6;
+}
