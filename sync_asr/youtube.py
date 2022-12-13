@@ -48,7 +48,7 @@ def check_licence(filename):
     return False
 
 
-def check_info_json(dirname, keep_info=True):
+def check_info_json_and_delete(dirname, keep_info=True):
     dirpath = Path(dirname)
     for info_json in dirpath.glob("*.info.json"):
         if not check_licence(str(info_json)):
