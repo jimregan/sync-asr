@@ -62,6 +62,15 @@ class RiksdagPerson():
         self.birth_year = data["Född"]
         self.party = data["Parti"]
         self.terms.append(RiksdagMemberPeriod(data))
+    
+    def __str__(self) -> str:
+        return f"{self.first_name} {self.last_name} ({self.party}) ({self.birth_year})"
+
+    def get_name(self) -> str:
+        return f"{self.first_name} {self.last_name}"
+    
+    def disambiguate(self) -> str:
+        return f"{self.id} ({self.party}, {self.birth_year})"
 
     def update(self, data):
         assert self.id == data["Id"], "Person IDs do not match"
@@ -88,3 +97,40 @@ class RiksdagMemberPeriod():
             self.to_date = datetime.strptime(self.to_text, '%Y-%m-%d %H:%M:%S')
         return self.to_date
 
+
+def get_people():
+    csv_text = _get_and_extract_csv_text()
+    data = _get_csv_data(csv_text)
+
+    people = {}
+    for datum in data:
+        if datum["Id"] in people:
+            people[datum["Id"]].update(datum)
+        else:
+            people[datum["Id"]] = RiksdagPerson(datum)
+
+    return people
+
+
+def check_overlap(people):
+    people_by_name = {}
+    for person in people:
+        if person.get_name() not in people_by_name:
+            people_by_name[person.get_name()] = []
+            people_by_name[person.get_name()].append(person.disambiguate())
+        else:
+            people_by_name[person.get_name()].append(person.disambiguate())
+    
+    for person in people_by_name:
+        if len(people_by_name[person]) != 1:
+            print(f"{person}: {" ".join(people_by_name[person])}")
+
+
+def main():
+    people = get_people()
+    for person in people:
+        print(people[person])
+
+
+if __name__ == '__main__':
+    main()
