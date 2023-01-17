@@ -21,6 +21,12 @@ from datetime import datetime
 _URL = "http://data.riksdagen.se/dataset/person/person.csv.zip"
 
 
+_EQUATE_IDS = {
+    "0844105199517": "768d9073-e49c-4866-ab4f-00e30340670b",
+}
+_EQUATE_IDS.update({v: k for k, v in _EQUATE_IDS.items()})
+
+
 def _get_and_extract_csv_text():
     req = requests.get(_URL)
     assert req.status_code == 200, "Error downloading zip file"
@@ -72,8 +78,16 @@ class RiksdagPerson():
     def disambiguate(self) -> str:
         return f"{self.id} ({self.party}, {self.birth_year})"
 
+    def check_id(self, id):
+        if self.id == id:
+            return True
+        elif id in _EQUATE_IDS and _EQUATE_IDS[id] == self.id:
+            return True
+        else:
+            return False
+
     def update(self, data):
-        assert self.id == data["Id"], "Person IDs do not match"
+        assert self.check_id(data["Id"]) == True, "Person IDs do not match"
         self.terms.append(RiksdagMemberPeriod(data))
         if self.party != data["Parti"]:
             self.party_change = True
@@ -107,6 +121,10 @@ def get_people():
         if datum["Id"] in people:
             people[datum["Id"]].update(datum)
         else:
+            if datum["Id"] in _EQUATE_IDS:
+                new_key = _EQUATE_IDS[datum["Id"]]
+                if new_key in people:
+                    people[new_key].update(datum)
             people[datum["Id"]] = RiksdagPerson(datum)
 
     return people
@@ -114,7 +132,8 @@ def get_people():
 
 def check_overlap(people):
     people_by_name = {}
-    for person in people:
+    for person_id in people:
+        person = people[person_id]
         if person.get_name() not in people_by_name:
             people_by_name[person.get_name()] = []
             people_by_name[person.get_name()].append(person.disambiguate())
@@ -123,13 +142,12 @@ def check_overlap(people):
     
     for person in people_by_name:
         if len(people_by_name[person]) != 1:
-            print(f"{person}: {" ".join(people_by_name[person])}")
+            print(f"{person}: {' '.join(people_by_name[person])}")
 
 
 def main():
     people = get_people()
-    for person in people:
-        print(people[person])
+    check_overlap(people)
 
 
 if __name__ == '__main__':
