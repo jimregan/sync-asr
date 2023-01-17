@@ -15,6 +15,7 @@ import requests
 import zipfile
 import io
 import csv
+from datetime import datetime
 
 
 _URL = "http://data.riksdagen.se/dataset/person/person.csv.zip"
@@ -49,9 +50,41 @@ def _get_csv_data(csv_text):
 
 
 class RiksdagPerson():
-    def __init__(self) -> None:
-        self._setup()
+    def __init__(self, data):
+        self.terms = []
+        self.setup(data)
 
-    def _setup(self):
-        csv_text = _get_and_extract_csv_text()
-        self.csv_data = _get_csv_data(csv_text)
+    def setup(self, data):
+        self.id = data["Id"]
+        self.gender = "F" if data["Kön"] == "kvinna" else "M"
+        self.first_name = data["Förnamn"]
+        self.last_name = data["Efternamn"]
+        self.birth_year = data["Född"]
+        self.party = data["Parti"]
+        self.terms.append(RiksdagMemberPeriod(data))
+
+    def update(self, data):
+        assert self.id == data["Id"], "Person IDs do not match"
+        self.terms.append(RiksdagMemberPeriod(data))
+        if self.party != data["Parti"]:
+            self.party_change = True
+
+
+class RiksdagMemberPeriod():
+    def __init__(self, data) -> None:
+        self.from_text = data["From"]
+        self.to_text = data["Tom"]
+        self.title = data["Titel"]
+        self.constituency = data["Valkrets"]
+        self.party = data["Parti"]
+
+    def start_date(self):
+        if not 'from_date' in self.__dict__:
+            self.from_date = datetime.strptime(self.from_text, '%Y-%m-%d %H:%M:%S')
+        return self.from_date
+
+    def end_date(self):
+        if not 'to_date' in self.__dict__:
+            self.to_date = datetime.strptime(self.to_text, '%Y-%m-%d %H:%M:%S')
+        return self.to_date
+
