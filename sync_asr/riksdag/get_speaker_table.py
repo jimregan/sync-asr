@@ -47,3 +47,11 @@ def _get_csv_data(csv_text):
     assert header == FIELDS
     return [dict(zip(FIELDS, item)) for item in reader]
 
+
+class RiksdagPerson():
+    def __init__(self) -> None:
+        self._setup()
+
+    def _setup(self):
+        csv_text = _get_and_extract_csv_text()
+        self.csv_data = _get_csv_data(csv_text)
