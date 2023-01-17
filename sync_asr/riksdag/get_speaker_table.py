@@ -23,6 +23,7 @@ _URL = "http://data.riksdagen.se/dataset/person/person.csv.zip"
 
 _EQUATE_IDS = {
     "0844105199517": "768d9073-e49c-4866-ab4f-00e30340670b",
+    "0168348837024": "0102278739624",
 }
 _EQUATE_IDS.update({v: k for k, v in _EQUATE_IDS.items()})
 
@@ -125,7 +126,10 @@ def get_people():
                 new_key = _EQUATE_IDS[datum["Id"]]
                 if new_key in people:
                     people[new_key].update(datum)
-            people[datum["Id"]] = RiksdagPerson(datum)
+                else:
+                    people[datum["Id"]] = RiksdagPerson(datum)
+            else:
+                people[datum["Id"]] = RiksdagPerson(datum)
 
     return people
 
