@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import argparse
 import requests
 import zipfile
 import io
@@ -149,9 +150,24 @@ def check_overlap(people):
             print(f"{person}: {' '.join(people_by_name[person])}")
 
 
+def get_args():
+    parser = argparse.ArgumentParser(description="""
+    Work with the Riksdag people data
+    """)
+    parser.add_argument('--check-overlap', action="store_true",
+        help="check where politicians have the same name, different IDs")
+    args = parser.parse_args()
+
+    return args
+
+
 def main():
+    args = get_args()
     people = get_people()
-    check_overlap(people)
+
+    if args.check_overlap:
+        check_overlap(people)
+        exit(0)
 
 
 if __name__ == '__main__':
