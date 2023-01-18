@@ -131,6 +131,14 @@ class RiksdagMemberPeriod():
 
 
 class YearRange():
+    """
+    Year ranges for political terms.
+    We store the full dates, just in case, but for everything
+    else, we only care about the start and end years.
+    Comparison operators are implemented based on this idea:
+    less than looks only at start years, greater than at end
+    years.
+    """
     def __init__(self, from_date: str, to_date: str) -> None:
         self.from_text = from_date
         self.to_text = to_date
@@ -160,6 +168,10 @@ class YearRange():
 
     def __ge__(self, other: 'YearRange'):
         return self.end_year() <= other.end_year()
+
+    def contains(self, other: 'YearRange'):
+        return (self.end_year() >= other.end_year()
+            and self.start_year() <= other.start_year())
 
     def _parse_date(self, date):
         if date == "":
