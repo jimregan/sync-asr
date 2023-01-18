@@ -171,17 +171,18 @@ class YearRange():
         return self.start_year() <= other.start_year()
 
     def __gt__(self, other: 'YearRange'):
-        return self.end_year() < other.end_year()
+        return self.end_year() > other.end_year()
 
     def __ge__(self, other: 'YearRange'):
-        return self.end_year() <= other.end_year()
+        return self.end_year() >= other.end_year()
 
     def contains(self, other: 'YearRange'):
         return (self.end_year() >= other.end_year()
             and self.start_year() <= other.start_year())
 
     def consecutive(self, other: 'YearRange'):
-        return self.end_year() + 1 == other.start_year()
+        return (self.end_year() + 1 == other.start_year()
+            or self.end_year() >= other.start_year())
 
     def _parse_date(self, date):
         if date == "":
@@ -213,7 +214,7 @@ class YearRange():
 
 def merge_year_ranges(ranges: List[YearRange]) -> List[YearRange]:
     collapsed = list(set(ranges))
-    sorted(collapsed)
+    sorted(collapsed, reverse=True)
     cur = collapsed[0]
 
     out = []
@@ -230,6 +231,7 @@ def merge_year_ranges(ranges: List[YearRange]) -> List[YearRange]:
             out.append(cur)
             cur = collapsed[i]
             i += 1
+    out.append(cur)
     return out
 
 
