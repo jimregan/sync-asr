@@ -113,6 +113,17 @@ class RiksdagMemberPeriod():
             self.to_date = datetime.strptime(self.to_text, '%Y-%m-%d %H:%M:%S')
         return self.to_date
 
+    def start_year(self):
+        date = self.start_date()
+        return date.year
+
+    def end_year(self):
+        date = self.end_date()
+        return date.year
+    
+    def year_range(self):
+        return "-".join(self.start_year(), self.end_year())
+
 
 def get_people():
     csv_text = _get_and_extract_csv_text()
