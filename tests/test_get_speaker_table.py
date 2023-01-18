@@ -51,7 +51,7 @@ _TEST2_RAW = [
     ("2022-01-01", "2024-01-01"),
     ("2014-01-01", "2018-01-01"),
 ]
-_TEST2 = [YearRange(x[0], x[1]) for x in _TEST1_RAW]
+_TEST2 = [YearRange(x[0], x[1]) for x in _TEST2_RAW]
 _EXP2 = [
     YearRange("2014-01-01", "2018-01-01"),
     YearRange("2022-01-01", "2024-01-01"),
