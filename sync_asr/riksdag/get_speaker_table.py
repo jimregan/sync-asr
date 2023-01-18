@@ -65,6 +65,7 @@ class RiksdagPerson():
         self.setup(data)
 
     def setup(self, data):
+        self.data = data
         self.id = data["Id"]
         self.gender = "F" if data["Kön"] == "kvinna" else "M"
         self.first_name = data["Förnamn"]
@@ -106,6 +107,13 @@ class RiksdagPerson():
     def get_terms(self):
         ranges = [x.year_range() for x in self.terms]
         return ", ".join(set(ranges))
+
+    def get_merged_terms(self):
+        try:
+            ranges = merge_year_ranges([x.year_range() for x in self.terms])
+            return ", ".join(set(ranges))
+        except:
+            print("ERROR:", self.data)
 
 
 class RiksdagMemberPeriod():
@@ -236,6 +244,8 @@ def merge_year_ranges(ranges: List[YearRange]) -> List[YearRange]:
     i = 1
     for i in range(i, len(collapsed)):
         other = collapsed[i]
+        assert type(cur) == YearRange, f"Expected YearRange, got {cur}"
+        assert type(other) == YearRange, f"Expected YearRange, got {other}"
         if cur.either_contains(other):
             i += 1
         elif cur > other:
@@ -301,6 +311,10 @@ def get_terms(people):
     for person in people.values():
         print(f"{person.get_name()}\t{person.gender}\t{person.get_party()}\t{person.birth_year}\t{person.get_terms()}")
 
+def get_merged_terms(people):
+    for person in people.values():
+        assert type(person) == RiksdagPerson
+        print(f"{person.get_name()}\t{person.gender}\t{person.get_party()}\t{person.birth_year}\t{person.get_merged_terms()}")
 
 def get_args():
     parser = argparse.ArgumentParser(description="""
@@ -308,6 +322,8 @@ def get_args():
     """)
     parser.add_argument('--check-overlap', action="store_true",
         help="check where politicians have the same name, different IDs")
+    parser.add_argument('--get-unmerged-terms', action="store_true",
+        help="output a list of term ranges by politician")
     parser.add_argument('--get-terms', action="store_true",
         help="output a list of term ranges by politician")
     args = parser.parse_args()
@@ -324,6 +340,10 @@ def main():
         exit(0)
 
     if args.get_terms:
+        get_merged_terms(people)
+        exit(0)
+
+    if args.get_unmerged_terms:
         get_terms(people)
         exit(0)
 
