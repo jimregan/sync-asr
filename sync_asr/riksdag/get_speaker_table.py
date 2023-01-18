@@ -16,6 +16,7 @@ import requests
 import zipfile
 import io
 import csv
+import re
 from datetime import datetime
 
 
@@ -77,6 +78,13 @@ class RiksdagPerson():
     def get_name(self) -> str:
         return f"{self.first_name} {self.last_name}"
     
+    def get_party(self) -> str:
+        if 'party_change' in self.__dict__ and self.party_change:
+            parties = set([x.party for x in self.terms])
+            return ", ".join(parties)
+        else:
+            return self.party
+    
     def disambiguate(self) -> str:
         return f"{self.id} ({self.party}, {self.birth_year})"
 
@@ -93,6 +101,10 @@ class RiksdagPerson():
         self.terms.append(RiksdagMemberPeriod(data))
         if self.party != data["Parti"]:
             self.party_change = True
+    
+    def get_terms(self):
+        ranges = [x.year_range() for x in self.terms]
+        return ", ".join(set(ranges))
 
 
 class RiksdagMemberPeriod():
@@ -105,24 +117,43 @@ class RiksdagMemberPeriod():
 
     def start_date(self):
         if not 'from_date' in self.__dict__:
-            self.from_date = datetime.strptime(self.from_text, '%Y-%m-%d %H:%M:%S')
+            if self.to_text == "":
+                return None
+            if re.match("^\d\d\d\d\-\d\d\-\d\d \d\d:\d\d:\d\d", self.from_text):
+                self.from_date = datetime.strptime(self.from_text, '%Y-%m-%d %H:%M:%S')
+            else:
+                self.from_date = datetime.strptime(self.from_text, '%Y-%m-%d')
         return self.from_date
 
     def end_date(self):
         if not 'to_date' in self.__dict__:
-            self.to_date = datetime.strptime(self.to_text, '%Y-%m-%d %H:%M:%S')
+            if self.to_text == "":
+                return None
+            if re.match("^\d\d\d\d\-\d\d\-\d\d \d\d:\d\d:\d\d", self.to_text):
+                self.to_date = datetime.strptime(self.to_text, '%Y-%m-%d %H:%M:%S')
+            else:
+                self.to_date = datetime.strptime(self.to_text, '%Y-%m-%d')
         return self.to_date
 
     def start_year(self):
         date = self.start_date()
+        if date is None:
+            return ""
         return date.year
 
     def end_year(self):
         date = self.end_date()
+        if date is None:
+            return ""
         return date.year
     
     def year_range(self):
-        return "-".join(self.start_year(), self.end_year())
+        start = str(self.start_year())
+        end = str(self.end_year())
+        if start == end:
+            return start
+        else:
+            return "-".join([start, end])
 
 
 def get_people():
@@ -161,12 +192,26 @@ def check_overlap(people):
             print(f"{person}: {' '.join(people_by_name[person])}")
 
 
+
+_MD_HEADER = """
+| Type | Segment | Gender | Year |
+|------|---------|--------|------|
+"""
+
+
+def get_terms(people):
+    for person in people.values():
+        print(f"{person.get_name()}\t{person.gender}\t{person.get_party()}\t{person.birth_year}\t{person.get_terms()}")
+
+
 def get_args():
     parser = argparse.ArgumentParser(description="""
     Work with the Riksdag people data
     """)
     parser.add_argument('--check-overlap', action="store_true",
         help="check where politicians have the same name, different IDs")
+    parser.add_argument('--get-terms', action="store_true",
+        help="output a list of term ranges by politician")
     args = parser.parse_args()
 
     return args
@@ -178,6 +223,10 @@ def main():
 
     if args.check_overlap:
         check_overlap(people)
+        exit(0)
+
+    if args.get_terms:
+        get_terms(people)
         exit(0)
 
 
