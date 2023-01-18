@@ -165,24 +165,40 @@ class YearRange():
             and self.end_year() == other.end_year())
 
     def __lt__(self, other: 'YearRange'):
-        return self.start_year() < other.start_year()
+        if self.start_year() < other.start_year():
+            return True
+        else:
+            return (self.start_year() == other.start_year()
+                and self.end_year() < other.end_year())
 
     def __le__(self, other: 'YearRange'):
-        return self.start_year() <= other.start_year()
+        return self < other or self == other
 
     def __gt__(self, other: 'YearRange'):
-        return self.end_year() > other.end_year()
+        if self.end_year() > other.end_year():
+            return True
+        else:
+            return (self.end_year() == other.end_year()
+                and self.start_year() > other.start_year())
 
     def __ge__(self, other: 'YearRange'):
-        return self.end_year() >= other.end_year()
+        return self > other or self == other
 
     def contains(self, other: 'YearRange'):
         return (self.end_year() >= other.end_year()
             and self.start_year() <= other.start_year())
 
+    def either_contains(self, other: 'YearRange'):
+        return self.contains(other) or other.contains(self)
+
+    def overlap(self, other: 'YearRange'):
+        return (self.end_year() >= other.start_year()
+            and (self < other and other > self))
+
     def consecutive(self, other: 'YearRange'):
-        return (self.end_year() + 1 == other.start_year()
-            or self.end_year() >= other.start_year())
+        return ((self.end_year() + 1 == other.start_year()
+            or self.end_year() == other.start_year())
+            and (self <= other and other >= self))
 
     def _parse_date(self, date):
         if date == "":
@@ -215,22 +231,25 @@ class YearRange():
 def merge_year_ranges(ranges: List[YearRange]) -> List[YearRange]:
     collapsed = list(set(ranges))
     sorted(collapsed)
-    print(collapsed)
     cur = collapsed[0]
 
     out = []
     i = 1
     for i in range(i, len(collapsed)):
-
-        if cur.contains(collapsed[i]):
+        other = collapsed[i]
+        if cur.either_contains(other):
             i += 1
-        elif cur > collapsed[i]:
+        elif cur > other:
             i += 1
-        elif cur.consecutive(collapsed[i]):
-            cur = YearRange(cur.from_text, collapsed[i].to_text)
+        elif cur.overlap(other):
+            cur = YearRange(cur.from_text, other.to_text)
+            i += 1
+        elif cur.consecutive(other):
+            cur = YearRange(cur.from_text, other.to_text)
+            i += 1
         else:
             out.append(cur)
-            cur = collapsed[i]
+            cur = other
             i += 1
     out.append(cur)
     return out
