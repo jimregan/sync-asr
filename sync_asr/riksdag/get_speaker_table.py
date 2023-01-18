@@ -158,7 +158,7 @@ class YearRange():
         return self.__str__()
 
     def __hash__(self) -> int:
-        return hash(repr(self))
+        return hash((self.start_year(), self.end_year()))
 
     def __eq__(self, other: 'YearRange'):
         return (self.start_year() == other.start_year()
