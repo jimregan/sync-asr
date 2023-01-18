@@ -109,30 +109,55 @@ class RiksdagPerson():
 
 class RiksdagMemberPeriod():
     def __init__(self, data) -> None:
-        self.from_text = data["From"]
-        self.to_text = data["Tom"]
+        self.range = YearRange(data["From"], data["Tom"])
         self.title = data["Titel"]
         self.constituency = data["Valkrets"]
         self.party = data["Parti"]
 
     def start_date(self):
-        if not 'from_date' in self.__dict__:
-            if self.to_text == "":
-                return None
-            if re.match("^\d\d\d\d\-\d\d\-\d\d \d\d:\d\d:\d\d", self.from_text):
-                self.from_date = datetime.strptime(self.from_text, '%Y-%m-%d %H:%M:%S')
-            else:
-                self.from_date = datetime.strptime(self.from_text, '%Y-%m-%d')
+        return self.range.start_date()
+
+    def end_date(self):
+        return self.range.end_date()
+
+    def start_year(self):
+        return self.range.start_year()
+
+    def end_year(self):
+        return self.range.end_year()
+    
+    def year_range(self):
+        return self.range.__str__()
+
+
+class YearRange():
+    def __init__(self, from_date: str, to_date: str) -> None:
+        self.from_text = from_date
+        self.to_text = to_date
+        self.from_date = self._parse_date(from_date)
+        self.to_date = self._parse_date(to_date)
+
+    def __str__(self) -> str:
+        start = str(self.start_year())
+        end = str(self.end_year())
+        if start == end:
+            return start
+        else:
+            return "-".join([start, end])
+
+    def _parse_date(self, date):
+        if date == "":
+            return None
+        if re.match("^\d\d\d\d\-\d\d\-\d\d \d\d:\d\d:\d\d", date):
+            out_date = datetime.strptime(date, '%Y-%m-%d %H:%M:%S')
+        else:
+            out_date = datetime.strptime(date, '%Y-%m-%d')
+        return out_date
+
+    def start_date(self):
         return self.from_date
 
     def end_date(self):
-        if not 'to_date' in self.__dict__:
-            if self.to_text == "":
-                return None
-            if re.match("^\d\d\d\d\-\d\d\-\d\d \d\d:\d\d:\d\d", self.to_text):
-                self.to_date = datetime.strptime(self.to_text, '%Y-%m-%d %H:%M:%S')
-            else:
-                self.to_date = datetime.strptime(self.to_text, '%Y-%m-%d')
         return self.to_date
 
     def start_year(self):
@@ -146,14 +171,6 @@ class RiksdagMemberPeriod():
         if date is None:
             return ""
         return date.year
-    
-    def year_range(self):
-        start = str(self.start_year())
-        end = str(self.end_year())
-        if start == end:
-            return start
-        else:
-            return "-".join([start, end])
 
 
 def get_people():
