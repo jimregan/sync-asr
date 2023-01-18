@@ -187,7 +187,7 @@ class YearRange():
     def _parse_date(self, date):
         if date == "":
             return None
-        if re.match("^\d\d\d\d\-\d\d\-\d\d \d\d:\d\d:\d\d", date):
+        if re.match(r"^\d\d\d\d\-\d\d\-\d\d \d\d:\d\d:\d\d", date):
             out_date = datetime.strptime(date, '%Y-%m-%d %H:%M:%S')
         else:
             out_date = datetime.strptime(date, '%Y-%m-%d')
@@ -214,7 +214,8 @@ class YearRange():
 
 def merge_year_ranges(ranges: List[YearRange]) -> List[YearRange]:
     collapsed = list(set(ranges))
-    sorted(collapsed, reverse=True)
+    sorted(collapsed)
+    print(collapsed)
     cur = collapsed[0]
 
     out = []

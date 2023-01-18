@@ -28,5 +28,22 @@ _TEST1_RAW = [
 ]
 _TEST1 = [YearRange(x[0], x[1]) for x in _TEST1_RAW]
 
+# YearRange("2019-01-01", "2022-01-01")
+# 
+# 
+# 
+# YearRange("2022-01-01", "2023-01-01")
+# 
+# YearRange("2023-01-01", "2023-01-01")
+# YearRange("2023-01-01", "2026-01-01")
+
+
+def test_year_range_comparisons():
+    assert YearRange("2018-01-01", "2022-01-01") > YearRange("2018-01-01", "2021-01-01")
+    assert YearRange("2020-01-01", "2022-01-01").contains(YearRange("2021-01-01", "2022-01-01"))
+    assert YearRange("2020-01-01", "2022-01-01").contains(YearRange("2022-01-01", "2022-01-01"))
+    assert YearRange("2020-01-01", "2022-01-01").consecutive(YearRange("2022-01-01", "2023-01-01"))
+    assert YearRange("2020-01-01", "2022-01-01").consecutive(YearRange("2022-01-01", "2026-01-01"))
+
 def test_merge_year_ranges():
     assert merge_year_ranges(_TEST1) == [YearRange("2018-01-01", "2026-01-01")]
