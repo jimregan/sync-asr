@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import argparse
+from typing import List
 import requests
 import zipfile
 import io
@@ -152,6 +153,12 @@ class YearRange():
             return start
         else:
             return "-".join([start, end])
+    
+    def __repr__(self) -> str:
+        return self.__str__()
+
+    def __hash__(self) -> int:
+        return hash(repr(self))
 
     def __eq__(self, other: 'YearRange'):
         return (self.start_year() == other.start_year()
@@ -172,6 +179,9 @@ class YearRange():
     def contains(self, other: 'YearRange'):
         return (self.end_year() >= other.end_year()
             and self.start_year() <= other.start_year())
+
+    def consecutive(self, other: 'YearRange'):
+        return self.end_year() + 1 == other.start_year()
 
     def _parse_date(self, date):
         if date == "":
@@ -199,6 +209,28 @@ class YearRange():
         if date is None:
             return ""
         return date.year
+
+
+def merge_year_ranges(ranges: List[YearRange]) -> List[YearRange]:
+    collapsed = list(set(ranges))
+    sorted(collapsed)
+    cur = collapsed[0]
+
+    out = []
+    i = 1
+    for i in range(i, len(collapsed)):
+
+        if cur.contains(collapsed[i]):
+            i += 1
+        elif cur > collapsed[i]:
+            i += 1
+        elif cur.consecutive(collapsed[i]):
+            cur = YearRange(cur.from_text, collapsed[i].to_text)
+        else:
+            out.append(cur)
+            cur = collapsed[i]
+            i += 1
+    return out
 
 
 def get_people():
