@@ -229,8 +229,7 @@ class YearRange():
 
 
 def merge_year_ranges(ranges: List[YearRange]) -> List[YearRange]:
-    collapsed = list(set(ranges))
-    sorted(collapsed)
+    collapsed = sorted(list(set(ranges)))
     cur = collapsed[0]
 
     out = []
