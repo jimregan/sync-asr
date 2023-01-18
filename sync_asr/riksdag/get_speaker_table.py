@@ -145,6 +145,22 @@ class YearRange():
         else:
             return "-".join([start, end])
 
+    def __eq__(self, other: 'YearRange'):
+        return (self.start_year() == other.start_year()
+            and self.end_year() == other.end_year())
+
+    def __lt__(self, other: 'YearRange'):
+        return self.start_year() < other.start_year()
+
+    def __le__(self, other: 'YearRange'):
+        return self.start_year() <= other.start_year()
+
+    def __gt__(self, other: 'YearRange'):
+        return self.end_year() < other.end_year()
+
+    def __ge__(self, other: 'YearRange'):
+        return self.end_year() <= other.end_year()
+
     def _parse_date(self, date):
         if date == "":
             return None
