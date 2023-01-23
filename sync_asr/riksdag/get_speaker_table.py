@@ -84,6 +84,7 @@ class RiksdagPerson():
         if 'party_change' in self.__dict__ and self.party_change:
             parties = set([x.party for x in self.terms])
             parties = [x for x in parties if x != ""]
+            parties = sorted(parties)
             return ", ".join(parties)
         else:
             return self.party
