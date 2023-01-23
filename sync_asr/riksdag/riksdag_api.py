@@ -59,7 +59,6 @@ def split_title(text: str) -> Tuple[str, str]:
     title_out = ""
     for title in TITULAR:
         if text.startswith(title):
-            title_out = title
             return (title, text[len(title) :].strip())
     return ("", "text")
 
@@ -107,8 +106,9 @@ class RiksdagAPI():
             viddata = [self.videodata]
         output = []
         for vd in viddata:
-            for speaker in vd["speakers"]:
-                output.append(SpeakerElement(speaker))
+            if "speakers" in vd:
+                for speaker in vd["speakers"]:
+                    output.append(SpeakerElement(speaker))
         return output
 
     def get_vidid(self):
