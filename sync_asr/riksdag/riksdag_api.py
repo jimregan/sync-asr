@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import json
+from typing import Tuple
 from bs4 import BeautifulSoup
 import copy
 import re
@@ -24,6 +25,43 @@ BASE_KEYS = [
     'debatename', 'debatedate', 'debatetype', 'debateurl', 'fromchamber',
     'thumbnailurl', 'debateseconds'
 ]
+
+
+TITULAR = """
+Arbetsm.- och etableringsmin.
+Arbetsmarknads- och jämställdhetsminister
+Arbetsmarknadsminister
+Finansminister
+Försvarsminister
+Infrastrukturminister
+Justitie- och inrikesminister
+Justitie- och migrationsmin.
+Justitie- och migrationsminister
+Justitieminister
+Klimat- och miljöminister
+Kultur- och demokratiminister
+Kultur- och idrottsminister
+Kulturminister
+Landsbygdsminister
+Miljö- och klimatminister
+Miljöminister
+Näringsminister
+Närings- och innovationsmin.
+Socialförsäkringsminister
+Socialminister
+Statsminister
+Statsrådet
+Utbildningsminister
+Utrikesminister
+""".split("\n")
+TITULAR = [x for x in TITULAR if x != ""]
+
+
+def split_title(text: str) -> Tuple[str, str]:
+    for title in TITULAR:
+        if text.startswith(title.strip()):
+            return (title, text[len(title) :].strip())
+    return ("", text)
 
 
 class SpeakerElement(TimedElement):
@@ -69,8 +107,9 @@ class RiksdagAPI():
             viddata = [self.videodata]
         output = []
         for vd in viddata:
-            for speaker in vd["speakers"]:
-                output.append(SpeakerElement(speaker))
+            if "speakers" in vd:
+                for speaker in vd["speakers"]:
+                    output.append(SpeakerElement(speaker))
         return output
 
     def get_vidid(self):
@@ -141,7 +180,13 @@ def read_videodata(videodata, filename="", verbose=False, nullify=True):
         cur = {}
         for key in ["start", "duration", "party", "subid", "active", "number"]:
             cur[key] = speaker[key]
+        cur["speaker_text"] = speaker["text"]
         cur["speaker"] = speaker["text"]
+        st = split_title(cur["speaker"])
+        tmptitle, tmptext = st[0], st[1]
+        if tmptitle != "":
+            cur["title"] = tmptitle
+            cur["speaker"] = tmptext
         ending = f" ({cur['party']})"
         if cur["speaker"].endswith(ending):
             cur["speaker"] = cur["speaker"][:-len(ending)]
