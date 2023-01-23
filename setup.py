@@ -30,5 +30,6 @@ setup(
     install_requires=[
           'pytest',
           'beautifulsoup4',
+          'requests',
       ],
 )
