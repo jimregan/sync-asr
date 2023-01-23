@@ -53,14 +53,14 @@ Statsminister
 Utbildningsminister
 Utrikesminister
 """.split("\n")
+TITULAR = [x for x in TITULAR if x != ""]
 
 
 def split_title(text: str) -> Tuple[str, str]:
-    title_out = ""
     for title in TITULAR:
-        if text.startswith(title):
+        if text.startswith(title.strip()):
             return (title, text[len(title) :].strip())
-    return ("", "text")
+    return ("", text)
 
 
 class SpeakerElement(TimedElement):
@@ -181,7 +181,8 @@ def read_videodata(videodata, filename="", verbose=False, nullify=True):
             cur[key] = speaker[key]
         cur["speaker_text"] = speaker["text"]
         cur["speaker"] = speaker["text"]
-        tmptitle, tmptext = split_title(cur["speaker"])
+        st = split_title(cur["speaker"])
+        tmptitle, tmptext = st[0], st[1]
         if tmptitle != "":
             cur["title"] = tmptitle
             cur["speaker"] = tmptext
