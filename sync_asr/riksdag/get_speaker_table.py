@@ -275,7 +275,7 @@ def merge_year_ranges(ranges: List[YearRange]) -> List[YearRange]:
         assert type(cur) == YearRange, cur_err
         assert type(other) == YearRange, other_err
         if other.contains(cur):
-            cur = YearRange(other.from_text, other.to_text)
+            cur = other
             i += 1
         elif cur.contains(other):
             i += 1
