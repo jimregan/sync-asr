@@ -83,6 +83,7 @@ class RiksdagPerson():
     def get_party(self) -> str:
         if 'party_change' in self.__dict__ and self.party_change:
             parties = set([x.party for x in self.terms])
+            parties = [x for x in parties if x != ""]
             return ", ".join(parties)
         else:
             return self.party
@@ -111,6 +112,8 @@ class RiksdagPerson():
     def get_merged_terms(self):
         try:
             ranges = merge_year_ranges([x.year_range() for x in self.terms if x.has_date()])
+            # Need at least a second pass
+            ranges = merge_year_ranges(ranges)
             ranges = [str(x) for x in ranges]
             if len(ranges) == 0:
                 return "-"
@@ -203,8 +206,8 @@ class YearRange():
             return False
         if not other.has_date():
             return False
-        return (self.end_year() <= other.end_year()
-            and self.start_year() >= other.start_year())
+        return (self.start_year() <= other.start_year()
+            and self.end_year() >= other.end_year())
 
     def either_contains(self, other: 'YearRange'):
         return self.contains(other) or other.contains(self)
@@ -216,8 +219,10 @@ class YearRange():
         return self.start_date() is None or self.end_date() is None
 
     def overlap(self, other: 'YearRange'):
-        return ((self.start_year() <= other.start_year() and self.start_year() <= other.end_year())
-            and (self.end_year() <= other.end_year() and self.end_year() >= other.start_year()))    
+        starts = self.start_year() <= other.start_year()
+        ends = self.end_year() <= other.end_year()
+        within = self.end_year() >= other.start_year() and self.end_year() <= other.end_year()
+        return (starts and ends and within)
 
     def consecutive(self, other: 'YearRange'):
         return ((self.end_year() + 1 == other.start_year()
