@@ -210,9 +210,6 @@ class YearRange():
         return (self.start_year() <= other.start_year()
             and self.end_year() >= other.end_year())
 
-    def either_contains(self, other: 'YearRange'):
-        return self.contains(other) or other.contains(self)
-
     def has_date(self):
         return self.start_date() is not None and self.end_date() is not None
 
@@ -277,7 +274,10 @@ def merge_year_ranges(ranges: List[YearRange]) -> List[YearRange]:
         other_err = f"Expected YearRange, got {other} ({type(other)})"
         assert type(cur) == YearRange, cur_err
         assert type(other) == YearRange, other_err
-        if cur.either_contains(other):
+        if other.contains(cur):
+            cur = other
+            i += 1
+        elif cur.contains(other):
             i += 1
         elif cur > other:
             i += 1
