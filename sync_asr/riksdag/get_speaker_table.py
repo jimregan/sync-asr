@@ -159,6 +159,10 @@ class YearRange():
         end = str(self.end_year())
         if start == end:
             return start
+        elif end == "" and start != "":
+            return start
+        elif start == "" and end != "":
+            return end
         else:
             return "-".join([start, end])
     
