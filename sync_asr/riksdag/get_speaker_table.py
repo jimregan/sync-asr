@@ -203,10 +203,6 @@ class YearRange():
         return self > other or self == other
 
     def contains(self, other: 'YearRange'):
-        if not self.can_contain():
-            return False
-        if not other.has_date():
-            return False
         return (self.start_year() <= other.start_year()
             and self.end_year() >= other.end_year())
 
