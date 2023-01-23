@@ -50,6 +50,7 @@ Närings- och innovationsmin.
 Socialförsäkringsminister
 Socialminister
 Statsminister
+Statsrådet
 Utbildningsminister
 Utrikesminister
 """.split("\n")
