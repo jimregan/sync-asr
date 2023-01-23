@@ -109,11 +109,14 @@ class RiksdagPerson():
         return ", ".join(set(ranges))
 
     def get_merged_terms(self):
-        try:
-            ranges = merge_year_ranges([x.year_range() for x in self.terms])
-            return ", ".join(set(ranges))
-        except:
-            print("ERROR:", self.data)
+        # try:
+            ranges = merge_year_ranges([x.year_range() for x in self.terms if x.has_date()])
+            ranges = [str(x) for x in ranges]
+            if len(ranges) == 0:
+                return "-"
+            return ", ".join(ranges)
+        # except:
+        #     print("ERROR:", self.data)
 
 
 class RiksdagMemberPeriod():
@@ -136,7 +139,10 @@ class RiksdagMemberPeriod():
         return self.range.end_year()
     
     def year_range(self):
-        return self.range.__str__()
+        return self.range
+
+    def has_date(self):
+        return self.range.has_date()
 
 
 class YearRange():
@@ -159,9 +165,9 @@ class YearRange():
         end = str(self.end_year())
         if start == end:
             return start
-        elif end == "" and start != "":
+        elif end == None and start != None:
             return start
-        elif start == "" and end != "":
+        elif start == None and end != None:
             return end
         else:
             return "-".join([start, end])
@@ -177,6 +183,10 @@ class YearRange():
             and self.end_year() == other.end_year())
 
     def __lt__(self, other: 'YearRange'):
+        if self.start_year is None and self.end_year is not None:
+            return self.end_year() < other.end_year()
+        elif self.end_year is None and self.start_year is not None:
+            return self.start_year() < other.start_year()
         if self.start_year() < other.start_year():
             return True
         else:
@@ -187,6 +197,10 @@ class YearRange():
         return self < other or self == other
 
     def __gt__(self, other: 'YearRange'):
+        if self.end_year() is None and self.start_year() is not None:
+            return self.start_year() > other.start_year()
+        elif self.start_year() is None and self.end_year() is not None:
+            return self.end_year() > other.end_year()
         if self.end_year() > other.end_year():
             return True
         else:
@@ -197,15 +211,35 @@ class YearRange():
         return self > other or self == other
 
     def contains(self, other: 'YearRange'):
+        if not self.can_contain():
+            return False
+        if not other.has_date():
+            return False
+        if not other.can_contain():
+            other_date = other.start_year() if other.start_year() is not None else other.end_year()
+            return self.start_year() < other_date < self.end_year()
+        elif other.start_year() is None and other.end_year() is not None:
+            return self.end_year() >= other.end_year()
+        elif other.end_year() is None and other.start_year() is not None:
+            return self.start_year() <= other.start_year()
         return (self.end_year() >= other.end_year()
             and self.start_year() <= other.start_year())
 
     def either_contains(self, other: 'YearRange'):
         return self.contains(other) or other.contains(self)
 
+    def has_date(self):
+        return self.start_year() is not None and self.end_year() is not None
+
+    def can_contain(self):
+        return self.start_year() is None or self.end_year() is None
+
     def overlap(self, other: 'YearRange'):
-        return (self.end_year() >= other.start_year()
-            and (self < other and other > self))
+        if self.can_contain():
+            return (self.end_year() >= other.start_year()
+                and (self < other and other > self))
+        else:
+            return False
 
     def consecutive(self, other: 'YearRange'):
         return ((self.end_year() + 1 == other.start_year()
@@ -213,12 +247,15 @@ class YearRange():
             and (self <= other and other >= self))
 
     def _parse_date(self, date):
+        date = date.strip()
         if date == "":
             return None
         if re.match(r"^\d\d\d\d\-\d\d\-\d\d \d\d:\d\d:\d\d", date):
             out_date = datetime.strptime(date, '%Y-%m-%d %H:%M:%S')
-        else:
+        elif re.match(r"^\d\d\d\d\-\d\d\-\d\d", date):
             out_date = datetime.strptime(date, '%Y-%m-%d')
+        else:
+            raise ValueError(date)
         return out_date
 
     def start_date(self):
@@ -230,26 +267,32 @@ class YearRange():
     def start_year(self):
         date = self.start_date()
         if date is None:
-            return ""
+            return None
         return date.year
 
     def end_year(self):
         date = self.end_date()
         if date is None:
-            return ""
+            return None
         return date.year
 
 
 def merge_year_ranges(ranges: List[YearRange]) -> List[YearRange]:
+    if len(ranges) == 0:
+        return []
     collapsed = sorted(list(set(ranges)))
     cur = collapsed[0]
+    if len(ranges) == 1:
+        return ranges
 
     out = []
     i = 1
     for i in range(i, len(collapsed)):
         other = collapsed[i]
-        assert type(cur) == YearRange, f"Expected YearRange, got {cur}"
-        assert type(other) == YearRange, f"Expected YearRange, got {other}"
+        cur_err = f"Expected YearRange, got {cur} ({type(cur)})"
+        other_err = f"Expected YearRange, got {other} ({type(other)})"
+        assert type(cur) == YearRange, cur_err
+        assert type(other) == YearRange, other_err
         if cur.either_contains(other):
             i += 1
         elif cur > other:
