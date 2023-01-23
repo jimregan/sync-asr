@@ -187,7 +187,11 @@ class YearRange():
             and self.end_year() == other.end_year())
 
     def __lt__(self, other: 'YearRange'):
-        return (self != other) and not (self > other)
+        if self.start_year() < other.start_year():
+            return True
+        else:
+            return (self.start_year() == other.start_year()
+                and self.end_year() < other.end_year())
 
     def __le__(self, other: 'YearRange'):
         return self < other or self == other
