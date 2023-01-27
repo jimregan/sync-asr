@@ -104,6 +104,19 @@ class FilteredPair():
             return "VAL_M"
 
 
+@dataclass
+class FilteredSegment():
+    name: str
+    set_name: str
+    vidid: str
+    start: int
+    end: int
+    text: str
+
+    def __str__(self):
+        return f"{self.name}\t{self.set_name}\t{self.vidid}\t{str(self.start)}\t{str(self.end)}\t{self.text}"
+
+
 # TODO: this assumes there is always a 'within' case
 # which may not be true, in which case, breakage happens
 def filter_vtt_with_riksdag(vttcaptions, rdapi, vidid):
@@ -163,6 +176,39 @@ def get_args():
     return args
 
 
+def split_point(seg1, seg2, duration = 3000):
+    if seg1.name != seg2.name:
+        return True
+    elif seg1.vidid != seg2.vidid:
+        return True
+    elif (seg2.start - seg1.end) > duration:
+        return True
+    else:
+        return False
+
+
+def partition_segments(segments):
+    segmented = []
+    current = []
+
+    for i, j in zip(range(0, len(segments)-1), range(1, len(segments))):
+        if split_point(segments[i], segments[j]):
+            current.append(segments[i])
+            segmented.append(deepcopy(current))
+            current = []
+        else:
+            current.append(segments[i])
+        i += 1
+        j += 1
+    return segmented
+
+
+def filter_segmented(segmented):
+    for seg in segmented:
+        if len(seg) > 2 and seg[1].text.startswith("Tack"):
+            seg = seg[1:]
+
+
 def main():
     verbose = False
     args = get_args()
@@ -200,8 +246,12 @@ def main():
     for pair in all_pairs:
         BASE = f"{pair.speaker_name}\t{pair.get_set()}\t{pair.vidid}"
         for caption in pair.vttlines:
-            print(f"{BASE}\t{caption.start_time}\t{caption.end_time}\t{caption.text.strip()}\n")
+            print(f"{BASE}\t{caption.start_time}\t{caption.end_time}\t{caption.text.strip()}")
 
+    filtered_segments = []
+    for pair in all_pairs:
+        fs = FilteredSegment(pair.speaker_name, pair.get_set(), pair.vidid, caption.start_time, caption.end_time, caption.text.strip())
+        filtered_segments.append(fs)
 
 if __name__ == '__main__':
     main()
