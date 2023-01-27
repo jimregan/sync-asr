@@ -117,6 +117,40 @@ class FilteredSegment():
         return f"{self.name}\t{self.set_name}\t{self.vidid}\t{str(self.start)}\t{str(self.end)}\t{self.text}"
 
 
+def subsplit_segment_list(segments):
+    two_minutes = 2 * 60 * 1000
+    close_enough = two_minutes + 5000
+    four_minutes = 4 * 60 * 1000
+
+    running_total = 0
+    start = segments[0].start
+
+    output = []
+    def merge(a, b, text):
+        start = a.start
+        end = b.end
+        new = FilteredSegment(a.name, a.set_name, a.vidid, start, end, text)
+        return new
+
+    if (segments[-1].end - segments[0].start) > two_minutes:
+        for i in range(1, len(segments)):
+            cur_total = segments[i] - start
+            if cur_total > close_enough and running_total > two_minutes:
+                index = i - 1
+                text = " ".join(x.text for x in segments[0:index])
+                output.append(merge(segments[0], segments[index], text))
+    if (segments[-1].end - segments[i].start) > two_minutes:
+        j = i
+        for i in range(j, len(segments)):
+            cur_total = segments[i] - start
+            if cur_total > close_enough and running_total > two_minutes:
+                index = i - 1
+                text = " ".join(x.text for x in segments[0:index])
+                output.append(merge(segments[0], segments[index], text))
+
+    return output
+
+
 # TODO: this assumes there is always a 'within' case
 # which may not be true, in which case, breakage happens
 def filter_vtt_with_riksdag(vttcaptions, rdapi, vidid):
@@ -212,6 +246,17 @@ def filter_segmented(segmented):
 def is_usable_segment(segments):
     min_time = 4 * 60 * 1000
     return (segments[-1].end - segments[0].start) < min_time
+
+
+def extract_chunk(segments):
+    two_mins = 2 * 60 * 1000
+    close_enough_to_two = two_mins + (5 * 1000)
+    for segment in segments:
+        if is_usable_segment(segment):
+            current_total = 0
+            seg_start = segment[0].start
+            for subseg in segment:
+                pass
 
 
 def main():
