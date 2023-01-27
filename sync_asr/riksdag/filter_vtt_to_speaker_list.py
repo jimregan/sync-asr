@@ -152,8 +152,6 @@ def get_args():
     parser = argparse.ArgumentParser(description="""
     Filter Whisper CTMs by a (hardcoded) speaker list
     """)
-    parser.add_argument("--insertion-penalty", type=int, default=1,
-                        help="Penalty for insertion errors")
     parser.add_argument("vtt_path",
                         type=str,
                         help="Path to VTT files")
@@ -165,6 +163,7 @@ def get_args():
 
 
 def main():
+    verbose = False
     args = get_args()
     rdpath = Path(args.rdapi_path)
     VTT_PATH = Path(args.vtt_path)
@@ -178,21 +177,29 @@ def main():
         rdapi = RiksdagAPI(filename=str(rdfile))
         vidid = rdapi.get_vidid()
         if vidid is None or vidid == "":
-            print("Error opening file", str(rdfile))
+            if verbose:
+                print("Error opening file", str(rdfile))
             continue
         has_sought_speaker = False
         for speaker in rdapi.get_speaker_elements():
             if speaker.speaker_name in ALL_SPEAKERS:
                 has_sought_speaker = True
-        if not has_sought_speaker:
+        if not has_sought_speaker and verbose:
             print("No sought speakers", str(rdfile))
             continue
         vtt_path = VTT_PATH / f"{vidid}_480p.mp4.vtt"
         if not vtt_path.exists():
-            print("VTT file does not exist", str(vtt_path))
+            if verbose:
+                print("VTT file does not exist", str(vtt_path))
+            continue
         vtt = VTTInput(str(vtt_path))
         pairs = filter_vtt_with_riksdag(vtt.captions, rdapi, vidid)
         all_pairs += pairs
+
+    for pair in all_pairs:
+        BASE = f"{pair.speaker_name}\t{pair.get_set()}"
+        for caption in pair.vttlines:
+            print(f"{BASE}\t{caption.start}\t{caption.end}\t{caption.text}")
 
 
 if __name__ == '__main__':
