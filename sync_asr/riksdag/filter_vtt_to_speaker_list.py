@@ -11,6 +11,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+# 
+# This file is to extract a set of captions from Whisper's output
+# based on speaker information from the Riksdag API, for a fixed
+# set of speakers (the test/validation set)
+# 
+# This file is temporary, and will be deleted after there's a
+# public release.
 from .riksdag_api import RiksdagAPI, SpeakerElement
 from ..vtt_input import VTTInput, VTTCaption
 from typing import List
