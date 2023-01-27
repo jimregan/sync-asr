@@ -248,17 +248,6 @@ def is_usable_segment(segments):
     return (segments[-1].end - segments[0].start) < min_time
 
 
-def extract_chunk(segments):
-    two_mins = 2 * 60 * 1000
-    close_enough_to_two = two_mins + (5 * 1000)
-    for segment in segments:
-        if is_usable_segment(segment):
-            current_total = 0
-            seg_start = segment[0].start
-            for subseg in segment:
-                pass
-
-
 def main():
     verbose = False
     args = get_args()
