@@ -16,7 +16,7 @@ from ..vtt_input import VTTInput, VTTCaption
 from typing import List
 from dataclasses import dataclass
 from copy import deepcopy
-import string
+from pathlib import Path
 import argparse
 
 
@@ -72,6 +72,7 @@ class FilteredPair():
     vttlines: List[VTTCaption]
     riksdag_segments: SpeakerElement
     speaker_name: str = ""
+    vidid: str = ""
 
     def vtt_words(self):
         return [t.text.split() for t in self.vttlines]
@@ -98,7 +99,7 @@ class FilteredPair():
 
 # TODO: this assumes there is always a 'within' case
 # which may not be true, in which case, breakage happens
-def filter_vtt_with_riksdag(vttcaptions, rdapi):
+def filter_vtt_with_riksdag(vttcaptions, rdapi, vidid):
     within = False
     start = True
 
@@ -132,9 +133,60 @@ def filter_vtt_with_riksdag(vttcaptions, rdapi):
                 spkr = ""
                 # check if we're not going straight into another within
                 within = True
-            pairs.append(FilteredPair(deepcopy(vttcaptions[last_i:i]), rd, spkr))
+            pairs.append(FilteredPair(deepcopy(vttcaptions[last_i:i]), rd, spkr, vidid))
             last_i = i
             i += 1
     if i < len(vttcaptions):
-        pairs.append(FilteredPair(deepcopy(vttcaptions[last_i:-1]), None, ""))
+        pairs.append(FilteredPair(deepcopy(vttcaptions[last_i:-1]), None, "", vidid))
     return pairs
+
+
+def get_args():
+    parser = argparse.ArgumentParser(description="""
+    Filter Whisper CTMs by a (hardcoded) speaker list
+    """)
+    parser.add_argument("--insertion-penalty", type=int, default=1,
+                        help="Penalty for insertion errors")
+    parser.add_argument("vtt_path",
+                        type=str,
+                        help="Path to VTT files")
+    parser.add_argument("rdapi_path",
+                        type=str,
+                        help="Path to Riksdag API files.")
+    args = parser.parse_args()
+    return args
+
+
+def main():
+    args = get_args()
+    rdpath = Path(args.rdapi_path)
+    VTT_PATH = Path(args.vtt_path)
+    if not rdpath.is_dir():
+        print("Expected a directory", args.rdapi_path)
+    if not VTT_PATH.is_dir():
+        print("Expected a directory", args.vtt_path)
+
+    all_pairs = []
+    for rdfile in rdpath.glob("*"):
+        rdapi = RiksdagAPI(filename=str(rdfile))
+        vidid = rdapi.get_vidid()
+        if vidid is None or vidid == "":
+            print("Error opening file", str(rdfile))
+            continue
+        has_sought_speaker = False
+        for speaker in rdapi.get_speaker_elements():
+            if speaker.speaker_name in ALL_SPEAKERS:
+                has_sought_speaker = True
+        if not has_sought_speaker:
+            print("No sought speakers", str(rdfile))
+            continue
+        vtt_path = VTT_PATH / f"{vidid}_480p.mp4.vtt"
+        if not vtt_path.exists():
+            print("VTT file does not exist", str(vtt_path))
+        vtt = VTTInput(str(vtt_path))
+        pairs = filter_vtt_with_riksdag(vtt.captions, rdapi, vidid)
+        all_pairs += pairs
+
+
+if __name__ == '__main__':
+    main()
