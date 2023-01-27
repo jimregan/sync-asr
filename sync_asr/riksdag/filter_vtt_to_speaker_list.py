@@ -243,15 +243,14 @@ def main():
         pairs = filter_vtt_with_riksdag(vtt.captions, rdapi, vidid)
         all_pairs += pairs
 
-    for pair in all_pairs:
-        BASE = f"{pair.speaker_name}\t{pair.get_set()}\t{pair.vidid}"
-        for caption in pair.vttlines:
-            print(f"{BASE}\t{caption.start_time}\t{caption.end_time}\t{caption.text.strip()}")
-
     filtered_segments = []
     for pair in all_pairs:
         fs = FilteredSegment(pair.speaker_name, pair.get_set(), pair.vidid, caption.start_time, caption.end_time, caption.text.strip())
         filtered_segments.append(fs)
+
+    for ps in partition_segments(filtered_segments):
+        for ss in ps:
+            print(ss)
 
 if __name__ == '__main__':
     main()
