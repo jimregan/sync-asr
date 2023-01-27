@@ -118,12 +118,13 @@ class FilteredSegment():
 
 
 def subsplit_segment_list(segments):
-    two_minutes = 2 * 60 * 1000
+    two_minutes = (2 * 60 * 1000)
+
     close_enough = two_minutes + 5000
-    four_minutes = 4 * 60 * 1000
 
     running_total = 0
     start = segments[0].start
+    total = segments[-1].end - start
 
     output = []
     def merge(a, b, text):
@@ -134,20 +135,27 @@ def subsplit_segment_list(segments):
 
     i = 0
     if (segments[-1].end - segments[0].start) > two_minutes:
+        print("Got here!")
         for i in range(1, len(segments)):
             cur_total = segments[i].end - start
+            print("Cur total", cur_total / 1000, running_total)
             if cur_total > close_enough and running_total > two_minutes:
                 index = i - 1
                 text = " ".join(x.text for x in segments[0:index])
                 output.append(merge(segments[0], segments[index], text))
+            running_total = cur_total
+    else:
+        print(segments[-1].end - segments[0].start)
+    running_total = 0
     if (segments[-1].end - segments[i].start) > two_minutes:
         j = i
         for i in range(j, len(segments)):
             cur_total = segments[i].end - start
             if cur_total > close_enough and running_total > two_minutes:
                 index = i - 1
-                text = " ".join(x.text for x in segments[0:index])
-                output.append(merge(segments[0], segments[index], text))
+                text = " ".join(x.text for x in segments[j:index])
+                output.append(merge(segments[j], segments[index], text))
+            running_total = cur_total
 
     return output
 
