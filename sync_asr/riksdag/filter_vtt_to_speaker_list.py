@@ -132,9 +132,10 @@ def subsplit_segment_list(segments):
         new = FilteredSegment(a.name, a.set_name, a.vidid, start, end, text)
         return new
 
+    i = 0
     if (segments[-1].end - segments[0].start) > two_minutes:
         for i in range(1, len(segments)):
-            cur_total = segments[i] - start
+            cur_total = segments[i].end - start
             if cur_total > close_enough and running_total > two_minutes:
                 index = i - 1
                 text = " ".join(x.text for x in segments[0:index])
@@ -142,7 +143,7 @@ def subsplit_segment_list(segments):
     if (segments[-1].end - segments[i].start) > two_minutes:
         j = i
         for i in range(j, len(segments)):
-            cur_total = segments[i] - start
+            cur_total = segments[i].end - start
             if cur_total > close_enough and running_total > two_minutes:
                 index = i - 1
                 text = " ".join(x.text for x in segments[0:index])
