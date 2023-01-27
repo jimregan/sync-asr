@@ -251,6 +251,7 @@ def main():
     for ps in partition_segments(filtered_segments):
         for ss in ps:
             print(ss)
+        print("\n")
 
 if __name__ == '__main__':
     main()
