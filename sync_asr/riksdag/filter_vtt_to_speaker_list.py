@@ -209,6 +209,11 @@ def filter_segmented(segmented):
             seg = seg[1:]
 
 
+def is_usable_segment(segments):
+    min_time = 4 * 60 * 1000
+    return (segments[-1].end - segments[0].start) < min_time
+
+
 def main():
     verbose = False
     args = get_args()
@@ -245,8 +250,9 @@ def main():
 
     filtered_segments = []
     for pair in all_pairs:
-        fs = FilteredSegment(pair.speaker_name, pair.get_set(), pair.vidid, caption.start_time, caption.end_time, caption.text.strip())
-        filtered_segments.append(fs)
+        for caption in pair.vttlines:
+            fs = FilteredSegment(pair.speaker_name, pair.get_set(), pair.vidid, caption.start_time, caption.end_time, caption.text.strip())
+            filtered_segments.append(fs)
 
     for ps in partition_segments(filtered_segments):
         for ss in ps:
