@@ -130,7 +130,7 @@ def filter_vtt_with_riksdag(vttcaptions, rdapi, vidid):
         else:
             if within:
                 rd = riksdag_output[j]
-                spkr = riksdag_output[j].text
+                spkr = riksdag_output[j].speaker_name
                 within = False
                 j += 1
             else:
@@ -140,11 +140,12 @@ def filter_vtt_with_riksdag(vttcaptions, rdapi, vidid):
                 spkr = ""
                 # check if we're not going straight into another within
                 within = True
-            pairs.append(FilteredPair(deepcopy(vttcaptions[last_i:i]), rd, spkr, vidid))
+            if rd is not None and spkr != "":
+                pairs.append(FilteredPair(deepcopy(vttcaptions[last_i:i]), rd, spkr, vidid))
             last_i = i
             i += 1
-    if i < len(vttcaptions):
-        pairs.append(FilteredPair(deepcopy(vttcaptions[last_i:-1]), None, "", vidid))
+    # if i < len(vttcaptions):
+    #     pairs.append(FilteredPair(deepcopy(vttcaptions[last_i:-1]), None, "", vidid))
     return pairs
 
 
@@ -197,9 +198,9 @@ def main():
         all_pairs += pairs
 
     for pair in all_pairs:
-        BASE = f"{pair.speaker_name}\t{pair.get_set()}"
+        BASE = f"{pair.speaker_name}\t{pair.get_set()}\t{pair.vidid}"
         for caption in pair.vttlines:
-            print(f"{BASE}\t{caption.start}\t{caption.end}\t{caption.text}")
+            print(f"{BASE}\t{caption.start_time}\t{caption.end_time}\t{caption.text.strip()}\n")
 
 
 if __name__ == '__main__':
