@@ -3,7 +3,7 @@ from .filter_vtt_to_speaker_list import FilteredSegment, subsplit_segment_list
 current = []
 output = []
 if __name__ == '__main__':
-    with open("/Users/joregan/Playing/sync_asr/subset") as inf:
+    with open("/Users/joregan/Playing/sync_asr/rdfilt-edit") as inf:
         for line in inf.readlines():
             line = line.strip()
             if line == "":

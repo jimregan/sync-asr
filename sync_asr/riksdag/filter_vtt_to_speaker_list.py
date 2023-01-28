@@ -151,8 +151,6 @@ def subsplit_segment_list(segments):
             if cur_total > close_enough and running_total > two_minutes:
                 index = i - 1
                 text = " ".join(x.text for x in segments[j:index])
-                # if text.strip() == "":
-                #     print(j, index)
                 output.append(merge(segments[j], segments[index], text))
                 break
             running_total = cur_total
