@@ -7,7 +7,6 @@ CSV1_FIELDS = [
     "Duration (> 2 min)", "filename", "transcription1 (Whisper)",
     "transcription2 (KB)"
 ]
-# CSV2_FIELDS = ["Type", "Segment", "Gender", "Year"]
 
 speakers = {}
 speaker_counter = 1
