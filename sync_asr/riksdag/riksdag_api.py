@@ -113,6 +113,8 @@ class RiksdagAPI():
         return output
 
     def get_vidid(self):
+        if not "streamurl" in self.videodata:
+            return None
         base = self.videodata["streamurl"]
         if "/" in base:
             parts = base.split("/")
