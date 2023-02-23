@@ -27,55 +27,52 @@ from pathlib import Path
 import argparse
 
 
-# TEST_M = [
-#     'Ingemar Nilsson',
-#     'Amir Adan',
-#     'Per Bill',
-#     'Mats Nordberg',
-#     'Jörgen Hellman',
-#     'Oskar Öholm',
-#     'Lars Jilmstad',
-#     'Aphram Melki'
-# ]
+TEST_M = [
+    'Ingemar Nilsson',
+    'Amir Adan',
+    'Per Bill',
+    'Mats Nordberg',
+    'Jörgen Hellman',
+    'Oskar Öholm',
+    'Lars Jilmstad',
+    'Aphram Melki'
+]
 
-# VAL_M = [
-#     'Magnus Sjödahl',
-#     'Mats Sander',
-#     'Sedat Dogru',
-#     'Erik Slottner',
-#     'Gustav Nilsson',
-#     'Björn Wiechel',
-#     'Yilmaz Kerimo',
-#     'Niclas Malmberg'
-# ]
+VAL_M = [
+    'Magnus Sjödahl',
+    'Mats Sander',
+    'Sedat Dogru',
+    'Erik Slottner',
+    'Gustav Nilsson',
+    'Björn Wiechel',
+    'Yilmaz Kerimo',
+    'Niclas Malmberg'
+]
 
-# TEST_F = [
-#     'Yasmine Bladelius',
-#     'Karin Granbom Ellison',
-#     'Carina Ståhl Herrstedt',
-#     'Ann-Britt Åsebol',
-#     'Linda Wemmert',
-#     'Ulrika Jörgensen',
-#     'Teresa Carvalho',
-#     'Karin Nilsson'
-# ]
+TEST_F = [
+    'Yasmine Bladelius',
+    'Karin Granbom Ellison',
+    'Carina Ståhl Herrstedt',
+    'Ann-Britt Åsebol',
+    'Linda Wemmert',
+    'Ulrika Jörgensen',
+    'Teresa Carvalho',
+    'Karin Nilsson'
+]
 
-# VAL_F = [
-#     'Åsa Karlsson',
-#     'Eva Lohman',
-#     'Désirée Liljevall',
-#     'Cecilie Tenfjord Toftby',
-#     'Aylin Fazelian',
-#     'Agneta Gille',
-#     'Kerstin Nilsson',
-#     'Vasiliki Tsouplaki'
-# ]
+VAL_F = [
+    'Åsa Karlsson',
+    'Eva Lohman',
+    'Désirée Liljevall',
+    'Cecilie Tenfjord Toftby',
+    'Aylin Fazelian',
+    'Agneta Gille',
+    'Kerstin Nilsson',
+    'Vasiliki Tsouplaki'
+]
 
-TEST_M = ['Daniel Andersson', 'David Josefsson']
-VAL_M = ['Arin Karapet']
+ALL_SPEAKERS = list(set(TEST_F + TEST_M + VAL_M + VAL_F))
 
-# ALL_SPEAKERS = list(set(TEST_F + TEST_M + VAL_M + VAL_F))
-ALL_SPEAKERS = list(set(TEST_M + VAL_M))
 
 @dataclass
 class FilteredPair():
@@ -97,16 +94,12 @@ class FilteredPair():
         return self.riksdag_segments.text
 
     def get_set(self):
-        # if self.speaker_name in TEST_F:
-        #     return "TEST_F"
-        # elif self.speaker_name in TEST_M:
-        #     return "TEST_M"
-        # elif self.speaker_name in VAL_F:
-        #     return "VAL_F"
-        # elif self.speaker_name in VAL_M:
-        #     return "VAL_M"
-        if self.speaker_name in TEST_M:
+        if self.speaker_name in TEST_F:
+            return "TEST_F"
+        elif self.speaker_name in TEST_M:
             return "TEST_M"
+        elif self.speaker_name in VAL_F:
+            return "VAL_F"
         elif self.speaker_name in VAL_M:
             return "VAL_M"
 
