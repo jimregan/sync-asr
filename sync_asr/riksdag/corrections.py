@@ -16,6 +16,9 @@ byggsenktionsavgiften byggsanktionsavgiften
 här herr
 vvi vi
 prisposbeloppet prisbasbeloppet
+äste SD
+äm M
+se C
 """
 
 
