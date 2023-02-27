@@ -45,7 +45,7 @@ def non_scored_words():
     return _global_non_scored_words
 
 
-def get_args(argl=[]):
+def get_args():
     parser = argparse.ArgumentParser(
         description="""This program produces segmentation and text information
         based on reading ctm-edits input format which is produced by
@@ -233,10 +233,7 @@ def get_args(argl=[]):
     parser.add_argument("--verbose", type=int, default=0,
                         help="Use higher verbosity for more debugging output")
 
-    if argl == []:
-        args = parser.parse_args()
-    else:
-        args = parser.parse_args(argl)
+    args = parser.parse_args()
 
     if args.verbose > 2:
         _global_handler.setLevel(logging.DEBUG)
