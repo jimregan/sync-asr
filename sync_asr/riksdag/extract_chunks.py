@@ -16,7 +16,8 @@ for line in lines:
     if is_cor == last_was_cor:
         current.append(line)
     else:
-        merged.append(current)
+        if current != []:
+            merged.append(current)
         current = []
         current.append(line)
         last_was_cor = not last_was_cor
