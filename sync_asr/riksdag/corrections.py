@@ -19,6 +19,14 @@ prisposbeloppet prisbasbeloppet
 äste SD
 äm M
 se C
+euavgiften EU-avgiften
+för Fru
+sveridemokraterna Sverigedemokraterna
+ner ned
+svärjiedemokraterna Sverigedemokraterna
+utvecklingsbeståndet utvecklingsbiståndet
+utvecklingsbestånd utvecklingsbistånd
+katastrofbestånd katastrofbistånd
 """
 
 

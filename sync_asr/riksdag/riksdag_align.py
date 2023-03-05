@@ -173,7 +173,7 @@ def run(args):
         raise SystemExit(1)
     video_name = rdapi.get_vidid()
     ctm_path = Path(args.ctm_path)
-    ctm_file = ctm_path / f"{video_name}_480p.ctm"
+    ctm_file = ctm_path / f"{video_name}.ctm"
     ctmlines = []
     with open(str(ctm_file)) as ctm_in:
         for line in ctm_in.readlines():
