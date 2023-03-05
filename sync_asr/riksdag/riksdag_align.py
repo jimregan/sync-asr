@@ -21,6 +21,7 @@ from ..kaldi.align_ctm_ref import get_ctm_edits, smith_waterman_alignment
 import string
 import argparse
 from .corrections import get_corrections
+from pathlib import Path
 
 
 @dataclass
@@ -68,10 +69,10 @@ def get_args():
                         help="Penalty for deletion errors")
     parser.add_argument("--insertion-penalty", type=int, default=1,
                         help="Penalty for insertion errors")
-    parser.add_argument("ctm_in",
-                        type=argparse.FileType('r'),
-                        help="""Filename of input CTM file.  Use
-                        /dev/stdin for standard input.""")
+    parser.add_argument("ctm_path",
+                        type=str,
+                        default="",
+                        help="""Path to location of CTM files.""")
     parser.add_argument("rdapi_in",
                         type=argparse.FileType('r'),
                         help="""Filename of Riksdag API file.""")
@@ -166,10 +167,17 @@ def run(args):
     del_score = -args.deletion_penalty
     ins_score = -args.insertion_penalty
 
-    ctmlines = []
-    for line in args.ctm_in.readlines():
-        ctmlines.append(CTMLine(line.strip()))
     rdapi = RiksdagAPI(args.rdapi_in.read())
+    if args.ctm_path == "":
+        print("Path to CTM files empty")
+        raise SystemExit(1)
+    video_name = rdapi.get_vidid()
+    ctm_path = Path(args.ctm_path)
+    ctm_file = ctm_path / f"{video_name}.ctm"
+    ctmlines = []
+    with open(str(ctm_file)) as ctm_in:
+        for line in ctm_in.readlines():
+            ctmlines.append(CTMLine(line.strip()))
 
     pairs = filter_ctm_with_riksdag(ctmlines, rdapi)
     output = align_ctm_with_riksdag(pairs, rd_similarity_score_function)
@@ -199,7 +207,7 @@ def main():
               "got exception ", type(e), e)
         raise SystemExit(1)
     finally:
-        args.ctm_in.close()
+        # args.ctm_in.close()
         args.rdapi_in.close()
 
 
