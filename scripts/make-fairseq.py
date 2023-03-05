@@ -22,7 +22,7 @@ from pathlib import Path
 from pydub import AudioSegment
 import numpy as np
 
-ALIGNMENTS = Path("/home/joregan/sbtal_riksdag_asr/alignments")
+ALIGNMENTS = Path("/home/joregan/chunked")
 OUTDIR = Path("/home/joregan/sbtal_riksdag_subset3")
 TMP = Path("/tmp")
 parameters=["-ac", "1", "-acodec", "pcm_s16le", "-ar", "16000"]
@@ -33,7 +33,7 @@ all = open("/home/joregan/sbtal_subset-combined3.tsv", "w")
 
 
 def clean(text):
-    charset = "-:abcdefghijklmnoprstuvwxyzäåéö"
+    charset = "-:abcdefghijklmnoprstuvwxyzäåéö "
     for punct in ":?!.,-;":
         text = text.replace(f"{punct} ", " ")
     chars = []
