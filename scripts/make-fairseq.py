@@ -23,13 +23,25 @@ from pydub import AudioSegment
 import numpy as np
 
 ALIGNMENTS = Path("/home/joregan/sbtal_riksdag_asr/alignments")
-OUTDIR = Path("/home/joregan/sbtal_riksdag_subset2")
+OUTDIR = Path("/home/joregan/sbtal_riksdag_subset3")
 TMP = Path("/tmp")
 parameters=["-ac", "1", "-acodec", "pcm_s16le", "-ar", "16000"]
 
-tsv = open("/home/joregan/sbtal_subset2.tsv", "w")
-ltr = open("/home/joregan/sbtal_subset2.ltr", "w")
-all = open("/home/joregan/sbtal_subset-combined2.tsv", "w")
+tsv = open("/home/joregan/sbtal_subset3.tsv", "w")
+ltr = open("/home/joregan/sbtal_subset3.ltr", "w")
+all = open("/home/joregan/sbtal_subset-combined3.tsv", "w")
+
+
+def clean(text):
+    charset = "-:abcdefghijklmnoprstuvwxyzäåéö"
+    for punct in ":?!.,-;":
+        text = text.replace(f"{punct} ", " ")
+    chars = []
+    for char in text.lower():
+        if char in charset:
+            chars.append(char)
+    return "".join(chars)
+
 
 def process():
     limit = (60 * 60 * 100 * 1000)
@@ -70,7 +82,7 @@ def process():
                 if total + duration > limit:
                     limit_reached = True
                 total += duration
-                text = parts[4]
+                text = clean(parts[4])
                 piece_id = f"{vidid}_{counter}"
                 counter += 1
                 outwav = OUTDIR / f"{piece_id}.wav"
