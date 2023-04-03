@@ -15,6 +15,7 @@ import sys
 
 
 MIN_ALIGNED = 3.0
+MAX_ALIGNED = 9.0
 
 lines = []
 with open(sys.argv[1]) as ctmin:
@@ -36,7 +37,7 @@ for line in lines:
         last_was_cor = not last_was_cor
 merged.append(current)
 
-print("FILE\tSTART\tEND\tLABEL\tTEXT")
+#print("FILE\tSTART\tEND\tLABEL\tTEXT")
 for merge in merged:
     start = float(merge[0][2])
     end = float(merge[-1][2]) + float(merge[-1][3])
