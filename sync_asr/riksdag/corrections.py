@@ -86,6 +86,11 @@ tven tv:n
 esvete SVT
 allmnhetens allmänhetens
 teveföretagen tv-företagen
+terorism terrorism
+teroristorganisationers terroristorganisationers
+teroristbrott terroristbrott
+teroriseras terroriseras
+terorister terrorister
 """
 
 
