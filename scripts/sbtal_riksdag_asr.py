@@ -42,12 +42,15 @@ class RDDataset(datasets.GeneratorBasedBuilder):
             {
                 "id": datasets.Value("string"),
                 "audio": datasets.Audio(sampling_rate=16_000),
+                "raw": datasets.Value("string"),
                 "text": datasets.Value("string"),
+                "false_starts": datasets.Value("string"),
+                "false_starts_lc": datasets.Value("string"),
             }
         )
 
         return datasets.DatasetInfo(
-            description="Riksdag speech data",
+            description="Riksdag speech data test set",
             features=features,
             supervised_keys=None,
             task_templates=[
@@ -58,9 +61,9 @@ class RDDataset(datasets.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
        return [
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN,
+                name=datasets.Split.TEST,
                 gen_kwargs={
-                    "split": "train",
+                    "split": "test",
                 },
             ),
         ]
