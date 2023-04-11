@@ -236,7 +236,7 @@ def post_process(ctm_lines):
             continue
         reflen = len(ctm_line.ref)
         if ctm_line.get_prop("spelling") == "correct_ref":
-            ed = editdistance.eval(ctm_line.text, ctm_line.ref)
+            ed = editdistance.eval(ctm_line.text, ctm_line.ref.lower())
             if ed < reflen / 10:
                 ctm_line.set_correct_ref()
         ctm_line.delete_props()
