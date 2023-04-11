@@ -228,6 +228,12 @@ def read_confusion_pairs(file):
 
 def post_process(ctm_lines):
     for ctm_line in ctm_lines:
+        if ctm_line.has_eps():
+            ctm_line.delete_props()
+            continue
+        if ctm_line.get_prop("spelling") == "correct_both":
+            ctm_line.delete_props()
+            continue
         reflen = len(ctm_line.ref)
         if ctm_line.get_prop("spelling") == "correct_ref":
             ed = editdistance.eval(ctm_line.text, ctm_line.ref)
