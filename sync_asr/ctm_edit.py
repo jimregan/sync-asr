@@ -132,6 +132,8 @@ class CTMEditLine(TimedWord):
             self.set_correct_ref()
 
     def set_prop(self, key, value):
+        if not "props" in self.__dict__:
+            self.props = {}
         self.props[key] = value
 
     def get_prop(self, key):
