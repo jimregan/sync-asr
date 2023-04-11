@@ -137,7 +137,7 @@ class CTMEditLine(TimedWord):
     def get_prop(self, key):
         return self.props[key]
 
-    def has_eps(self, eps='"<eps>"'):
+    def has_eps(self, eps="<eps>"):
         return self.text == eps or self.ref == eps
 
 
@@ -149,7 +149,7 @@ def ctm_from_file(filename):
     return ctm_lines
 
 
-def merge_consecutive(ctm_a, ctm_b, text="", joiner="", epsilon='"<eps>"', edit=""):
+def merge_consecutive(ctm_a, ctm_b, text="", joiner="", epsilon="<eps>", edit=""):
     new_ctm = copy.deepcopy(ctm_a)
     new_ctm.end_time = ctm_b.end_time
     new_ctm.duration = new_ctm.end_time - new_ctm.start_time

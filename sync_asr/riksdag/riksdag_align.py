@@ -180,7 +180,7 @@ def run(args):
             ctmlines.append(CTMLine(line.strip()))
 
     pairs = filter_ctm_with_riksdag(ctmlines, rdapi)
-    output = align_ctm_with_riksdag(pairs, rd_similarity_score_function)
+    output = align_ctm_with_riksdag(pairs, rd_similarity_score_function, del_score=del_score, ins_score=ins_score)
 
     ctm_edits = []
     for pair in output:
