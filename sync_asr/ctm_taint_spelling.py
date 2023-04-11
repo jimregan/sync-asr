@@ -151,7 +151,7 @@ def check_bigrams(ctm_lines: List[CTMEditLine],
         else:
             return a.has_eps() or b.has_eps()
     
-    def text_equals(a, b, eps='"<eps>"', ref_only=ref_only):
+    def text_equals(a, b, eps="<eps>", ref_only=ref_only):
         text = "".join([a.text, b.text])
         ref = "".join([a.ref, b.ref])
         if ref_only:
