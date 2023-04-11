@@ -131,13 +131,23 @@ class CTMEditLine(TimedWord):
         if self.text == comp.lower():
             self.set_correct_ref()
 
+    def has_props(self):
+        return "props" in self.__dict__
+
     def set_prop(self, key, value):
-        if not "props" in self.__dict__:
+        if not self.has_props():
             self.props = {}
         self.props[key] = value
 
+    def delete_props(self):
+        if self.has_props():
+            del self.props
+
     def get_prop(self, key):
-        return self.props[key]
+        if self.has_props():
+            return self.props[key]
+        else:
+            return None
 
     def has_eps(self, eps="<eps>"):
         return self.text == eps or self.ref == eps
