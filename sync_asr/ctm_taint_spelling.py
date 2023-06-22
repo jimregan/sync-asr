@@ -146,11 +146,13 @@ def get_args():
     return args
 
 
-def autocorrect_doubles(ctm_lines: List[CTMEditLine], consonants = "bcdfghjklmnpqrstvwxz"):
-    pairs = {x: f"{x}{x}" for x in consonants}
-    for line in ctm_lines:
-        for pair in pairs:
-            pass
+# I /think/ this is supposed to fix words where the only difference is a doubled consonant
+# But it's barely started
+# def autocorrect_doubles(ctm_lines: List[CTMEditLine], consonants = "bcdfghjklmnpqrstvwxz"):
+#     pairs = {x: f"{x}{x}" for x in consonants}
+#     for line in ctm_lines:
+#         for pair in pairs:
+#             pass
 
 def inline_check_unigram(ctm_lines: List[CTMEditLine], speller: HunspellChecker):
     """
