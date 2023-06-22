@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from difflib import SequenceMatcher
 from typing import List
 from .ctm_edit import CTMEditLine
 
@@ -144,6 +145,39 @@ def get_args():
                         /dev/stdin for standard input.""")
     args = parser.parse_args()
     return args
+
+
+def count_sequencematcher_opcodes(opcodes):
+    codes = {
+            'equal': 0,
+            'insert': 0,
+            'replace': 0,
+            'delete': 0,
+    }
+    for opcode in opcodes:
+            if opcode[0] not in codes:
+                    raise ValueError(f"Opcode {opcode[0]} unrecognised")
+            codes[opcode[0]] += 1
+    return codes
+
+
+def check_sequencematcher_opcodes(opcodes):
+    codes = count_sequencematcher_opcodes(opcodes)
+    return codes['insert'] == 1 and codes['replace'] == 0 and codes['insert'] == 0
+
+
+def is_sm_single_insertion(worda, wordb):
+    if len(worda) == len(wordb):
+        return False
+    if len(worda) > len(wordb):
+        a = worda
+        b = wordb
+    else:
+        a = wordb
+        b = worda
+    sm = SequenceMatcher(a=a, b=b)
+    return check_sequencematcher_opcodes(sm.get_opcodes())
+    
 
 
 # I /think/ this is supposed to fix words where the only difference is a doubled consonant
