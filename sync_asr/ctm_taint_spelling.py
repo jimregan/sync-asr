@@ -163,7 +163,7 @@ def count_sequencematcher_opcodes(opcodes):
 
 def check_sequencematcher_opcodes(opcodes):
     codes = count_sequencematcher_opcodes(opcodes)
-    return codes['insert'] == 1 and codes['replace'] == 0 and codes['insert'] == 0
+    return codes['insert'] == 1 and codes['replace'] == 0 and codes['delete'] == 0
 
 
 def get_insertion_code(opcodes):
@@ -175,7 +175,7 @@ def get_insertion_code(opcodes):
 def is_sm_single_insertion(worda, wordb, charlist = None):
     if len(worda) == len(wordb):
         return False
-    if len(worda) > len(wordb):
+    if len(wordb) > len(worda):
         a = worda
         b = wordb
     else:
