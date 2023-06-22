@@ -184,18 +184,17 @@ def is_sm_single_insertion(worda, wordb, charlist = None, swappable = False):
             b = worda
     sm = SequenceMatcher(a=a, b=b)
     opcodes = sm.get_opcodes()
-    if check_sequencematcher_opcodes(opcodes):
-        insert = get_insertion_code(opcodes)
-        if insert[4] - insert[3] != 1:
-            return False
-        inschar = b[insert[3]:insert[4]]
-        if charlist and inschar not in charlist:
-            return False
-        prevchar = b[insert[3]-1:insert[4]-1]
-        nextchar = b[insert[3]+1:insert[4]+1]
-        return (inschar == prevchar) or (inschar == nextchar)
-    else:
+    if not check_sequencematcher_opcodes(opcodes):
         return False
+    insert = get_insertion_code(opcodes)
+    if insert[4] - insert[3] != 1:
+        return False
+    inschar = b[insert[3]:insert[4]]
+    if charlist and inschar not in charlist:
+        return False
+    prevchar = b[insert[3]-1:insert[4]-1]
+    nextchar = b[insert[3]+1:insert[4]+1]
+    return (inschar == prevchar) or (inschar == nextchar)
 
 
 # FIXME: unchecked
