@@ -63,10 +63,12 @@ class HunspellChecker():
         :param str text: the word to check
         :return: True if correctly spelled
         """
-        PUNCT = [".", ",", ":", ";", "!", "?", "-"]
+        PUNCT = [".", ",", ":", ";", "!", "?", "-", '"']
         comp = text
         if comp[-1] in PUNCT:
             comp = comp[:-1]
+        if comp[0] in PUNCT:
+            comp = comp[1:]
 
         return self.speller.spell(comp)
 
@@ -143,6 +145,12 @@ def get_args():
     args = parser.parse_args()
     return args
 
+
+def autocorrect_doubles(ctm_lines: List[CTMEditLine], consonants = "bcdfghjklmnpqrstvwxz"):
+    pairs = {x: f"{x}{x}" for x in consonants}
+    for line in ctm_lines:
+        for pair in pairs:
+            pass
 
 def inline_check_unigram(ctm_lines: List[CTMEditLine], speller: HunspellChecker):
     """
