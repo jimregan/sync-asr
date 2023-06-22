@@ -175,13 +175,11 @@ def get_insertion_code(opcodes):
 def is_sm_single_insertion(worda, wordb, charlist = None, swappable = False):
     if len(worda) == len(wordb):
         return False
-    if swappable:
-        if len(wordb) > len(worda):
-            a = worda
-            b = wordb
-        else:
-            a = wordb
-            b = worda
+    a = worda
+    b = wordb
+    if swappable and not len(wordb) > len(worda):
+        a = wordb
+        b = worda
     sm = SequenceMatcher(a=a, b=b)
     opcodes = sm.get_opcodes()
     if not check_sequencematcher_opcodes(opcodes):
