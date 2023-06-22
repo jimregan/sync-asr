@@ -172,15 +172,16 @@ def get_insertion_code(opcodes):
             return opcode
 
 
-def is_sm_single_insertion(worda, wordb, charlist = None):
+def is_sm_single_insertion(worda, wordb, charlist = None, swappable = False):
     if len(worda) == len(wordb):
         return False
-    if len(wordb) > len(worda):
-        a = worda
-        b = wordb
-    else:
-        a = wordb
-        b = worda
+    if swappable:
+        if len(wordb) > len(worda):
+            a = worda
+            b = wordb
+        else:
+            a = wordb
+            b = worda
     sm = SequenceMatcher(a=a, b=b)
     opcodes = sm.get_opcodes()
     if check_sequencematcher_opcodes(opcodes):
@@ -197,13 +198,12 @@ def is_sm_single_insertion(worda, wordb, charlist = None):
         return False
 
 
-# I /think/ this is supposed to fix words where the only difference is a doubled consonant
-# But it's barely started
-# def autocorrect_doubles(ctm_lines: List[CTMEditLine], consonants = "bcdfghjklmnpqrstvwxz"):
-#     pairs = {x: f"{x}{x}" for x in consonants}
-#     for line in ctm_lines:
-#         for pair in pairs:
-#             pass
+# FIXME: unchecked
+def autocorrect_doubles(ctm_lines: List[CTMEditLine], consonants = "bcdfghjklmnpqrstvwxz"):
+    for line in ctm_lines:
+        if check_sequencematcher_opcodes(line.text, line.ref, consonants):
+            line.set_correct_ref()
+
 
 def inline_check_unigram(ctm_lines: List[CTMEditLine], speller: HunspellChecker):
     """
