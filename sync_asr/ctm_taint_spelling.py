@@ -166,7 +166,13 @@ def check_sequencematcher_opcodes(opcodes):
     return codes['insert'] == 1 and codes['replace'] == 0 and codes['insert'] == 0
 
 
-def is_sm_single_insertion(worda, wordb):
+def get_insertion_code(opcodes):
+    for opcode in opcodes:
+        if opcode[0] == 'insert':
+            return opcode
+
+
+def is_sm_single_insertion(worda, wordb, charlist = None):
     if len(worda) == len(wordb):
         return False
     if len(worda) > len(wordb):
@@ -176,8 +182,19 @@ def is_sm_single_insertion(worda, wordb):
         a = wordb
         b = worda
     sm = SequenceMatcher(a=a, b=b)
-    return check_sequencematcher_opcodes(sm.get_opcodes())
-    
+    opcodes = sm.get_opcodes()
+    if check_sequencematcher_opcodes(opcodes):
+        insert = get_insertion_code(opcodes)
+        if insert[4] - insert[3] != 1:
+            return False
+        inschar = b[insert[3]:insert[4]]
+        if charlist and inschar not in charlist:
+            return False
+        prevchar = b[insert[3]-1:insert[4]-1]
+        nextchar = b[insert[3]+1:insert[4]+1]
+        return (inschar == prevchar) or (inschar == nextchar)
+    else:
+        return False
 
 
 # I /think/ this is supposed to fix words where the only difference is a doubled consonant
