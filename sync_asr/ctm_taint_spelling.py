@@ -124,6 +124,14 @@ def get_args():
                         action='store_true',
                         default=False,
                         help="""Apply spelling fixes instead of issuing warnings""")
+    parser.add_argument("--max-edit-distance",
+                        type=int,
+                        default=1,
+                        help="""Do not consider edit distance greater than this number in automatic application""")
+    parser.add_argument("--edit-distance-percent",
+                        type=float,
+                        default=0.1,
+                        help="""Percent of length of reference word""")
     parser.add_argument("--confusion-pairs",
                         type=argparse.FileType('r'),
                         required=False,
@@ -226,7 +234,7 @@ def read_confusion_pairs(file):
     return pairs
 
 
-def post_process(ctm_lines):
+def post_process(ctm_lines, max_ed=1, ed_percent=0.1):
     for ctm_line in ctm_lines:
         if ctm_line.has_eps():
             ctm_line.delete_props()
@@ -237,7 +245,7 @@ def post_process(ctm_lines):
         reflen = len(ctm_line.ref)
         if ctm_line.get_prop("spelling") == "correct_ref":
             ed = editdistance.eval(ctm_line.text, ctm_line.ref.lower())
-            if ed < max(1, reflen / 10):
+            if ed < max(max_ed, reflen * ed_percent):
                 ctm_line.set_correct_ref()
         ctm_line.delete_props()
 
@@ -262,7 +270,7 @@ def main():
         ctm_lines = check_bigrams(ctm_lines, speller, ref_only=True)
     inline_check_unigram(ctm_lines, speller)
     if args.apply_changes:
-        post_process(ctm_lines)
+        post_process(ctm_lines, args.max_edit_distance, args.edit_distance_percent)
     for item in ctm_lines:
         print(item)    
 
