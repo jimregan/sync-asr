@@ -1,4 +1,4 @@
-SELECT ?person ?riksdagid ?pob WHERE {   
+SELECT ?person ?riksdagid ?pob WHERE {
     ?person wdt:P1214 ?riksdagid.
     OPTIONAL{ ?person wdt:P19 ?pob. }
 }
