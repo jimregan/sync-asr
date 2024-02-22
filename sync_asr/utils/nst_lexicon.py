@@ -12,10 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import csv
-import icu
 import tarfile
 import json
 import io
+
+try:
+    import icu
+except ImportError:
+    def get_transliterator():
+        return None
+    def transliterator_from_rules(name, rules):
+        return None
+    def check_transliterator(transliterator):
+        return None
 
 
 FIELD_NAMES = [
@@ -72,6 +81,7 @@ FIELD_NAMES = [
     "unique_id"
 ]
 
+
 TRANSLIT = """
 n\` → ɳ ;
 s\` → ʂ ;
@@ -100,30 +110,41 @@ x \\\\ → ɧ ;
 \* → \u2040 ;
 """
 
-# !wget http://www.nb.no/sbfil/leksikalske_databaser/leksikon/sv.leksikon.tar.gz -O /tmp/sv.leksikon.tar.gz
-
-
-with tarfile.open("/tmp/sv.leksikon.tar.gz") as tar:
-    f = tar.extractfile("NST svensk leksikon/swe030224NST.pron/swe030224NST.pron")
-    prondata = f.read()
-    prondata = prondata.decode('latin1')
-
 
 def transliterator_from_rules(name, rules):
     fromrules = icu.Transliterator.createFromRules(name, rules)
     icu.Transliterator.registerInstance(fromrules)
     return icu.Transliterator.createInstance(name)
 
-swelex_trans = transliterator_from_rules("swelex_trans", TRANSLIT)
 
-assert swelex_trans.transliterate('""bA:n`s`$%ma$man') == "²bɑːɳʂ.ˌma.man"
-assert swelex_trans.transliterate('"b9r$mIN$ham') == "ˈbør.mɪŋ.ham"
-assert swelex_trans.transliterate('"bI$rU') == "ˈbɪ.rʊ"
-assert swelex_trans.transliterate('""bIsp$%go:$d`en') == "²bɪsp.ˌɡoː.ɖen"
-assert swelex_trans.transliterate('"x\A:l') == "ˈɧɑːl"
-assert swelex_trans.transliterate("\"s'u:$lens") == "ˈɕuː.lens"
-assert swelex_trans.transliterate('a$"lE*U$te$n`a') == 'a.ˈle⁀ʊ.te.ɳa'
-assert swelex_trans.transliterate('"fu0l') == 'ˈfɵl'
+# !wget http://www.nb.no/sbfil/leksikalske_databaser/leksikon/sv.leksikon.tar.gz -O /tmp/sv.leksikon.tar.gz
+
+
+# with tarfile.open("/tmp/sv.leksikon.tar.gz") as tar:
+#     f = tar.extractfile("NST svensk leksikon/swe030224NST.pron/swe030224NST.pron")
+#     prondata = f.read()
+#     prondata = prondata.decode('latin1')
+
+
+def get_transliterator():
+    swelex_trans = transliterator_from_rules("swelex_trans", TRANSLIT)
+    return swelex_trans
+
+
+def check_transliterator(transliterator):
+    try:
+        assert transliterator.transliterate('""bA:n`s`$%ma$man') == "²bɑːɳʂ.ˌma.man"
+        assert transliterator.transliterate('"b9r$mIN$ham') == "ˈbør.mɪŋ.ham"
+        assert transliterator.transliterate('"bI$rU') == "ˈbɪ.rʊ"
+        assert transliterator.transliterate('""bIsp$%go:$d`en') == "²bɪsp.ˌɡoː.ɖen"
+        assert transliterator.transliterate('"x\A:l') == "ˈɧɑːl"
+        assert transliterator.transliterate("\"s'u:$lens") == "ˈɕuː.lens"
+        assert transliterator.transliterate('a$"lE*U$te$n`a') == 'a.ˈle⁀ʊ.te.ɳa'
+        assert transliterator.transliterate('"fu0l') == 'ˈfɵl'
+    except:
+        return False
+    return True
+
 
 def collapse_available_fields(data):
     output = []
@@ -152,12 +173,13 @@ def collapse_transliterations(data):
     data["transliterations"] = output
     return data
 
-with open("svlex.json", "w") as outf:
-    swelexf = io.StringIO(prondata)
-    swelex = csv.DictReader(swelexf, delimiter=';', fieldnames=FIELD_NAMES, quoting=csv.QUOTE_NONE)
-    for row in swelex:
-        row["decomp"] = [f for f in row["decomp"].split("+") if f != ""]
-        row = collapse_available_fields(row)
-        row = collapse_transliterations(row)
-        jsonstr = json.dumps(row)
-        outf.write(jsonstr + "\n")
+def write_as_json(filename):
+    with open(filename, "w") as outf:
+        swelexf = io.StringIO(prondata)
+        swelex = csv.DictReader(swelexf, delimiter=';', fieldnames=FIELD_NAMES, quoting=csv.QUOTE_NONE)
+        for row in swelex:
+            row["decomp"] = [f for f in row["decomp"].split("+") if f != ""]
+            row = collapse_available_fields(row)
+            row = collapse_transliterations(row)
+            jsonstr = json.dumps(row)
+            outf.write(jsonstr + "\n")
