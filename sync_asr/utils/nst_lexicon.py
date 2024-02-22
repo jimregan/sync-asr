@@ -15,6 +15,7 @@ import csv
 import tarfile
 import json
 import io
+import requests
 
 try:
     import icu
@@ -23,7 +24,7 @@ except ImportError:
         return None
     def transliterator_from_rules(name, rules):
         return None
-    def check_transliterator(transliterator):
+    def get_nst_lexicon():
         return None
 
 
@@ -117,13 +118,16 @@ def transliterator_from_rules(name, rules):
     return icu.Transliterator.createInstance(name)
 
 
-# !wget http://www.nb.no/sbfil/leksikalske_databaser/leksikon/sv.leksikon.tar.gz -O /tmp/sv.leksikon.tar.gz
-
-
-# with tarfile.open("/tmp/sv.leksikon.tar.gz") as tar:
-#     f = tar.extractfile("NST svensk leksikon/swe030224NST.pron/swe030224NST.pron")
-#     prondata = f.read()
-#     prondata = prondata.decode('latin1')
+def _get_and_extract_csv_text():
+    _URL = "http://www.nb.no/sbfil/leksikalske_databaser/leksikon/sv.leksikon.tar.gz"
+    req = requests.get(_URL)
+    assert req.status_code == 200, "Error downloading tar file"
+    bytes = io.BytesIO(req.content)
+    tar = tarfile.open(fileobj=bytes, mode='r:gz')
+    f = tar.extractfile("NST svensk leksikon/swe030224NST.pron/swe030224NST.pron")
+    prondata = f.read()
+    prondata = prondata.decode('latin1')
+    return prondata
 
 
 def get_transliterator():
@@ -131,7 +135,7 @@ def get_transliterator():
     return swelex_trans
 
 
-def check_transliterator(transliterator):
+def _check_transliterator(transliterator):
     try:
         assert transliterator.transliterate('""bA:n`s`$%ma$man') == "²bɑːɳʂ.ˌma.man"
         assert transliterator.transliterate('"b9r$mIN$ham') == "ˈbør.mɪŋ.ham"
@@ -146,7 +150,7 @@ def check_transliterator(transliterator):
     return True
 
 
-def collapse_available_fields(data):
+def _collapse_available_fields(data):
     output = []
     for i in range(1, 10):
         if data[f"available_field{i}"] != "":
@@ -155,13 +159,14 @@ def collapse_available_fields(data):
     data["available_fields"] = output
     return data
 
-def collapse_transliterations(data):
+
+def _collapse_transliterations(data, transliterator):
     output = []
     for i in range(1, 5):
         if data[f"transliteration{i}"] != "":
             tmp = {}
             tmp["transliteration"] = data[f"transliteration{i}"]
-            tmp["ipa"] = swelex_trans.transliterate(data[f"transliteration{i}"])
+            tmp["ipa"] = transliterator.transliterate(data[f"transliteration{i}"])
             tmp["certainty"] = data[f"certainty_trans_{i}"]
             tmp["status"] = data[f"status_trans_{i}"]
             tmp["language_code"] = data[f"language_code_trans_{i}"]
@@ -173,13 +178,21 @@ def collapse_transliterations(data):
     data["transliterations"] = output
     return data
 
-def write_as_json(filename):
-    with open(filename, "w") as outf:
-        swelexf = io.StringIO(prondata)
-        swelex = csv.DictReader(swelexf, delimiter=';', fieldnames=FIELD_NAMES, quoting=csv.QUOTE_NONE)
-        for row in swelex:
-            row["decomp"] = [f for f in row["decomp"].split("+") if f != ""]
-            row = collapse_available_fields(row)
-            row = collapse_transliterations(row)
-            jsonstr = json.dumps(row)
-            outf.write(jsonstr + "\n")
+
+def _get_nst_lexicon_from_csv(prondata, transliterator):
+    lexicon = []
+    swelexf = io.StringIO(prondata)
+    swelex = csv.DictReader(swelexf, delimiter=';', fieldnames=FIELD_NAMES, quoting=csv.QUOTE_NONE)
+    for row in swelex:
+        row["decomp"] = [f for f in row["decomp"].split("+") if f != ""]
+        row = _collapse_available_fields(row)
+        row = _collapse_transliterations(row, transliterator)
+        lexicon.append(row)
+    return lexicon
+
+
+def get_nst_lexicon():
+    transliterator = get_transliterator()
+    prondata = _get_and_extract_csv_text()
+    lexicon = _get_nst_lexicon_from_csv(prondata, transliterator)
+    return lexicon
