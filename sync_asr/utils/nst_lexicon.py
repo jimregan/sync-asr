@@ -12,8 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import csv
+import icu
+import tarfile
+import json
+import io
 
-field_names = [
+
+FIELD_NAMES = [
     "orthography",
     "extended_pos",
     "morphology",
@@ -67,15 +72,6 @@ field_names = [
     "unique_id"
 ]
 
-# !wget http://www.nb.no/sbfil/leksikalske_databaser/leksikon/sv.leksikon.tar.gz -O /tmp/sv.leksikon.tar.gz
-
-import tarfile
-
-with tarfile.open("/tmp/sv.leksikon.tar.gz") as tar:
-    f = tar.extractfile("NST svensk leksikon/swe030224NST.pron/swe030224NST.pron")
-    prondata = f.read()
-    prondata = prondata.decode('latin1')
-
 TRANSLIT = """
 n\` → ɳ ;
 s\` → ʂ ;
@@ -104,7 +100,15 @@ x \\\\ → ɧ ;
 \* → \u2040 ;
 """
 
-import icu
+# !wget http://www.nb.no/sbfil/leksikalske_databaser/leksikon/sv.leksikon.tar.gz -O /tmp/sv.leksikon.tar.gz
+
+
+with tarfile.open("/tmp/sv.leksikon.tar.gz") as tar:
+    f = tar.extractfile("NST svensk leksikon/swe030224NST.pron/swe030224NST.pron")
+    prondata = f.read()
+    prondata = prondata.decode('latin1')
+
+
 def transliterator_from_rules(name, rules):
     fromrules = icu.Transliterator.createFromRules(name, rules)
     icu.Transliterator.registerInstance(fromrules)
@@ -148,11 +152,9 @@ def collapse_transliterations(data):
     data["transliterations"] = output
     return data
 
-import json
-import io
 with open("svlex.json", "w") as outf:
     swelexf = io.StringIO(prondata)
-    swelex = csv.DictReader(swelexf, delimiter=';', fieldnames=field_names, quoting=csv.QUOTE_NONE)
+    swelex = csv.DictReader(swelexf, delimiter=';', fieldnames=FIELD_NAMES, quoting=csv.QUOTE_NONE)
     for row in swelex:
         row["decomp"] = [f for f in row["decomp"].split("+") if f != ""]
         row = collapse_available_fields(row)
