@@ -14,6 +14,7 @@
 from .elements import TimedWord
 from typing import List
 import copy
+from string import punctuation
 
 
 class CTMEditLine(TimedWord):
@@ -27,7 +28,7 @@ class CTMEditLine(TimedWord):
         text = self.text
         super().__init__(start_time, end_time, text)
         self.verbose = verbose
-        self.PUNCT = [".", ",", ":", ";", "!", "?", "-", '"']
+        self.PUNCT = set(punctuation)
 
     def __str__(self) -> str:
         return " ".join(self.as_list())
@@ -100,8 +101,13 @@ class CTMEditLine(TimedWord):
         work_ref = self.ref
         if case_punct:
             work_ref = self.ref.lower()
-            if self.ref[-1] in self.PUNCT:
-                work_ref = work_ref[:-1]
+            i = 0
+            while work_ref[i] in self.PUNCT:
+                i += i
+            j = -1
+            while work_ref[j] in self.PUNCT:
+                j -= 1
+            work_ref = work_ref[i:j+1]
         if self.text in collisions:
             orig_text = self.text
             collision = collisions[self.text]
