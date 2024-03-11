@@ -39,7 +39,7 @@ def possible_false_start(text, ref, fillers=[], mark_filler=False):
         fs = text[:-len(clean)]
         if fs in fillers:
             if mark_filler:
-                return f"[{fs}]-_{ref}"
+                return f"[{fs}]_{ref}"
             else:
                 return f"{fs}-_{ref}"
         elif clean.startswith(fs):
@@ -147,6 +147,12 @@ class CTMEditLine(TimedWord):
         if comparison_function(self.text, self.ref):
             self.edit = "cor"
             self.text = self.ref        
+
+    def check_filler_or_false_starts(self, fillers=[], mark_filler=True):
+        pfs = possible_false_start(self.text, self.ref, fillers, mark_filler)
+        if pfs is not None:
+            self.text = self.ref = pfs
+            self.edit = "cor"
 
     def set_correct_ref(self):
         self.text = self.ref
