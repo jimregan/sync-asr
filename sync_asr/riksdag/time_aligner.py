@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import numpy as np
 
 
 def end_cost(a, b):
@@ -21,7 +22,7 @@ def start_cost(a, b):
     return abs(a["start"] - b["start"])
 
 
-def cost(a, b):
+def total_cost(a, b):
     starts = start_cost(a, b)
     ends = end_cost(a, b)
     return starts + ends
@@ -96,12 +97,12 @@ def align_times(new_a, new_b, merge_end_flexibility=0.06):
                         merges[i] = [x for x in range(j, new_j + 1)]
                         j = new_j
             if pair_cost != 1.:
-                pair_cost = cost(new_a[i], new_b[j])
+                pair_cost = total_cost(new_a[i], new_b[j])
             dist_matrix[i, j] = pair_cost
     return dist_matrix, additionals, merges
 
 
-def walk_matrix(dist_matrix, additions):
+def walk_matrix(dist_matrix, additions, merges):
     i = 0
     j = 0
 
@@ -120,7 +121,7 @@ def walk_matrix(dist_matrix, additions):
 
     while i < s1:
         while j < s2:
-            if not i in mrg:
+            if not i in merges:
                 if do_additions(i, j):
                     j += 1
                     continue
@@ -137,8 +138,8 @@ def walk_matrix(dist_matrix, additions):
                 j += 1
                 continue
             else:
-                path += [(i, x) for x in mrg[i]]
-                j = mrg[i][-1] + 1
+                path += [(i, x) for x in merges[i]]
+                j = merges[i][-1] + 1
                 i += 1
                 continue
     return path
