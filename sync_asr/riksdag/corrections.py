@@ -100,14 +100,14 @@ abeflygplan A/B-flygplan
 abefs ABF:s
 abfs ABF:s
 abies ABS
-abieffkurserna ABF-kursern
+abieffkurserna ABF-kurserna
 abief ABF
 aczen Axén
 adeärrkort ADR-kort
 adeärr ADR
 adiellbedömningen ADL-bedömningen
 adiesselstationer ADSL-stationer
-adihodepreparaten adhd-preparat
+adihodepreparaten adhd-preparaten
 adihodemediciner adhd-mediciner
 adihodeläkemedel adhd-läkemedel
 adihodedroger adhd-droger
@@ -139,6 +139,16 @@ kunskapoc kunskap_och
 adisabeba Addis_Abeba
 eus EU:s
 gihadister jihadister
+peesertester PCR-tester
+beesiärtest PCR-test
+afganska afghanska
+uesas USA:s
+eukommissionens EU-kommissionens
+nåonting någonting
+svedavia Swedavia
+någnting någonting
+eunivå EU-nivå
+rutavdraget RUT-avdraget
 """
 
 
