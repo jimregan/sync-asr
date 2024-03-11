@@ -32,12 +32,20 @@ def _approx_match(texta, textb):
     return texta == _clean_text(textb, punct)
 
 
-def possible_false_start(text, ref):
+def possible_false_start(text, ref, fillers=[], mark_filler=False):
     punct = set(punctuation)
     clean = _clean_text(ref, punct)
     if text.endswith(clean):
         fs = text[:-len(clean)]
-        return f"{fs}-_{ref}"
+        if fs in fillers:
+            if mark_filler:
+                return f"[{fs}]-_{ref}"
+            else:
+                return f"{fs}-_{ref}"
+        elif clean.startswith(fs):
+            return f"{fs}-_{ref}"
+        else:
+            return None
     else:
         return None
 
