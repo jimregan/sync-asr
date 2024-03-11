@@ -152,6 +152,11 @@ elisabet Elisabeth
 björnsdott Björnsdotter
 ram Rahm
 intepelationen interpellationen
+vallmark Wallmark
+sverijedemokraterna Sverigedemokraterna
+stadskontoret Statskontoret
+sjöstett Sjöstedt
+sveriedemokrater sverigedemokrater
 """
 
 
