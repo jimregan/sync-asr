@@ -17,6 +17,16 @@ import copy
 from string import punctuation
 
 
+def _clean_text(work_ref, PUNCT):
+    i = 0
+    while work_ref[i] in PUNCT:
+        i += i
+    j = -1
+    while work_ref[j] in PUNCT:
+        j -= 1
+    return work_ref[i:j+1].lower()
+
+
 class CTMEditLine(TimedWord):
     def __init__(self, from_line="", from_kaldi_list=None, verbose=False):
         if from_line != "":
@@ -100,14 +110,7 @@ class CTMEditLine(TimedWord):
                 (type(col) == list and ref in col))
         work_ref = self.ref
         if case_punct:
-            work_ref = self.ref.lower()
-            i = 0
-            while work_ref[i] in self.PUNCT:
-                i += i
-            j = -1
-            while work_ref[j] in self.PUNCT:
-                j -= 1
-            work_ref = work_ref[i:j+1]
+            work_ref = _clean_text(self.ref, self.PUNCT)
         if self.text in collisions:
             orig_text = self.text
             collision = collisions[self.text]
@@ -131,10 +134,8 @@ class CTMEditLine(TimedWord):
         self.edit = "cor"
 
     def fix_case_difference(self):
-        comp = self.ref
-        if comp[-1] in self.PUNCT:
-            comp = comp[:-1]
-        if self.text == comp.lower():
+        comp = _clean_text(self.ref, self.PUNCT)
+        if self.text == comp:
             self.set_correct_ref()
 
     def has_props(self):
