@@ -197,3 +197,18 @@ def get_nst_lexicon():
     prondata = _get_and_extract_csv_text()
     lexicon = _get_nst_lexicon_from_csv(prondata, transliterator)
     return lexicon
+
+
+def clean_lexicon(lexicon):
+    dictionary = {}
+    for entry in lexicon:
+        if 'garbage' in entry and entry['garbage'] == 'GARB':
+            continue
+        else:
+            word = entry['orthography']
+            word = word.replace("_", " ")
+            if not word in dictionary:
+                dictionary[word] = set()
+            for translit in entry['transliterations']:
+                dictionary[word].add(translit['ipa'].replace(".", "").replace("¤", "").replace("_", " ").replace("\u0361", ""))
+    return dictionary
