@@ -27,6 +27,11 @@ def _clean_text(work_ref, PUNCT):
     return work_ref[i:j+1].lower()
 
 
+def _approx_match(texta, textb):
+    punct = set(punctuation)
+    return texta == _clean_text(textb, punct)
+
+
 class CTMEditLine(TimedWord):
     def __init__(self, from_line="", from_kaldi_list=None, verbose=False):
         if from_line != "":
@@ -186,7 +191,7 @@ def merge_consecutive(ctm_a, ctm_b, text="", joiner="", epsilon="<eps>", edit=""
     return new_ctm
 
 
-def shift_epsilons(ctmedits: List[CTMEditLine], comparison=None, backward=False, ref=True, epsilon="<eps>"):
+def shift_epsilons(ctmedits: List[CTMEditLine], comparison=_approx_match, backward=False, ref=True, epsilon="<eps>"):
     def is_eps(ctmedit):
         if ref:
             return ctmedit.ref == epsilon
