@@ -148,7 +148,10 @@ nåonting någonting
 svedavia Swedavia
 någnting någonting
 eunivå EU-nivå
-rutavdraget RUT-avdraget
+elisabet Elisabeth
+björnsdott Björnsdotter
+ram Rahm
+intepelationen interpellationen
 """
 
 
