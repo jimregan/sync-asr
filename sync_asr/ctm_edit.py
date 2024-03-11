@@ -27,7 +27,7 @@ class CTMEditLine(TimedWord):
         text = self.text
         super().__init__(start_time, end_time, text)
         self.verbose = verbose
-        self.PUNCT = [".", ",", ":", ";", "!", "?", "-"]
+        self.PUNCT = [".", ",", ":", ";", "!", "?", "-", '"']
 
     def __str__(self) -> str:
         return " ".join(self.as_list())
