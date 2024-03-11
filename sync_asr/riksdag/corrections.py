@@ -161,4 +161,12 @@ sveriedemokrater sverigedemokrater
 
 
 def get_corrections():
-    return {k: v for k, v in (l.split() for l in _CORRECTIONS.split('\n') if l != "")}
+    corrections = {}
+    for line in _CORRECTIONS.split("\n"):
+        if line == "":
+            continue
+        parts = line.split()
+        if not parts[0] in corrections:
+            corrections[parts[0]] = []
+        corrections[parts[0]].append(parts[1])
+    return corrections
