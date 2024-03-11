@@ -146,9 +146,11 @@ _ASSIMILATION = [
     AssimilationRule("r$", "", "r → ∅ / _ # [+consonant]", "där bilen", False, False, "", f"[{CONSONANTS}]")
 ]
 
-Rule("[œɶeə]r", "r", "e → ∅ / _ r [+stressed]", "bero", False, True)
-	
-Rule("ɪntə", "ntə", "ɪ → ∅ / [+vowel] # _ n t ə", "ska inte", False, False)
-Rule("ɪnte", "nte", "ɪ → ∅ / [+vowel] # _ n t e", "ska inte", False, False)
+_DELETIONS = [
+    Rule("[œɶeə]r", "r", "e → ∅ / _ r [+stressed]", "bero", False, True),
+        
+    Rule("ɪntə", "ntə", "ɪ → ∅ / [+vowel] # _ n t ə", "ska inte", False, False),
+    Rule("ɪnte", "nte", "ɪ → ∅ / [+vowel] # _ n t e", "ska inte", False, False),
 
-Rule("nh", "h", "n → ∅ / _ h", "Stenholm")
+    Rule("nh", "h", "n → ∅ / _ h", "Stenholm")
+]
