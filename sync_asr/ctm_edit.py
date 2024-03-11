@@ -32,6 +32,15 @@ def _approx_match(texta, textb):
     return texta == _clean_text(textb, punct)
 
 
+def possible_false_start(text, ref):
+    clean = _clean_text(ref)
+    if text.endswith(clean):
+        fs = text[:-len(clean)]
+        return f"{fs}-_{ref}"
+    else:
+        return None
+
+
 class CTMEditLine(TimedWord):
     def __init__(self, from_line="", from_kaldi_list=None, verbose=False):
         if from_line != "":
