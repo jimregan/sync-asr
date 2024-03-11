@@ -20,7 +20,7 @@ from string import punctuation
 def _clean_text(work_ref, PUNCT):
     i = 0
     while work_ref[i] in PUNCT:
-        i += i
+        i += 1
     j = -1
     while work_ref[j] in PUNCT:
         j -= 1
@@ -33,7 +33,8 @@ def _approx_match(texta, textb):
 
 
 def possible_false_start(text, ref):
-    clean = _clean_text(ref)
+    punct = set(punctuation)
+    clean = _clean_text(ref, punct)
     if text.endswith(clean):
         fs = text[:-len(clean)]
         return f"{fs}-_{ref}"
