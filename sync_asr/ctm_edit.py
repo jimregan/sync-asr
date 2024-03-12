@@ -17,14 +17,18 @@ import copy
 from string import punctuation
 
 
-def _clean_text(work_ref, PUNCT):
+def _clean_text(work_ref, PUNCT, lower=True):
     i = 0
-    while work_ref[i] in PUNCT:
+    l = len(work_ref)
+    while i < l and work_ref[i] in PUNCT:
         i += 1
     j = -1
-    while work_ref[j] in PUNCT:
+    while j >= -l and work_ref[j] in PUNCT:
         j -= 1
-    return work_ref[i:j+1].lower()
+    retval = work_ref[i:j+1]
+    if lower:
+        retval = retval.lower()
+    return retval
 
 
 def _approx_match(texta, textb):
@@ -188,6 +192,12 @@ class CTMEditLine(TimedWord):
     def has_eps(self, eps="<eps>"):
         return self.text == eps or self.ref == eps
 
+    def has_initial_capital(self):
+        work = _clean_text(self.ref, self.PUNCT, False)
+        if work == "":
+            return False
+        return work[0].isupper()
+
 
 def ctm_from_file(filename):
     ctm_lines = []
@@ -267,3 +277,49 @@ def shift_epsilons(ctmedits: List[CTMEditLine], comparison=_approx_match, backwa
         ctmedits.reverse()
 
     return ctmedits
+
+
+def partition(lines):
+    def has_final(line):
+        FINAL = ".!?"
+        parts = line.strip().split(" ")
+        piece = parts[6]
+        if piece.endswith('"'):
+            piece = piece[:-1]
+        return piece[-1:] in FINAL
+    
+    def is_capital(line):
+        parts = line.strip().split(" ")
+        piece = parts[6]
+        return piece[0:1].isupper()
+    
+    def splittable(a, b):
+        return has_final(a) and is_capital(b)
+
+    sentences = []
+    current = []
+    last_mod = ""
+
+    for pair in more_itertools.windowed(lines + ["END"], 2):
+        first = modify_single(pair[0])
+        second = modify_single(pair[1])
+        if last_mod != "":
+            second = last_mod
+        last_mod = ""
+        
+        if second == "END":
+            current.append(first)
+            sentences.append(current[:])
+        else:
+            mod = modify_pairs(first, second)
+            if mod is not None:
+                first = mod[0]
+                second = mod[1]
+                last_mod = second
+            elif splittable(first, second):
+                current.append(first)
+                sentences.append(current[:])
+                current = []
+            else:
+                current.append(first)
+    return sentences
