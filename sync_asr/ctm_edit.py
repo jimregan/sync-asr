@@ -193,6 +193,8 @@ class CTMEditLine(TimedWord):
         return self.text == eps or self.ref == eps
 
     def has_initial_capital(self):
+        if len(self.ref) >= 1 and self.ref[0].isupper():
+            return True
         work = _clean_text(self.ref, self.PUNCT, False)
         if work == "":
             return False
@@ -203,7 +205,7 @@ class CTMEditLine(TimedWord):
 
     def has_sentence_final(self):
         work_ref = self.ref
-        FINALS = list(".!?")
+        FINALS = [".", "!", "?"]
         l = len(work_ref)
         j = -1
         if l >= 1 and work_ref[-1] in FINALS:
@@ -307,6 +309,8 @@ def split_sentences(ctmedits: List[CTMEditLine], conjunctions: List[str] = []):
                 sentences.append(current)
                 current = []
             else:
+                if window[0].has_sentence_final():
+                    print(window[0], window[1])
                 current.append(window[0])
         else:
             current.append(window[0])
