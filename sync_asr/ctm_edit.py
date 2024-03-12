@@ -203,9 +203,11 @@ class CTMEditLine(TimedWord):
 
     def has_sentence_final(self):
         work_ref = self.ref
-        FINALS = ".!?"
+        FINALS = list(".!?")
         l = len(work_ref)
         j = -1
+        if l >= 1 and work_ref[-1] in FINALS:
+            return True
         while j >= -l and work_ref[j] in self.PUNCT:
             if work_ref[j] in FINALS:
                 return True
