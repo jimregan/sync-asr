@@ -197,6 +197,9 @@ class CTMEditLine(TimedWord):
         if work == "":
             return False
         return work[0].isupper()
+    
+    def maybe_sentence_start(self, conjunctions):
+        return self.has_initial_capital() or self.text in conjunctions
 
     def has_sentence_final(self):
         work_ref = self.ref
@@ -297,7 +300,7 @@ def split_sentences(ctmedits: List[CTMEditLine], conjunctions: List[str] = []):
     while i < len(ctmedits):
         window = ctmedits[i:i+2]
         if len(window) == 2:
-            if window[0].has_sentence_final() and window[1].has_initial_capital() or window[1].text in conjunctions:
+            if window[0].has_sentence_final() and window[1].maybe_sentence_start(conjunctions):
                 current.append(window[0])
                 sentences.append(current)
                 current = []
@@ -306,4 +309,5 @@ def split_sentences(ctmedits: List[CTMEditLine], conjunctions: List[str] = []):
         else:
             current.append(window[0])
             sentences.append(current)
+        i += 1
     return sentences
