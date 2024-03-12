@@ -198,6 +198,17 @@ class CTMEditLine(TimedWord):
             return False
         return work[0].isupper()
 
+    def has_sentence_final(self):
+        work_ref = self.ref
+        FINALS = ".!?"
+        l = len(work_ref)
+        j = -1
+        while j >= -l and work_ref[j] in self.PUNCT:
+            if work_ref[j] in FINALS:
+                return True
+            j -= 1
+        return False
+
 
 def ctm_from_file(filename):
     ctm_lines = []
