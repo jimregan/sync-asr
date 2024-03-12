@@ -309,11 +309,17 @@ def split_sentences(ctmedits: List[CTMEditLine], conjunctions: List[str] = []):
                 sentences.append(current)
                 current = []
             else:
-                if window[0].has_sentence_final():
-                    print(window[0], window[1])
                 current.append(window[0])
         else:
             current.append(window[0])
             sentences.append(current)
         i += 1
     return sentences
+
+def generate_filename(ctmlines: List[CTMEditLine]):
+    file_id = ctmlines[0].id
+    start = ctmlines[0].start_time
+    end = ctmlines[-1].end_time
+    seg_dur = end - start
+    filename = f"{file_id}_{start}_{seg_dur:.2f}.ctmedit"
+    return filename
