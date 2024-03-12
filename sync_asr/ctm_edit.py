@@ -288,3 +288,22 @@ def shift_epsilons(ctmedits: List[CTMEditLine], comparison=_approx_match, backwa
         ctmedits.reverse()
 
     return ctmedits
+
+
+def split_sentences(ctmedits: List[CTMEditLine], conjunctions: List[str] = []):
+    sentences = []
+    current = []
+    i = 0
+    while i < len(ctmedits):
+        window = ctmedits[i:i+2]
+        if len(window) == 2:
+            if window[0].has_sentence_final() and window[1].has_initial_capital() or window[1].text in conjunctions:
+                current.append(window[0])
+                sentences.append(current)
+                current = []
+            else:
+                current.append(window[0])
+        else:
+            current.append(window[0])
+            sentences.append(current)
+    return sentences
