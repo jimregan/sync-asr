@@ -91,11 +91,181 @@ teroristorganisationers terroristorganisationers
 teroristbrott terroristbrott
 teroriseras terroriseras
 terorister terrorister
+afkanistan Afghanistan
+maly Mali
+male Mali
+övvik Ö-vik
+abebégymnasiet ABB-gymnasiet
+abeflygplan A/B-flygplan
+abefs ABF:s
+abfs ABF:s
+abies ABS
+abieffkurserna ABF-kurserna
+abief ABF
+aczen Axén
+adeärrkort ADR-kort
+adeärr ADR
+adiellbedömningen ADL-bedömningen
+adiesselstationer ADSL-stationer
+adihodepreparaten adhd-preparaten
+adihodemediciner adhd-mediciner
+adihodeläkemedel adhd-läkemedel
+adihodedroger adhd-droger
+aduptioner adoptioner
+aeff AF
+aelless ALS
+aenddeesstrategin ANDTS-strategin
+aettaffisch A1-affisch
+aendete ANDT
+aendeteanvändandet ANDT-användandet
+aendeteessfrågorna ANDTS-frågorna
+aendeteesspolitiken ANDTS-politiken
+aendeteessstrategin ANDTS-strategin
+aendetefrågan ANDT-frågan
+aendetefrågor ANDT-frågor
+aendeteområdet ANDT-området
+aendetessområdet ANDTS-området
+aendetesspolitiskt ANDTS-politiskt
+aendetesstrategi ANDTS-strategi
+aendetestrategi ANDT-strategi
+aendetestrategin ANDT-strategin
+rutavdraget RUT-avdraget
+sahäll Sahel
+akim Aqim
+alkaida_relaterade al-Qaida-relaterade
+libien Libyen
+malie Mali
+kunskapoc kunskap_och
+adisabeba Addis_Abeba
+eus EU:s
+gihadister jihadister
+peesertester PCR-tester
+beesiärtest PCR-test
+afganska afghanska
+uesas USA:s
+eukommissionens EU-kommissionens
+nåonting någonting
+svedavia Swedavia
+någnting någonting
+eunivå EU-nivå
+elisabet Elisabeth
+björnsdott Björnsdotter
+ram Rahm
+intepelationen interpellationen
+vallmark Wallmark
+sverijedemokraterna Sverigedemokraterna
+stadskontoret Statskontoret
+sjöstett Sjöstedt
+sveriedemokrater sverigedemokrater
+elviu LVU
+oesidés OECD:s
+sväridemokraterna Sverigedemokraterna
+sveridemokraternas Sverigedemokraternas
+äffens FN:s
+effens FN:s
+fakto facto
+transparant transparent
+kolleger kollegor
+insitament incitament
+bäckman Beckman
+talmann talman
+til till
+et ett
+oc och
+oh och
+sean sedan
+vil vill
+skule skulle
+ett att
+såant sådant
+disel diesel
+senterpartiets Centerpartiets
+kamilla Camilla
+kopplat kopplad
+vallström Wallström
+sådnt sådant
+borgeliga borgerliga
+gäler gäller
+svensk svenskt
+interpelation interpellation
+koronapandemin coronapandemin
+sådn sådan
+okså också
+vidman Widman
+koronakrisen coronakrisen
+defintion definition
+kmmer kommer
+såana sådana
+vra vara
+avkassan a-kassan
+eler eller
+fosilfri fossilfri
+interpelationen interpellationen
+insitamenten incitamenten
+fosilfritt fossilfritt
+koronaviruset coronaviruset
+videgren Widegren
+karina Carina
+vikström Wikström
+korona corona
+nte inte
+appropå apropå
+adikvat adekvat
+fasit facit
+defintionen definitionen
+gens Jens
+gesper Jesper
+gemen Jemen
+faktisk faktiskt
+vll vill
+idekontroller id-kontroller
+vise vice
+brexigt brexit
+svenske svenska
+koronapandemin Coronapandemin
+tll till
+akassa a-kassa
+akassan a-kassan
+up upp
+kapita capita
+trosamfund trossamfund
+naturlitvis naturligtvis
+poänktera poängtera
+inovation innovation
+kordinera koordinera
+karlsson Qarlsson
+itesystem it-system
+md med
+interpelationer interpellationer
+borgrliga borgerliga
+assistens assistans
+borgrliga borgerliga
+diselskatten dieselskatten
+idekontrollerna id-kontrollerna
+kolombia Colombia
+givit givet
+vaa vara
+koronakrisen Coronakrisen
+kommir kommer
+koronakommissionen Coronakommissionen
+imateriella immateriella
+barnkomventionen barnkonventionen
+ickedemokratiska icke-demokratiska
+genny Jenny
+vestlund Westlund
 """
 
 
 def get_corrections():
-    return {k: v for k, v in (l.split() for l in _CORRECTIONS.split('\n') if l != "")}
+    corrections = {}
+    for line in _CORRECTIONS.split("\n"):
+        if line == "":
+            continue
+        parts = line.split()
+        if not parts[0] in corrections:
+            corrections[parts[0]] = []
+        corrections[parts[0]].append(parts[1])
+    return corrections
 
 
 _CONFUSABLES = """
@@ -104,6 +274,7 @@ c s
 v w
 j g
 """
+
 
 _EQUIVALENTS = """
 ch g j sch sh si sj sk skj ssi ssj stj ti

@@ -14,6 +14,44 @@
 from .elements import TimedWord
 from typing import List
 import copy
+from string import punctuation
+
+
+def _clean_text(work_ref, PUNCT, lower=True):
+    i = 0
+    l = len(work_ref)
+    while i < l and work_ref[i] in PUNCT:
+        i += 1
+    j = -1
+    while j >= -l and work_ref[j] in PUNCT:
+        j -= 1
+    retval = work_ref[i:j+1]
+    if lower:
+        retval = retval.lower()
+    return retval
+
+
+def _approx_match(texta, textb):
+    punct = set(punctuation)
+    return texta == _clean_text(textb, punct)
+
+
+def possible_false_start(text, ref, fillers=[], mark_filler=False):
+    punct = set(punctuation)
+    clean = _clean_text(ref, punct)
+    if text.endswith(clean):
+        fs = text[:-len(clean)]
+        if fs in fillers:
+            if mark_filler:
+                return f"[{fs}]_{ref}"
+            else:
+                return f"{fs}-_{ref}"
+        elif clean.startswith(fs):
+            return f"{fs}-_{ref}"
+        else:
+            return None
+    else:
+        return None
 
 
 class CTMEditLine(TimedWord):
@@ -27,7 +65,7 @@ class CTMEditLine(TimedWord):
         text = self.text
         super().__init__(start_time, end_time, text)
         self.verbose = verbose
-        self.PUNCT = [".", ",", ":", ";", "!", "?", "-"]
+        self.PUNCT = set(punctuation)
 
     def __str__(self) -> str:
         return " ".join(self.as_list())
@@ -99,9 +137,7 @@ class CTMEditLine(TimedWord):
                 (type(col) == list and ref in col))
         work_ref = self.ref
         if case_punct:
-            work_ref = self.ref.lower()
-            if self.ref[-1] in self.PUNCT:
-                work_ref = work_ref[:-1]
+            work_ref = _clean_text(self.ref, self.PUNCT)
         if self.text in collisions:
             orig_text = self.text
             collision = collisions[self.text]
@@ -116,6 +152,12 @@ class CTMEditLine(TimedWord):
             self.edit = "cor"
             self.text = self.ref        
 
+    def check_filler_or_false_starts(self, fillers=[], mark_filler=True):
+        pfs = possible_false_start(self.text, self.ref, fillers, mark_filler)
+        if pfs is not None:
+            self.text = self.ref = pfs
+            self.edit = "cor"
+
     def set_correct_ref(self):
         self.text = self.ref
         self.edit = "cor"
@@ -125,10 +167,8 @@ class CTMEditLine(TimedWord):
         self.edit = "cor"
 
     def fix_case_difference(self):
-        comp = self.ref
-        if comp[-1] in self.PUNCT:
-            comp = comp[:-1]
-        if self.text == comp.lower():
+        comp = _clean_text(self.ref, self.PUNCT)
+        if self.text == comp:
             self.set_correct_ref()
 
     def has_props(self):
@@ -151,6 +191,33 @@ class CTMEditLine(TimedWord):
 
     def has_eps(self, eps="<eps>"):
         return self.text == eps or self.ref == eps
+
+    def has_initial_capital(self):
+        if len(self.ref) >= 1 and self.ref[0].isupper():
+            return True
+        work = _clean_text(self.ref, self.PUNCT, False)
+        if work == "":
+            return False
+        return work[0].isupper()
+    
+    def maybe_sentence_start(self, conjunctions):
+        return self.has_initial_capital() or self.text in conjunctions
+
+    def has_sentence_final(self):
+        work_ref = self.ref
+        FINALS = [".", "!", "?"]
+        l = len(work_ref)
+        j = -1
+        if l >= 1 and work_ref[-1] in FINALS:
+            return True
+        while j >= -l and work_ref[j] in self.PUNCT:
+            if work_ref[j] in FINALS:
+                return True
+            j -= 1
+        return False
+
+    def set_inserted_conjunction(self, edit="ins-conj"):
+        self.edit = edit
 
 
 def ctm_from_file(filename):
@@ -179,7 +246,7 @@ def merge_consecutive(ctm_a, ctm_b, text="", joiner="", epsilon="<eps>", edit=""
     return new_ctm
 
 
-def shift_epsilons(ctmedits: List[CTMEditLine], comparison=None, backward=False, ref=True, epsilon="<eps>"):
+def shift_epsilons(ctmedits: List[CTMEditLine], comparison=_approx_match, backward=False, ref=True, epsilon="<eps>"):
     def is_eps(ctmedit):
         if ref:
             return ctmedit.ref == epsilon
@@ -231,3 +298,47 @@ def shift_epsilons(ctmedits: List[CTMEditLine], comparison=None, backward=False,
         ctmedits.reverse()
 
     return ctmedits
+
+
+def check_and_swap_ending(first: CTMEditLine, second: CTMEditLine, conjunctions: List[str] = [], epsilon="<eps>"):
+    if first.edit != "ins" and second.edit != "sub":
+        return
+    if not _approx_match(first.text, second.ref):
+        return
+    if not first.ref == epsilon:
+        return
+    if not second.text in conjunctions:
+        return
+    first.text = second.ref
+    first.edit = "cor"
+    second.ref = epsilon
+    second.set_inserted_conjunction()
+
+
+def split_sentences(ctmedits: List[CTMEditLine], conjunctions: List[str] = []):
+    sentences = []
+    current = []
+    i = 0
+    while i < len(ctmedits):
+        window = ctmedits[i:i+2]
+        if len(window) == 2:
+            if window[0].has_sentence_final() and window[1].maybe_sentence_start(conjunctions):
+                current.append(window[0])
+                sentences.append(current)
+                current = []
+            else:
+                current.append(window[0])
+        else:
+            current.append(window[0])
+            sentences.append(current)
+        i += 1
+    return sentences
+
+
+def generate_filename(ctmlines: List[CTMEditLine]):
+    file_id = ctmlines[0].id
+    start = ctmlines[0].start_time
+    end = ctmlines[-1].end_time
+    seg_dur = end - start
+    filename = f"{file_id}_{start}_{seg_dur:.2f}.ctmedit"
+    return filename
