@@ -216,6 +216,9 @@ class CTMEditLine(TimedWord):
             j -= 1
         return False
 
+    def set_inserted_conjunction(self, edit="ins-conj"):
+        self.edit = edit
+
 
 def ctm_from_file(filename):
     ctm_lines = []
@@ -297,6 +300,21 @@ def shift_epsilons(ctmedits: List[CTMEditLine], comparison=_approx_match, backwa
     return ctmedits
 
 
+def check_and_swap_ending(first: CTMEditLine, second: CTMEditLine, conjunctions: List[str] = [], epsilon="<eps>"):
+    if first.edit != "ins" and second.edit != "sub":
+        return
+    if not _approx_match(first.text, second.ref):
+        return
+    if not first.ref == epsilon:
+        return
+    if not second.text in conjunctions:
+        return
+    first.text = second.ref
+    first.edit = "cor"
+    second.ref = epsilon
+    second.set_inserted_conjunction()
+
+
 def split_sentences(ctmedits: List[CTMEditLine], conjunctions: List[str] = []):
     sentences = []
     current = []
@@ -315,6 +333,7 @@ def split_sentences(ctmedits: List[CTMEditLine], conjunctions: List[str] = []):
             sentences.append(current)
         i += 1
     return sentences
+
 
 def generate_filename(ctmlines: List[CTMEditLine]):
     file_id = ctmlines[0].id
