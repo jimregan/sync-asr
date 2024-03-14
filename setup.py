@@ -17,7 +17,7 @@ from setuptools import find_packages, setup
 setup(
     name='sync_asr',
     packages=find_packages(exclude=("scripts",)),
-    version='0.0.1',
+    version='0.0.1a',
     description='Library for synchronising ASR output with reference text',
     author="Jim O'Regan",
     license='Apache License 2.0',
