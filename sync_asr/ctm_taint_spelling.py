@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from difflib import SequenceMatcher
 from typing import List
 from .ctm_edit import CTMEditLine
 
@@ -63,10 +64,12 @@ class HunspellChecker():
         :param str text: the word to check
         :return: True if correctly spelled
         """
-        PUNCT = [".", ",", ":", ";", "!", "?", "-"]
+        PUNCT = [".", ",", ":", ";", "!", "?", "-", '"']
         comp = text
         if comp[-1] in PUNCT:
             comp = comp[:-1]
+        if comp[0] in PUNCT:
+            comp = comp[1:]
 
         return self.speller.spell(comp)
 
@@ -142,6 +145,61 @@ def get_args():
                         /dev/stdin for standard input.""")
     args = parser.parse_args()
     return args
+
+
+def count_sequencematcher_opcodes(opcodes):
+    codes = {
+            'equal': 0,
+            'insert': 0,
+            'replace': 0,
+            'delete': 0,
+    }
+    for opcode in opcodes:
+            if opcode[0] not in codes:
+                    raise ValueError(f"Opcode {opcode[0]} unrecognised")
+            codes[opcode[0]] += 1
+    return codes
+
+
+def check_sequencematcher_opcodes(opcodes):
+    codes = count_sequencematcher_opcodes(opcodes)
+    return codes['insert'] == 1 and codes['replace'] == 0 and codes['delete'] == 0
+
+
+def get_insertion_code(opcodes):
+    for opcode in opcodes:
+        if opcode[0] == 'insert':
+            return opcode
+
+
+def is_sm_single_insertion(worda, wordb, charlist = None, swappable = False):
+    if len(worda) == len(wordb):
+        return False
+    a = worda
+    b = wordb
+    if swappable and not len(wordb) > len(worda):
+        a = wordb
+        b = worda
+    sm = SequenceMatcher(a=a, b=b)
+    opcodes = sm.get_opcodes()
+    if not check_sequencematcher_opcodes(opcodes):
+        return False
+    insert = get_insertion_code(opcodes)
+    if insert[4] - insert[3] != 1:
+        return False
+    inschar = b[insert[3]:insert[4]]
+    if charlist and inschar not in charlist:
+        return False
+    prevchar = b[insert[3]-1:insert[4]-1]
+    nextchar = b[insert[3]+1:insert[4]+1]
+    return (inschar == prevchar) or (inschar == nextchar)
+
+
+# FIXME: unchecked
+def autocorrect_doubles(ctm_lines: List[CTMEditLine], consonants = "bcdfghjklmnpqrstvwxz"):
+    for line in ctm_lines:
+        if check_sequencematcher_opcodes(line.text, line.ref, consonants):
+            line.set_correct_ref()
 
 
 def inline_check_unigram(ctm_lines: List[CTMEditLine], speller: HunspellChecker):

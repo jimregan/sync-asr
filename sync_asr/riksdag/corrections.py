@@ -96,3 +96,15 @@ terorister terrorister
 
 def get_corrections():
     return {k: v for k, v in (l.split() for l in _CORRECTIONS.split('\n') if l != "")}
+
+
+_CONFUSABLES = """
+x xc
+c s
+v w
+j g
+"""
+
+_EQUIVALENTS = """
+ch g j sch sh si sj sk skj ssi ssj stj ti
+"""
