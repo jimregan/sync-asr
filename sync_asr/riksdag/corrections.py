@@ -266,3 +266,16 @@ def get_corrections():
             corrections[parts[0]] = []
         corrections[parts[0]].append(parts[1])
     return corrections
+
+
+_CONFUSABLES = """
+x xc
+c s
+v w
+j g
+"""
+
+
+_EQUIVALENTS = """
+ch g j sch sh si sj sk skj ssi ssj stj ti
+"""
