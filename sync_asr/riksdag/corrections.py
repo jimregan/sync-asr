@@ -248,6 +248,14 @@ barnkomventionen barnkonventionen
 ickedemokratiska icke-demokratiska
 genny Jenny
 vestlund Westlund
+svisch Swish
+swisch Swish
+svischtjänsten Swishtjänsten
+bankide bank-id
+bankid bank-id
+bankidé bank-id
+bankidelösning bank-id-lösning
+bankidekupper bank-id-kupper
 """
 
 _SOUNDALIKES = """
