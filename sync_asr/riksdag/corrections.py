@@ -20,9 +20,7 @@ prisposbeloppet prisbasbeloppet
 äm M
 se C
 euavgiften EU-avgiften
-för Fru
 sveridemokraterna Sverigedemokraterna
-ner ned
 svärjiedemokraterna Sverigedemokraterna
 sveriedemokraterna Sverigedemokraterna
 utvecklingsbeståndet utvecklingsbiståndet
@@ -32,7 +30,6 @@ korruptionskrad korruptionsgrad
 eustarter EU-stater
 transperensie Transparency
 trafiknytterhetsprov trafiknykterhetsprov
-kommer komma
 björnlund Björlund
 allså alltså
 ine inne
@@ -63,8 +60,6 @@ teckensprakstolkning teckenspråkstolkning
 nobellpriset Nobelpriset
 renome renommé
 bolonja Bologna
-de det
-den det
 eböcker e-böcker
 tevelicensen tv-licensen
 sveries Sveriges
@@ -255,10 +250,21 @@ genny Jenny
 vestlund Westlund
 """
 
+_SOUNDALIKES = """
+för Fru
+ner ned
+de det
+den det
+kommer komma
+"""
 
-def get_corrections():
+
+def get_corrections(soundalikes=False):
     corrections = {}
-    for line in _CORRECTIONS.split("\n"):
+    CORRECTIONS = _CORRECTIONS
+    if soundalikes:
+        CORRECTIONS = _CORRECTIONS + _SOUNDALIKES
+    for line in CORRECTIONS.split("\n"):
         if line == "":
             continue
         parts = line.split()
