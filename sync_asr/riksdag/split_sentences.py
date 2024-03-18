@@ -126,7 +126,7 @@ def preprocess_abbrev(lines):
         for line in f.readlines():
             parts = line.strip().split()
             PREFIXES.append((parts[0], f"{parts[1]}-"))
-            if not parts[0] in corrections:
+            if not parts[0] in new_corrections:
                 new_corrections[parts[0]] = []
             new_corrections[parts[0]].append(parts[1])
 
