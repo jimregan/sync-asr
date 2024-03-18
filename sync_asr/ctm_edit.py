@@ -331,7 +331,10 @@ def split_sentences(ctmedits: List[CTMEditLine], conjunctions: List[str] = []):
         else:
             current.append(window[0])
             sentences.append(current)
+            current = []
         i += 1
+    if current != []:
+        sentences.append(current)
     return sentences
 
 
