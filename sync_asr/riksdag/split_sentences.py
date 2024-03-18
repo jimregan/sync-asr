@@ -50,6 +50,10 @@ def check_correct(lines: CTMEditLine, acceptable=[]):
     return True
 
 
+def preprocess_noop(lines):
+    return lines
+
+
 def main():
     args = get_args()
 
@@ -60,11 +64,16 @@ def main():
     if args.noisy_dir and check_dir(args.noisy_dir):
         NOISYDIR = args.noisy_dir
 
+    preprocess = preprocess_noop
+
     noisy = []
     for file in INDIR("H*"):
+        # if file.name == "H810255":
+        #     continue
         noisy = []
         counter = 1
         lines = ctm_from_file(file)
+        lines = preprocess(lines)
         splits = split_sentences(lines)
 
         def write_noisy():
