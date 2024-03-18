@@ -86,6 +86,8 @@ def preprocess_fix_corrections(lines):
     for line in lines:
         line.mark_correct_from_function(checker, make_equal=False)
 
+    return lines
+
 
 def main():
     args = get_args()
