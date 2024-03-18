@@ -315,6 +315,15 @@ def check_and_swap_ending(first: CTMEditLine, second: CTMEditLine, conjunctions:
     second.set_inserted_conjunction()
 
 
+def all_correct(ctmedits: List[CTMEditLine], acceptable: List[str] = None):
+    def is_acceptable(a):
+        return acceptable is not None and a in acceptable
+    for line in ctmedits:
+        if line.edit != "cor" or not is_acceptable(line.edit):
+            return False
+    return True
+
+
 def split_sentences(ctmedits: List[CTMEditLine], conjunctions: List[str] = []):
     sentences = []
     current = []

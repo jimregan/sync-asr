@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from sync_asr.ctm_edit import split_sentences, ctm_from_file, generate_filename, CTMEditLine
+from sync_asr.ctm_edit import split_sentences, ctm_from_file, generate_filename, all_correct, CTMEditLine
 import argparse
 from pathlib import Path
 
@@ -41,13 +41,6 @@ def check_dir(dir: Path, verbose=False):
         if verbose:
             print(dir.name, "does not exist; creating")
         dir.mkdir()
-
-
-def check_correct(lines: CTMEditLine, acceptable=[]):
-    for line in lines:
-        if line.edit != "cor" or line.edit not in acceptable:
-            return False
-    return True
 
 
 def preprocess_noop(lines):
@@ -86,7 +79,7 @@ def main():
                     of.write(str(line) + "\n")
 
         for split in splits:
-            if check_correct(split):
+            if all_correct(split):
                 fn = generate_filename(split)
                 with open(CLEANDIR / fn, "w") as of:
                     for line in split:
