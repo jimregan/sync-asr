@@ -354,5 +354,5 @@ def generate_filename(ctmlines: List[CTMEditLine]):
     start = ctmlines[0].start_time
     end = ctmlines[-1].end_time
     seg_dur = end - start
-    filename = f"{file_id}_{start}_{seg_dur:.2f}.ctmedit"
+    filename = f"{file_id}_{start}_{seg_dur}.ctmedit"
     return filename
