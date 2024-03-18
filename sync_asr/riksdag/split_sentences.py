@@ -127,6 +127,7 @@ def preprocess_abbrev(lines):
     def checker(a, b):
         word = clean_text(b, PUNCT)
         for pfx in PREFIXES:
+            print(pfx)
             if a == pfx[0] and word == pfx[1].replace("-", ""):
                 return True
             if a.startswith(pfx[0]) and word.startswith(pfx[1]):
