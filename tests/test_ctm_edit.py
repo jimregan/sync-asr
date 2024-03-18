@@ -73,6 +73,12 @@ AJJacobs_2007P-0001605-0003029 1 0 0.09 foo 1.0 Foo ins
 AJJacobs_2007P-0001605-0003029 1 0.1 0.09 bar 1.0 bar. ins
 AJJacobs_2007P-0001605-0003029 1 0.2 0.09 bar 1.0 Foo. sub
 """
+_SAMPLE9A = """
+AJJacobs_2007P-0001605-0003029 1 0 0.09 foo 1.0 Foo ins
+AJJacobs_2007P-0001605-0003029 1 0.1 0.09 bar 1.0 bar. ins
+AJJacobs_2007P-0001605-0003029 1 0.2 0.09 bar 1.0 Foo. sub
+AJJacobs_2007P-0001605-0003029 1 0 0.09 foo 1.0 foo ins
+"""
 
 
 def test_ctmline():
@@ -135,3 +141,6 @@ def test_split_sentences():
     lines = [CTMEditLine(x) for x in _SAMPLE9.split("\n") if x != ""]
     sentences = split_sentences(lines)
     assert len(sentences) == 2
+    lines = [CTMEditLine(x) for x in _SAMPLE9A.split("\n") if x != ""]
+    sentences = split_sentences(lines)
+    assert len(sentences) == 3
