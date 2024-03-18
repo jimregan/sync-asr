@@ -70,7 +70,7 @@ def main():
     preprocess = preprocess_noop
 
     noisy = []
-    for file in INDIR("H*"):
+    for file in INDIR.glob("H*"):
         # if file.name == "H810255":
         #     continue
         noisy = []
