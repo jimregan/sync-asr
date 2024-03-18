@@ -84,7 +84,7 @@ def preprocess_fix_corrections(lines):
         return False
 
     for line in lines:
-        line.mark_correct_from_function(checker)
+        line.mark_correct_from_function(checker, make_equal=False)
 
 
 def main():
