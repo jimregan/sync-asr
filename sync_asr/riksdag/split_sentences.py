@@ -119,7 +119,7 @@ def preprocess_num2words(lines):
 
 def preprocess_abbrev(lines):
     corrections = get_corrections()
-    new_corrections = []
+    new_corrections = {}
 
     PREFIXES = []
     with open("prefixes.tsv") as f:
