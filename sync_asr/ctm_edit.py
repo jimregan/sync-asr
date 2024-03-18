@@ -17,7 +17,7 @@ import copy
 from string import punctuation
 
 
-def _clean_text(work_ref, PUNCT, lower=True):
+def clean_text(work_ref, PUNCT, lower=True):
     i = 0
     l = len(work_ref)
     while i < l and work_ref[i] in PUNCT:
@@ -33,12 +33,12 @@ def _clean_text(work_ref, PUNCT, lower=True):
 
 def _approx_match(texta, textb):
     punct = set(punctuation)
-    return texta == _clean_text(textb, punct)
+    return texta == clean_text(textb, punct)
 
 
 def possible_false_start(text, ref, fillers=[], mark_filler=False):
     punct = set(punctuation)
-    clean = _clean_text(ref, punct)
+    clean = clean_text(ref, punct)
     if text.endswith(clean):
         fs = text[:-len(clean)]
         if fs in fillers:
@@ -131,26 +131,28 @@ class CTMEditLine(TimedWord):
             out.append(";".join([f"{a[0]}:{a[1]}" for a in self.props.items()]))
         return out
     
-    def mark_correct_from_list(self, collisions, case_punct=False):
+    def mark_correct_from_list(self, collisions, case_punct=False, make_equal=True):
         def checksout(ref, col):
             return ((type(col) == str and ref == col) or \
                 (type(col) == list and ref in col))
         work_ref = self.ref
         if case_punct:
-            work_ref = _clean_text(self.ref, self.PUNCT)
+            work_ref = clean_text(self.ref, self.PUNCT)
         if self.text in collisions:
             orig_text = self.text
             collision = collisions[self.text]
             if checksout(work_ref, collision):
-                self.text = self.ref
+                if make_equal:
+                    self.text = self.ref
                 self.edit = "cor"
                 if self.verbose:
                     self.set_prop("collision", f"{orig_text}_{work_ref}")
 
-    def mark_correct_from_function(self, comparison_function):
+    def mark_correct_from_function(self, comparison_function, make_equal=True):
         if comparison_function(self.text, self.ref):
             self.edit = "cor"
-            self.text = self.ref        
+            if make_equal:
+                self.text = self.ref        
 
     def check_filler_or_false_starts(self, fillers=[], mark_filler=True):
         pfs = possible_false_start(self.text, self.ref, fillers, mark_filler)
@@ -167,7 +169,7 @@ class CTMEditLine(TimedWord):
         self.edit = "cor"
 
     def fix_case_difference(self):
-        comp = _clean_text(self.ref, self.PUNCT)
+        comp = clean_text(self.ref, self.PUNCT)
         if self.text == comp:
             self.set_correct_ref()
 
@@ -195,7 +197,7 @@ class CTMEditLine(TimedWord):
     def has_initial_capital(self):
         if len(self.ref) >= 1 and self.ref[0].isupper():
             return True
-        work = _clean_text(self.ref, self.PUNCT, False)
+        work = clean_text(self.ref, self.PUNCT, False)
         if work == "":
             return False
         return work[0].isupper()
