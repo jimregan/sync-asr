@@ -117,13 +117,48 @@ def preprocess_num2words(lines):
     return lines
 
 
+def preprocess_abbrev(lines):
+    corrections = get_corrections()
+    new_corrections = []
+
+    PREFIXES = []
+    with open("prefixes.tsv") as f:
+        for line in f.readlines():
+            parts = line.strip().split()
+            PREFIXES.append((parts[0], f"{parts[1]}-"))
+            if not parts[0] in corrections:
+                new_corrections[parts[0]] = []
+            new_corrections[parts[0]].append(parts[1])
+
+    def checker(a, b):
+        if compare_text(a, b, True):
+            return True
+        word = clean_text(b, PUNCT)
+        if a in new_corrections and word in new_corrections[a]:
+            return True
+        if a in new_corrections and word.lower() in new_corrections[a]:
+            return True
+        for pfx in PREFIXES:
+            if a == pfx[0] and word == pfx[1].replace("-", ""):
+                return True
+            if a.startswith(pfx[0]) and word.startswith(pfx[1]):
+                return a[len(pfx[0]):] == word[len(pfx[1]):]
+        return False
+
+    for line in lines:
+        line.mark_correct_from_function(checker, make_equal=False)
+
+    return lines
+
+
 def main():
     args = get_args()
 
     RD_PROCESSING_STAGES = {
         "one": preprocess_noop,
         "two": preprocess_fix_corrections,
-        "three": preprocess_num2words
+        "three": preprocess_num2words,
+        "four": preprocess_abbrev,
     }
 
     # if args.rdapi_in and check_dir(args.rdapi_in):
