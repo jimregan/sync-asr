@@ -57,12 +57,15 @@ def preprocess_noop(lines):
 def main():
     args = get_args()
 
-    if args.rdapi_in and check_dir(args.rdapi_in):
-        INDIR = args.rdapi_in
-    if args.clean_dir and check_dir(args.clean_dir):
-        CLEANDIR = args.clean_dir
-    if args.noisy_dir and check_dir(args.noisy_dir):
-        NOISYDIR = args.noisy_dir
+    # if args.rdapi_in and check_dir(args.rdapi_in):
+    #     INDIR = args.rdapi_in
+    # if args.clean_dir and check_dir(args.clean_dir):
+    #     CLEANDIR = args.clean_dir
+    # if args.noisy_dir and check_dir(args.noisy_dir):
+    #     NOISYDIR = args.noisy_dir
+    INDIR = args.rdapi_in
+    CLEANDIR = args.clean_dir
+    NOISYDIR = args.noisy_dir
 
     preprocess = preprocess_noop
 
