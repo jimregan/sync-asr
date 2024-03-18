@@ -23,6 +23,14 @@ from sync_asr.riksdag.corrections import get_corrections
 import argparse
 from pathlib import Path
 from string import punctuation
+import re
+
+try:
+    from num2words import num2words
+except ImportError:
+    def num2words(num, lang):
+        print("num2words not available")
+        exit(1)
 
 
 PUNCT = set(punctuation)
@@ -89,12 +97,34 @@ def preprocess_fix_corrections(lines):
     return lines
 
 
+def preprocess_num2words(lines):
+    def checker(a, b):
+        word = clean_text(b, PUNCT)
+        try:
+            num = int(word)
+            card = num2words(num, to="cardinal", lang="sv")
+            if a == card:
+                return True
+            ord = num2words(num, to="ordinal", lang="sv")
+            if a == ord:
+                return True
+        except ValueError:
+            return False
+        return False
+
+    for line in lines:
+        line.mark_correct_from_function(checker, make_equal=False)
+
+    return lines
+
+
 def main():
     args = get_args()
 
     RD_PROCESSING_STAGES = {
         "one": preprocess_noop,
-        "two": preprocess_fix_corrections
+        "two": preprocess_fix_corrections,
+        "three": preprocess_num2words
     }
 
     # if args.rdapi_in and check_dir(args.rdapi_in):
