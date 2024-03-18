@@ -23,12 +23,11 @@ from sync_asr.riksdag.corrections import get_corrections
 import argparse
 from pathlib import Path
 from string import punctuation
-import re
 
 try:
     from num2words import num2words
 except ImportError:
-    def num2words(num, lang):
+    def num2words(num, to=None, lang=None):
         print("num2words not available")
         exit(1)
 
