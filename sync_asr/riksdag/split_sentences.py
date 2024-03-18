@@ -127,12 +127,10 @@ def preprocess_abbrev(lines):
     def checker(a, b):
         word = clean_text(b, PUNCT)
         for pfx in PREFIXES:
-            print(pfx)
-            if a == pfx[0] and word == pfx[1].replace("-", ""):
+            if a == pfx[0] and b == pfx[1].replace("-", ""):
                 return True
-            if a.startswith(pfx[0]) and word.startswith(pfx[1]):
-                print(a, word)
-                if a[len(pfx[0]):] == word[len(pfx[1]):]:
+            if a.startswith(pfx[0]) and b.startswith(pfx[1]):
+                if a[len(pfx[0]):] == b[len(pfx[1]):]:
                     return True
         return False
 
