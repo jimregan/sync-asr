@@ -11,14 +11,26 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from sync_asr.ctm_edit import split_sentences, ctm_from_file, generate_filename, all_correct, CTMEditLine
+from sync_asr.ctm_edit import (
+    split_sentences,
+    ctm_from_file,
+    generate_filename,
+    all_correct,
+    CTMEditLine,
+    clean_text
+)
+from sync_asr.riksdag.corrections import get_corrections
 import argparse
 from pathlib import Path
+from string import punctuation
+
+
+PUNCT = set(punctuation)
 
 
 def get_args():
     parser = argparse.ArgumentParser(description="""
-    Extract sentences from directoy of ctmedit files
+    Extract sentences from directory of ctmedit files
     """)
     parser.add_argument("rdapi_in",
                         type=Path,
@@ -28,6 +40,9 @@ def get_args():
                         help="""Directory to write clean(ed) sentences""")
     parser.add_argument("noisy_dir",
                         type=Path,
+                        help="""Directory to write remaining sentences""")
+    parser.add_argument("--run-stage",
+                        type=str,
                         help="""Directory to write remaining sentences""")
     args = parser.parse_args()
     return args
@@ -47,20 +62,50 @@ def preprocess_noop(lines):
     return lines
 
 
+def compare_text(a, b, lc=False):
+    word = clean_text(b, PUNCT)
+    if a == word:
+        return True
+    if lc and a == word.lower():
+        return True
+    return False
+
+
+def preprocess_fix_corrections(lines):
+    corrections = get_corrections()
+    def checker(a, b):
+        if compare_text(a, b, True):
+            return True
+        word = clean_text(b, PUNCT)
+        if a in corrections and word in corrections[a]:
+            return True
+        if a in corrections and word.lower() in corrections[a]:
+            return True
+        return False
+
+    for line in lines:
+        line.mark_correct_from_function(checker)
+
+
 def main():
     args = get_args()
 
-    # if args.rdapi_in and check_dir(args.rdapi_in):
-    #     INDIR = args.rdapi_in
-    # if args.clean_dir and check_dir(args.clean_dir):
-    #     CLEANDIR = args.clean_dir
-    # if args.noisy_dir and check_dir(args.noisy_dir):
-    #     NOISYDIR = args.noisy_dir
-    INDIR = args.rdapi_in
-    CLEANDIR = args.clean_dir
-    NOISYDIR = args.noisy_dir
+    RD_PROCESSING_STAGES = {
+        "one": preprocess_noop,
+        "two": preprocess_fix_corrections
+    }
+
+    if args.rdapi_in and check_dir(args.rdapi_in):
+        INDIR = args.rdapi_in
+    if args.clean_dir and check_dir(args.clean_dir):
+        CLEANDIR = args.clean_dir
+    if args.noisy_dir and check_dir(args.noisy_dir):
+        NOISYDIR = args.noisy_dir
 
     preprocess = preprocess_noop
+
+    if args.run_stage and args.run_stage in RD_PROCESSING_STAGES:
+        preprocess = RD_PROCESSING_STAGES[args.run_stage]
 
     noisy = []
     for file in INDIR.glob("H*"):
