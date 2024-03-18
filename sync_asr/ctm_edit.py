@@ -318,8 +318,10 @@ def check_and_swap_ending(first: CTMEditLine, second: CTMEditLine, conjunctions:
 def all_correct(ctmedits: List[CTMEditLine], acceptable: List[str] = None):
     def is_acceptable(a):
         return acceptable is not None and a in acceptable
+    def is_correct(a):
+        return a == "cor" or is_acceptable(a)
     for line in ctmedits:
-        if line.edit != "cor" or not is_acceptable(line.edit):
+        if not is_correct(line.edit):
             return False
     return True
 
