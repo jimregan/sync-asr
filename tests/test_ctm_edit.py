@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from sync_asr.ctm_edit import CTMEditLine, shift_epsilons, split_sentences
+from sync_asr.ctm_edit import CTMEditLine, shift_epsilons, split_sentences, all_correct
 from sync_asr.riksdag.riksdag_align import rd_equals
 
 
@@ -79,6 +79,12 @@ AJJacobs_2007P-0001605-0003029 1 0.1 0.09 bar 1.0 bar. ins
 AJJacobs_2007P-0001605-0003029 1 0.2 0.09 bar 1.0 Foo. sub
 AJJacobs_2007P-0001605-0003029 1 0 0.09 foo 1.0 Foo ins
 """
+_SAMPLE10 = """
+AJJacobs_2007P-0001605-0003029 1 0 0.09 foo 1.0 Foo cor
+AJJacobs_2007P-0001605-0003029 1 0.1 0.09 bar 1.0 bar. cor
+AJJacobs_2007P-0001605-0003029 1 0.2 0.09 foo 1.0 Foo. cor
+AJJacobs_2007P-0001605-0003029 1 0 0.09 foo 1.0 Foo cor
+"""
 
 
 def test_ctmline():
@@ -144,3 +150,10 @@ def test_split_sentences():
     lines = [CTMEditLine(x) for x in _SAMPLE9A.split("\n") if x != ""]
     sentences = split_sentences(lines)
     assert len(sentences) == 3
+
+
+def test_split_sentences():
+    lines = [CTMEditLine(x) for x in _SAMPLE9.split("\n") if x != ""]
+    assert all_correct(lines) == False
+    lines = [CTMEditLine(x) for x in _SAMPLE10.split("\n") if x != ""]
+    assert all_correct(lines) == True
