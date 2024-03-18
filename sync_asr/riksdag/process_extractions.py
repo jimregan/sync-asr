@@ -33,6 +33,7 @@ def get_args():
                         help="Directory to write audio + text")
     parser.add_argument("--wav_dir",
                         type=Path,
+                        default=Path("/tmp"),
                         help="Directory for pre-converted wav files")
     parser.add_argument("video_dir",
                         type=Path,
