@@ -118,26 +118,16 @@ def preprocess_num2words(lines):
 
 
 def preprocess_abbrev(lines):
-    corrections = get_corrections()
-    new_corrections = {}
-
     PREFIXES = []
     with open("prefixes.tsv") as f:
         for line in f.readlines():
             parts = line.strip().split()
             PREFIXES.append((parts[0], f"{parts[1]}-"))
-            if not parts[0] in new_corrections:
-                new_corrections[parts[0]] = []
-            new_corrections[parts[0]].append(parts[1])
 
     def checker(a, b):
         if compare_text(a, b, True):
             return True
         word = clean_text(b, PUNCT)
-        if a in new_corrections and word in new_corrections[a]:
-            return True
-        if a in new_corrections and word.lower() in new_corrections[a]:
-            return True
         for pfx in PREFIXES:
             if a == pfx[0] and word == pfx[1].replace("-", ""):
                 return True
