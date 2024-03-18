@@ -123,10 +123,8 @@ def preprocess_abbrev(lines):
         for line in f.readlines():
             parts = line.strip().split()
             PREFIXES.append((parts[0], f"{parts[1]}-"))
-    print(PREFIXES[0])
+
     def checker(a, b):
-        if compare_text(a, b, True):
-            return True
         word = clean_text(b, PUNCT)
         for pfx in PREFIXES:
             if a == pfx[0] and word == pfx[1].replace("-", ""):
