@@ -76,7 +76,7 @@ def main():
         noisy = []
         counter = 1
         lines = ctm_from_file(file)
-        lines = preprocess(lines)
+        # lines = preprocess(lines)
         splits = split_sentences(lines)
 
         def write_noisy():
@@ -93,7 +93,7 @@ def main():
                         of.write(str(line) + "\n")
                 if noisy != []:
                     write_noisy()
-                    counter += 1  
+                    counter += 1
                     noisy = []
             else:
                 noisy += split
