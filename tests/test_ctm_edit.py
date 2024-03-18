@@ -77,7 +77,7 @@ _SAMPLE9A = """
 AJJacobs_2007P-0001605-0003029 1 0 0.09 foo 1.0 Foo ins
 AJJacobs_2007P-0001605-0003029 1 0.1 0.09 bar 1.0 bar. ins
 AJJacobs_2007P-0001605-0003029 1 0.2 0.09 bar 1.0 Foo. sub
-AJJacobs_2007P-0001605-0003029 1 0 0.09 foo 1.0 foo ins
+AJJacobs_2007P-0001605-0003029 1 0 0.09 foo 1.0 Foo ins
 """
 
 
