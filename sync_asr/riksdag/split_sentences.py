@@ -117,7 +117,7 @@ def main():
         noisy = []
         counter = 1
         lines = ctm_from_file(file)
-        # lines = preprocess(lines)
+        lines = preprocess(lines)
         splits = split_sentences(lines, ["men", "och", "eller", "så"])
 
         def write_noisy():
