@@ -22,4 +22,4 @@ for file in Path("/tmp/ctmedit").glob("*.ctmedit"):
         edits_orig[line.edit] += 1
         line.mark_correct_ignore_punct()
         edits_post[line.edit] += 1
-        print(edits_orig, edits_post)
+    print(edits_orig, edits_post)
