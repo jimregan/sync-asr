@@ -160,11 +160,17 @@ class CTMEditLine(TimedWord):
             self.text = self.ref = pfs
             self.edit = "cor"
 
-    def get_ref(self, cleaned=False):
+    def get_ref(self, cleaned=False, lower=False):
         if cleaned:
-            return clean_text(self.ref, self.PUNCT)
+            return clean_text(self.ref, self.PUNCT, lower)
         else:
             return self.ref
+
+    def nullify(self):
+        self.duration = 0
+        self.edit = "<sil>"
+        self.ref = "<eps>"
+        self.text = "<eps>"
 
     def set_correct_ref(self):
         self.text = self.ref
