@@ -154,6 +154,9 @@ class CTMEditLine(TimedWord):
             if make_equal:
                 self.text = self.ref        
 
+    def mark_correct_ignore_punct(self, make_equal=True):
+        self.mark_correct_from_function(clean_text, make_equal)
+
     def check_filler_or_false_starts(self, fillers=[], mark_filler=True):
         pfs = possible_false_start(self.text, self.ref, fillers, mark_filler)
         if pfs is not None:
