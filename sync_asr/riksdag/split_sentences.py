@@ -141,68 +141,59 @@ def preprocess_abbrev(lines):
     return lines
 
 
-def modify_pairs(sent_a, sent_b):
-    def get_start_dur(sent_a, sent_b):
-        start = sent_a[2]
-        a_start = float(sent_a[2])
-        a_dur = float(sent_a[3])
-        b_start = float(sent_b[2])
-        b_dur = float(sent_b[3])
-        b_end = b_start + b_dur
-        new_dur = b_end - a_start
-        return start, "{:.3f}".format(new_dur)
-
-    a = sent_a.split(" ")
-    b = sent_b.split(" ")
-
-    changed = False
-
-    if a[4] == tidy(b[6]) or is_subst(a[4], tidy(b[6], False)):
-        if a[6] == "<eps>":
-            changed = True
-            a[4] = a[6] = b[6]
-            b[6] = "<eps>"
-            a[7] = "cor"
-            b[7] = "ins"
-        if b[4] in CONJ:
-            b[7] = "ins-conj"
-    elif a[4] == "<eps>":
-        if a[6] + b[6] == b[4]:
-            changed = True
-            joined = f"{a[6]}_{b[6]}"
-            b[4] = b[6] = joined
-            b[7] = "cor"
-            a = []
-    elif a[4] + b[4] == tidy(a[6]) and b[6] == "<eps>":
-        print("a")
-        changed = True
-        start, end = get_start_dur(a, b)
-        b[4] = b[6] = a[6]
-        b[7] = "cor"
-        b[2] = start
-        b[3] = end
-        a = []
-    elif a[4] + b[4] == tidy(b[6]) and a[6] == "<eps>":
-        print("b")
-        changed = True
-        start, end = get_start_dur(a, b)
-        b[4] = b[6]
-        b[7] = "cor"
-        b[2] = start
-        b[3] = end
-        a = []
-    if changed:
-        return (" ".join(a), " ".join(b))
-    else:
-        return None
-
 def preprocess_merge_eps(ctmedits):
     sentences = []
     current = []
     i = 0
+    changed = False
+
+    SUBS = get_corrections()
+    def is_subst(ta, tb, lc=False):
+        if ta in SUBS:
+            if tb in SUBS[ta]:
+                return True
+            elif lc and tb.lower() in SUBS[ta]:
+                return True
+        return False
+
     while i < len(ctmedits):
         window = ctmedits[i:i+2]
         if len(window) == 2:
+            a = window[0]
+            b = window[1]
+            if a.text == b.get_ref(True) or is_subst(a.text, b.get_ref(True, False)):
+                if a.ref_eps():
+                    changed = True
+                    a.ref = b.ref
+                    b.ref = "<eps>"
+                    a.edit = "cor"
+                    b.edit = "ins"
+                if b.text in CONJUNCTIONS:
+                    b.edit = "ins-conj"
+            elif a.text_eps():
+                if a.ref + b.ref == b.text:
+                    changed = True
+                    b.text = b.ref = f"{a.ref}_{b.ref}"
+                    b.edit = "cor"
+                    a.nullify()
+            elif a[4] + b[4] == tidy(a[6]) and b[6] == "<eps>":
+                print("a")
+                changed = True
+                start, end = get_start_dur(a, b)
+                b[4] = b[6] = a[6]
+                b[7] = "cor"
+                b[2] = start
+                b[3] = end
+                a = []
+            elif a[4] + b[4] == tidy(b[6]) and a[6] == "<eps>":
+                print("b")
+                changed = True
+                start, end = get_start_dur(a, b)
+                b[4] = b[6]
+                b[7] = "cor"
+                b[2] = start
+                b[3] = end
+                a = []
             if window[0].has_sentence_final() and window[1].maybe_sentence_start(CONJUNCTIONS):
                 current.append(window[0])
                 sentences.append(current)
