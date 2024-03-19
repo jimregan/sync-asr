@@ -166,7 +166,7 @@ class CTMEditLine(TimedWord):
         else:
             return self.ref
 
-    def set_start(self, start: int):
+    def reset_start(self, start: int):
         end = self.end_time
         self.start_time = start
         self.duration = end - start
