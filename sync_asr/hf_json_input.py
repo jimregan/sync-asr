@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from .elements import TimedWordSentence, TimedWord
+from pathlib import Path
 import json
 
 
@@ -19,9 +20,11 @@ class HuggingFaceJSON(TimedWordSentence):
     def __init__(self, data=None, filename=""):
         if data is None:
             words = self._load(filename)
+            fileid = Path(filename).stem
         elif filename == "":
             words = self._grab(data)
-        super().__init__(words)
+            fileid = None
+        super().__init__(words, fileid=fileid)
 
     def _load(self, filename):
         with open(filename) as jsonf:
