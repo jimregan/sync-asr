@@ -197,6 +197,12 @@ class CTMEditLine(TimedWord):
         else:
             return None
 
+    def ref_eps(self, eps="<eps>"):
+        return self.ref == eps
+
+    def text_eps(self, eps="<eps>"):
+        return self.text == eps
+
     def has_eps(self, eps="<eps>"):
         return self.text == eps or self.ref == eps
 
