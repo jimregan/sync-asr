@@ -122,3 +122,14 @@ class TimedWordSentence(TimedElement):
             return zip(self.words, range(0, len(self.words)))
         else:
             return [w for w in zip(self.words, range(0, len(self.words)))]
+    
+    def write_ctm(self, outfile):
+        if self.fileid is None:
+            fileid = "[MISSING]"
+        else:
+            fileid = self.fileid
+        with open(outfile, "w") as of:
+            for word in self.words:
+                dur = float(word.duration / 1000)
+                start = float(word.start_time / 1000)
+                of.write(f"{fileid} 1 {start} {dur} {word.text} 1.0\n")
