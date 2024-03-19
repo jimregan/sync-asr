@@ -142,10 +142,7 @@ def preprocess_abbrev(lines):
 
 
 def preprocess_merge_eps(ctmedits):
-    sentences = []
-    current = []
     i = 0
-    changed = False
 
     SUBS = get_corrections()
     def is_subst(ta, tb, lc=False):
@@ -163,7 +160,6 @@ def preprocess_merge_eps(ctmedits):
             b = window[1]
             if a.text == b.get_ref(True) or is_subst(a.text, b.get_ref(True, False)):
                 if a.ref_eps():
-                    changed = True
                     a.ref = b.ref
                     b.ref = "<eps>"
                     a.edit = "cor"
@@ -172,43 +168,22 @@ def preprocess_merge_eps(ctmedits):
                     b.edit = "ins-conj"
             elif a.text_eps():
                 if a.ref + b.ref == b.text:
-                    changed = True
                     b.text = b.ref = f"{a.ref}_{b.ref}"
                     b.edit = "cor"
                     a.nullify()
-            elif a[4] + b[4] == tidy(a[6]) and b[6] == "<eps>":
-                print("a")
-                changed = True
-                start, end = get_start_dur(a, b)
-                b[4] = b[6] = a[6]
-                b[7] = "cor"
-                b[2] = start
-                b[3] = end
-                a = []
-            elif a[4] + b[4] == tidy(b[6]) and a[6] == "<eps>":
-                print("b")
-                changed = True
-                start, end = get_start_dur(a, b)
-                b[4] = b[6]
-                b[7] = "cor"
-                b[2] = start
-                b[3] = end
-                a = []
-            if window[0].has_sentence_final() and window[1].maybe_sentence_start(CONJUNCTIONS):
-                current.append(window[0])
-                sentences.append(current)
-                current = []
-            else:
-                current.append(window[0])
-        else:
-            current.append(window[0])
-            sentences.append(current)
-            current = []
+            elif a.text + b.text == a.get_ref(True) and b.ref == "<eps>":
+                #b.text = b.ref = a.ref
+                b.ref = a.ref
+                b.edit = "cor"
+                b.reset_start(a.start_time)
+                a.nullify()
+            elif a.text + b.ref == b.get_ref(True) and a.ref == "<eps>":
+                #b.text = b.ref
+                b.edit = "cor"
+                b.reset_start(a.start_time)
+                a.nullify()
         i += 1
-    if current != []:
-        sentences.append(current)
-    return sentences
-
+    return ctmedits
 
 
 def main():
@@ -219,6 +194,7 @@ def main():
         "two": preprocess_fix_corrections,
         "three": preprocess_num2words,
         "four": preprocess_abbrev,
+        "five": preprocess_merge_eps,
     }
 
     # if args.rdapi_in and check_dir(args.rdapi_in):
