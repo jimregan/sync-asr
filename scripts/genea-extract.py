@@ -11,8 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from sync_asr.ctm_edit import ctm_from_file
+from sync_asr.ctm_edit import ctm_from_file, shift_epsilons
 from pathlib import Path
+FILLER1 = ["ah", "uh"]
 
 for file in Path("/tmp/ctmedit").glob("*.ctmedit"):
     lines = ctm_from_file(str(file))
@@ -22,4 +23,10 @@ for file in Path("/tmp/ctmedit").glob("*.ctmedit"):
         edits_orig[line.edit] += 1
         line.mark_correct_ignore_punct()
         edits_post[line.edit] += 1
-    print(edits_orig, edits_post)
+    shifted = shift_epsilons(lines, epsilon="-")
+    with open("/tmp/ctmedit2/" + file.name, "w") as of:
+        for line in shifted:
+            if line.edit != "cor" and line.text in FILLER1 and line.ref in FILLER1:
+                line.set_correct_ref()
+            of.write(str(line) + "\n")
+
