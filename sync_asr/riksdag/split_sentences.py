@@ -12,12 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from sync_asr.ctm_edit import (
-    split_sentences,
+    all_correct,
+    clean_text,
     ctm_from_file,
     generate_filename,
-    all_correct,
-    CTMEditLine,
-    clean_text
+    split_sentences,
 )
 from sync_asr.riksdag.corrections import get_corrections
 import argparse
@@ -33,6 +32,8 @@ except ImportError:
 
 
 PUNCT = set(punctuation)
+
+CONJUNCTIONS = ["men", "och", "eller", "så"]
 
 
 def get_args():
@@ -140,6 +141,85 @@ def preprocess_abbrev(lines):
     return lines
 
 
+def modify_pairs(sent_a, sent_b):
+    def get_start_dur(sent_a, sent_b):
+        start = sent_a[2]
+        a_start = float(sent_a[2])
+        a_dur = float(sent_a[3])
+        b_start = float(sent_b[2])
+        b_dur = float(sent_b[3])
+        b_end = b_start + b_dur
+        new_dur = b_end - a_start
+        return start, "{:.3f}".format(new_dur)
+
+    a = sent_a.split(" ")
+    b = sent_b.split(" ")
+
+    changed = False
+
+    if a[4] == tidy(b[6]) or is_subst(a[4], tidy(b[6], False)):
+        if a[6] == "<eps>":
+            changed = True
+            a[4] = a[6] = b[6]
+            b[6] = "<eps>"
+            a[7] = "cor"
+            b[7] = "ins"
+        if b[4] in CONJ:
+            b[7] = "ins-conj"
+    elif a[4] == "<eps>":
+        if a[6] + b[6] == b[4]:
+            changed = True
+            joined = f"{a[6]}_{b[6]}"
+            b[4] = b[6] = joined
+            b[7] = "cor"
+            a = []
+    elif a[4] + b[4] == tidy(a[6]) and b[6] == "<eps>":
+        print("a")
+        changed = True
+        start, end = get_start_dur(a, b)
+        b[4] = b[6] = a[6]
+        b[7] = "cor"
+        b[2] = start
+        b[3] = end
+        a = []
+    elif a[4] + b[4] == tidy(b[6]) and a[6] == "<eps>":
+        print("b")
+        changed = True
+        start, end = get_start_dur(a, b)
+        b[4] = b[6]
+        b[7] = "cor"
+        b[2] = start
+        b[3] = end
+        a = []
+    if changed:
+        return (" ".join(a), " ".join(b))
+    else:
+        return None
+
+def preprocess_merge_eps(ctmedits):
+    sentences = []
+    current = []
+    i = 0
+    while i < len(ctmedits):
+        window = ctmedits[i:i+2]
+        if len(window) == 2:
+            if window[0].has_sentence_final() and window[1].maybe_sentence_start(CONJUNCTIONS):
+                current.append(window[0])
+                sentences.append(current)
+                current = []
+            else:
+                current.append(window[0])
+        else:
+            current.append(window[0])
+            sentences.append(current)
+            current = []
+        i += 1
+    if current != []:
+        sentences.append(current)
+    return sentences
+
+
+
 def main():
     args = get_args()
 
@@ -173,7 +253,7 @@ def main():
         counter = 1
         lines = ctm_from_file(file)
         lines = preprocess(lines)
-        splits = split_sentences(lines, ["men", "och", "eller", "så"])
+        splits = split_sentences(lines, CONJUNCTIONS)
 
         def write_noisy():
             outfile = NOISYDIR / f"{file.name}_{counter:04d}"
