@@ -47,26 +47,21 @@ def audiosegment_to_sf(seg: AudioSegment):
     return sf.read(io.BytesIO(seg.raw_data), format="RAW", subtype="PCM_16", samplerate=16000, channels=1)
 
 
-def resegment_ctmline(lines, audioseg):
-    ret = []
+def ctmlines_are_resegmentable(lines):
     if len(lines) != 2:
-        return lines
+        return False
     if lines[0].text_eps():
         if lines[0].text == lines[0].ref + lines[1].ref:
-            seg = audioseg[lines[0].start_time:lines[0].end_time]
+            return True
         else:
-            return lines
+            return False
     elif lines[1].text_eps():
         if lines[1].text == lines[0].ref + lines[1].ref:
-            seg = audioseg[lines[1].start_time:lines[1].end_time]
+            return True
         else:
-            return lines
+            return False
     else:
-        return lines
-    frames, sr = audiosegment_to_sf(seg)
-    
-
-    pass
+        return False
 
 
 def main():
