@@ -20,9 +20,13 @@ try:
     import torch
     import soundfile as sf
     from transformers import pipeline
+    from datasets import Dataset
 except ImportError:
     def main():
         exit(1)
+
+
+PARAMS=["-ac", "1", "-acodec", "pcm_s16le", "-ar", "16000"]
 
 
 def get_args():
@@ -70,13 +74,35 @@ def main():
 
     model, utils = torch.hub.load(repo_or_dir='snakers4/silero-vad', model='silero_vad', force_reload=True)
     (get_speech_timestamps, save_audio, read_audio, VADIterator, collect_chunks) = utils
-    
+
+    pipe = pipeline(model=args.model)
+
+    def process(segment):
+        data, sr = audiosegment_to_sf(segment)
+        audio_ds_input = []
+        for i, ts in enumerate(get_speech_timestamps(data, model, sampling_rate=sr)):
+            piece, piece_sr = audiosegment_to_sf(segment[ts["start"]:ts["end"]])
+            audio_ds_input.append({
+                "path": f"/fake/path/to/file.{i:03d}",
+                "array": piece,
+                "sampling_rate": piece_sr
+            })
+        ds = Dataset.from_dict({"audio": audio_ds_input})
+        output = pipe(ds, return_timestamps="word")
+        return output
+
     for file in args.ctmedit_dir.glob("*.ctmedit"):
         ctmedits = ctm_from_file(file)
         audiofile = ctmedits[0].id + "." + args.extension
-        audiopath = args.audio_dir / audiofile
-        if not audiopath.exists():
-            continue
+        wavfile = ctmedits[0].id + ".wav"
+        wavpath = args.audio_tmp / wavfile
+        if not wavpath.exists():
+            audiopath = args.audio_dir / audiofile
+            if not audiopath.exists():
+                continue
+            audio = AudioSegment.from_file(str(file), args.extension)
+            audio.export(str(wavpath), format="wav", parameters=PARAMS)
+        audio = AudioSegment.from_wav(str(wavpath))
 
         processed = []
         i = 0
@@ -88,5 +114,5 @@ def main():
                 processed.append(ctmedits[i])
             i += 1
 
-    # get_speech_timestamps(data, model, sampling_rate=16_000)
+    # 
     
