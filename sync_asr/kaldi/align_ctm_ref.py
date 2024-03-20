@@ -422,7 +422,7 @@ def get_edit_type(hyp_word, ref_word, duration=-1, eps_symbol='<eps>',
     hyp_compare = hyp_word
     if ignore_punctuation:
         hyp_compare = clean_text(hyp_word)
-    if hyp_compare == ref_word and hyp_word != eps_symbol:
+    if (hyp_compare == ref_word or hyp_word == ref_word) and hyp_word != eps_symbol:
         return 'cor'
     if hyp_word != eps_symbol and ref_word == eps_symbol:
         return 'ins'
@@ -442,7 +442,7 @@ def get_edit_type(hyp_word, ref_word, duration=-1, eps_symbol='<eps>',
 
 
 def get_ctm_edits(alignment_output, ctm_array, eps_symbol="<eps>",
-                  oov_word=None, symbol_table=None):
+                  oov_word=None, symbol_table=None, ignore_punctuation=True):
     """
     This function takes two lists
         alignment_output = The output of smith_waterman_alignment() which is a
@@ -492,7 +492,8 @@ def get_ctm_edits(alignment_output, ctm_array, eps_symbol="<eps>",
                 edit_type = get_edit_type(
                     hyp_word=eps_symbol, ref_word=ref_word,
                     duration=0.0, eps_symbol=eps_symbol,
-                    oov_word=oov_word, symbol_table=symbol_table)
+                    oov_word=oov_word, symbol_table=symbol_table,
+                    ignore_punctuation=ignore_punctuation)
                 ctm_line = [current_time, 0.0, eps_symbol, 1.0,
                             ref_word, edit_type]
                 ctm_edits.append(ctm_line)
@@ -510,7 +511,8 @@ def get_ctm_edits(alignment_output, ctm_array, eps_symbol="<eps>",
                     edit_type = get_edit_type(
                         hyp_word=eps_symbol, ref_word=ref_word,
                         duration=0.0, eps_symbol=eps_symbol,
-                        oov_word=oov_word, symbol_table=symbol_table)
+                        oov_word=oov_word, symbol_table=symbol_table,
+                        ignore_punctuation=ignore_punctuation)
                     assert edit_type == 'del'
                     ctm_edits.append([current_time, 0.0, eps_symbol, 1.0,
                                       ref_word, edit_type])
@@ -518,7 +520,8 @@ def get_ctm_edits(alignment_output, ctm_array, eps_symbol="<eps>",
                     edit_type = get_edit_type(
                         hyp_word=eps_symbol, ref_word=eps_symbol,
                         duration=ctm_line[1], eps_symbol=eps_symbol,
-                        oov_word=oov_word, symbol_table=symbol_table)
+                        oov_word=oov_word, symbol_table=symbol_table,
+                        ignore_punctuation=ignore_punctuation)
                     assert edit_type == 'sil'
                     ctm_line.extend([eps_symbol, edit_type])
                     ctm_edits.append(ctm_line)
@@ -526,7 +529,8 @@ def get_ctm_edits(alignment_output, ctm_array, eps_symbol="<eps>",
                     edit_type = get_edit_type(
                         hyp_word=hyp_word, ref_word=ref_word,
                         duration=ctm_line[1], eps_symbol=eps_symbol,
-                        oov_word=oov_word, symbol_table=symbol_table)
+                        oov_word=oov_word, symbol_table=symbol_table,
+                        ignore_punctuation=ignore_punctuation)
                     ctm_line.extend([ref_word, edit_type])
                     ctm_edits.append(ctm_line)
                 current_time = (ctm_array[ctm_pos][0]
@@ -648,7 +652,8 @@ def run(args):
                 ctm_edits = get_ctm_edits(output, hyp_lines[reco],
                                           eps_symbol=args.eps_symbol,
                                           oov_word=args.oov_word,
-                                          symbol_table=symbol_table)
+                                          symbol_table=symbol_table,
+                                          ignore_punctuation=args.ignore_punctuation)
                 for line in ctm_edits:
                     ctm_line = list(reco2file_and_channel[reco])
                     ctm_line.extend(line)
