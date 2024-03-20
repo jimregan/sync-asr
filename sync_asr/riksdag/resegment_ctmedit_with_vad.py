@@ -112,10 +112,10 @@ def main():
                 # relevant = window[0] if not window[0].text_eps() else window[1]
                 segment = audio[window[0].start_time:window[1].end_time]
                 hf_json = process(segment)
-                pass
+                print(hf_json)
             else:
                 processed.append(ctmedits[i])
             i += 1
 
-    # 
-    
+if __name__ == '__main__':
+    main()
