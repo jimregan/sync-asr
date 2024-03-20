@@ -58,7 +58,7 @@ def possible_false_start(text, ref, fillers=[], mark_filler=False):
 
 
 class CTMEditLine(TimedWord):
-    def __init__(self, from_line="", from_kaldi_list=None, verbose=False):
+    def __init__(self, from_line="", from_kaldi_list=None, epsilon="<eps>", verbose=False):
         if from_line != "":
             self.from_line(from_line)
         elif from_kaldi_list is not None:
@@ -69,6 +69,7 @@ class CTMEditLine(TimedWord):
         super().__init__(start_time, end_time, text)
         self.verbose = verbose
         self.PUNCT = set(punctuation)
+        self.epsilon = epsilon
 
     def __str__(self) -> str:
         return " ".join(self.as_list())
@@ -179,9 +180,9 @@ class CTMEditLine(TimedWord):
 
     def nullify(self):
         self.duration = 0
-        self.edit = "<sil>"
-        self.ref = "<eps>"
-        self.text = "<eps>"
+        self.edit = "sil"
+        self.ref = self.epsilon
+        self.text = self.epsilon
 
     def set_correct_ref(self):
         self.text = self.ref
@@ -214,14 +215,14 @@ class CTMEditLine(TimedWord):
         else:
             return None
 
-    def ref_eps(self, eps="<eps>"):
-        return self.ref == eps
+    def ref_eps(self):
+        return self.ref == self.epsilon
 
-    def text_eps(self, eps="<eps>"):
-        return self.text == eps
+    def text_eps(self):
+        return self.text == self.epsilon
 
-    def has_eps(self, eps="<eps>"):
-        return self.text == eps or self.ref == eps
+    def has_eps(self):
+        return self.ref_eps() or self.text_eps()
 
     def has_initial_capital(self):
         if len(self.ref) >= 1 and self.ref[0].isupper():
