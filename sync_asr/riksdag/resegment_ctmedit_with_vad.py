@@ -51,15 +51,9 @@ def ctmlines_are_resegmentable(lines):
     if len(lines) != 2:
         return False
     if lines[0].text_eps():
-        if lines[0].text == lines[0].ref + lines[1].ref:
-            return True
-        else:
-            return False
+        return lines[0].text == lines[0].ref + lines[1].ref
     elif lines[1].text_eps():
-        if lines[1].text == lines[0].ref + lines[1].ref:
-            return True
-        else:
-            return False
+        return lines[1].text == lines[0].ref + lines[1].ref
     else:
         return False
 
