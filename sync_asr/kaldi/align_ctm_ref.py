@@ -16,6 +16,7 @@ from __future__ import print_function
 import argparse
 import logging
 import sys
+import unicodedata
 
 
 logger = logging.getLogger(__name__)
@@ -108,6 +109,12 @@ def get_args():
                         from the normal Smith-Waterman alignment, where the
                         traceback will be from the maximum score.""")
 
+    parser.add_argument("--ignore-punctuation", type=str,
+                        action=StrToBoolAction,
+                        choices=["true", "false"], default=True,
+                        help="""Ignore punctuation on either side of the
+                        words when computing similarity.""")
+
     parser.add_argument("--debug-only", type=str, default="false",
                         choices=["true", "false"],
                         help="Run test functions only")
@@ -141,6 +148,21 @@ def get_args():
     logger.addHandler(handler)
 
     return args
+
+
+def clean_text(work_ref, lower=True):
+    i = 0
+    l = len(work_ref)
+    cats = set(['Pc', 'Pd', 'Ps', 'Pe', 'Pi', 'Pf', 'Po'])
+    while i < l and unicodedata.category(work_ref[i]) in cats:
+        i += 1
+    j = -1
+    while j >= -l and unicodedata.category(work_ref[j]) in cats:
+        j -= 1
+    retval = work_ref[i:j+1]
+    if lower:
+        retval = retval.lower()
+    return retval
 
 
 def read_text(text_file):
@@ -396,8 +418,11 @@ def print_alignment(recording, alignment, out_file_handle):
 
 
 def get_edit_type(hyp_word, ref_word, duration=-1, eps_symbol='<eps>',
-                  oov_word=None, symbol_table=None):
-    if hyp_word == ref_word and hyp_word != eps_symbol:
+                  oov_word=None, symbol_table=None, ignore_punctuation=True):
+    hyp_compare = hyp_word
+    if ignore_punctuation:
+        hyp_compare = clean_text(hyp_word)
+    if hyp_compare == ref_word and hyp_word != eps_symbol:
         return 'cor'
     if hyp_word != eps_symbol and ref_word == eps_symbol:
         return 'ins'
@@ -547,10 +572,19 @@ def run(args):
         test_alignment(args.align_full_hyp)
         raise SystemExit("Exiting since --debug-only was true")
 
-    def similarity_score_function(x, y):
+    def similarity_score_function_bare(x, y):
         if x == y:
             return args.correct_score
         return -args.substitution_penalty
+    
+    def similarity_ignoring_punctuation(x, y):
+        if x == clean_text(y):
+            return args.correct_score
+        return -args.substitution_penalty
+
+    similarity_score_function = similarity_ignoring_punctuation
+    if not args.ignore_punctuation:
+        similarity_score_function = similarity_score_function_bare
 
     del_score = -args.deletion_penalty
     ins_score = -args.insertion_penalty
