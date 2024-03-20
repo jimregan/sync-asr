@@ -15,6 +15,12 @@ from sync_asr.ctm_edit import ctm_from_file, shift_epsilons
 from pathlib import Path
 FILLER1 = ["ah", "uh"]
 
+def all_cor(lines):
+    for line in lines:
+        if line.edit != "cor":
+            return False
+    return True
+
 for file in Path("/tmp/ctmedit").glob("*.ctmedit"):
     lines = ctm_from_file(str(file))
     edits_orig = {x: 0 for x in ["cor", "sub", "del", "ins"]}
@@ -29,4 +35,7 @@ for file in Path("/tmp/ctmedit").glob("*.ctmedit"):
             if line.edit != "cor" and line.text in FILLER1 and line.ref in FILLER1:
                 line.set_correct_ref()
             of.write(str(line) + "\n")
+    if all_cor(shifted):
+        with open("/tmp/goodtext/" + file.name, "w") as of:
+            of.write(" ".join([x.ref for x in shifted]) + "\n")
 
