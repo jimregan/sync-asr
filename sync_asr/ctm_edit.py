@@ -34,7 +34,6 @@ def clean_text(work_ref, lower=True):
 
 
 def _approx_match(texta, textb):
-    punct = set(punctuation)
     if texta == textb.lower():
         return True
     return texta == clean_text(textb)
