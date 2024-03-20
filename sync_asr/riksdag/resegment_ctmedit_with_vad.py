@@ -109,6 +109,9 @@ def main():
         while i < len(ctmedits):
             window = ctmedits[i:i+2]
             if ctmlines_are_resegmentable(window):
+                # relevant = window[0] if not window[0].text_eps() else window[1]
+                segment = audio[window[0].start_time:window[1].end_time]
+                hf_json = process(segment)
                 pass
             else:
                 processed.append(ctmedits[i])
