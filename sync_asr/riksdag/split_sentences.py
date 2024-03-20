@@ -71,7 +71,7 @@ def preprocess_noop(lines):
 
 
 def compare_text(a, b, lc=False):
-    word = clean_text(b, PUNCT)
+    word = clean_text(b)
     if a == word:
         return True
     if lc and a == word.lower():
@@ -84,7 +84,7 @@ def preprocess_fix_corrections(lines):
     def checker(a, b):
         if compare_text(a, b, True):
             return True
-        word = clean_text(b, PUNCT)
+        word = clean_text(b)
         if a in corrections and word in corrections[a]:
             return True
         if a in corrections and word.lower() in corrections[a]:
@@ -99,7 +99,7 @@ def preprocess_fix_corrections(lines):
 
 def preprocess_num2words(lines):
     def checker(a, b):
-        word = clean_text(b, PUNCT)
+        word = clean_text(b)
         try:
             num = int(word)
             card = num2words(num, to="cardinal", lang="sv")
@@ -126,7 +126,7 @@ def preprocess_abbrev(lines):
             PREFIXES.append((parts[0], f"{parts[1]}-"))
 
     def checker(a, b):
-        word = clean_text(b, PUNCT)
+        word = clean_text(b)
         for pfx in PREFIXES:
             if a == pfx[0] and b == pfx[1].replace("-", ""):
                 return True
