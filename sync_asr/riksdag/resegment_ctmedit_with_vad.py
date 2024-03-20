@@ -38,6 +38,13 @@ def get_args():
     parser.add_argument("audio_dir",
                         type=Path,
                         help="Directory containing the audio files")
+    parser.add_argument("audio_tmp",
+                        type=Path,
+                        help="Directory to hold audio converted to wav")
+    parser.add_argument("--extension",
+                        type=str,
+                        default="wav",
+                        help="Audio file extension")
     parser.add_argument("--model",
                         type=str,
                         help="Huggingface model ID")
@@ -59,9 +66,27 @@ def ctmlines_are_resegmentable(lines):
 
 
 def main():
+    args = get_args()
+
     model, utils = torch.hub.load(repo_or_dir='snakers4/silero-vad', model='silero_vad', force_reload=True)
     (get_speech_timestamps, save_audio, read_audio, VADIterator, collect_chunks) = utils
-
     
+    for file in args.ctmedit_dir.glob("*.ctmedit"):
+        ctmedits = ctm_from_file(file)
+        audiofile = ctmedits[0].id + "." + args.extension
+        audiopath = args.audio_dir / audiofile
+        if not audiopath.exists():
+            continue
+
+        processed = []
+        i = 0
+        while i < len(ctmedits):
+            window = ctmedits[i:i+2]
+            if ctmlines_are_resegmentable(window):
+                pass
+            else:
+                processed.append(ctmedits[i])
+            i += 1
+
     # get_speech_timestamps(data, model, sampling_rate=16_000)
     
