@@ -13,6 +13,13 @@
 # limitations under the License.
 import requests
 from bs4 import BeautifulSoup
+from time import sleep
+
+
+LANGUAGE_PAGES = {
+    "Hungarian": "https://en.wiktionary.org/wiki/Category:Hungarian_terms_with_audio_links",
+    "Polish": "https://en.wiktionary.org/wiki/Category:Polish_terms_with_audio_links"
+}
 
 
 def get_category(soup: BeautifulSoup):
@@ -77,3 +84,44 @@ def get_audio_links(subsoup: BeautifulSoup):
                 audio.append(src)
     return audio
 
+
+def get_audio_from_page(page: str, language: str):
+    pieces = page.split("/")
+    word = pieces[-1]
+
+    req = requests.get(page)
+    assert req.status_code == 200
+
+    soup = BeautifulSoup(req.text)
+
+    html_chunk = extract_language_chunk(soup, language)
+    subsoup = BeautifulSoup(html_chunk)
+
+    ipa = get_ipa(subsoup)
+    audio = get_audio_links(subsoup)
+
+    return {
+        "word": word,
+        "ipa": ipa,
+        "audio": audio
+    }
+
+
+def process_word_links(links, language, sleeptime=3):
+    audio_parts = []
+    for link in links:
+        audio_parts.append(get_audio_from_page(link, language))
+        sleep(sleeptime)
+    return audio_parts
+
+
+def get_word_links(landing, sleeptime=3):
+    links = []
+    next_page = landing
+    while next_page is not None:
+        req = requests.get(next_page)
+        soup = BeautifulSoup(req.text)
+        links += get_category(soup)
+        next_page = get_next_link(soup)
+        sleep(sleeptime)
+    return links
