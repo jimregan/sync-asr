@@ -14,6 +14,7 @@
 import requests
 from bs4 import BeautifulSoup
 from time import sleep
+from urllib.parse import unquote
 
 
 LANGUAGE_PAGES = {
@@ -101,7 +102,7 @@ def get_audio_from_page(page: str, language: str):
     audio = get_audio_links(subsoup)
 
     return {
-        "word": word,
+        "word": unquote(word),
         "ipa": ipa,
         "audio": audio
     }
