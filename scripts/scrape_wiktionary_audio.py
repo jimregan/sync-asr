@@ -16,6 +16,7 @@ from bs4 import BeautifulSoup
 from time import sleep
 from urllib.parse import unquote
 import argparse
+from pathlib import Path
 
 
 LANGUAGE_PAGES = {
@@ -105,11 +106,12 @@ def get_audio_from_page(page: str, language: str):
     return {
         "word": unquote(word),
         "ipa": ipa,
-        "audio": audio
+        "audio": audio,
+        "page": page
     }
 
 
-def process_word_links(links, language, sleeptime=3):
+def process_word_links(links, language, sleeptime=10):
     audio_parts = []
     for link in links:
         audio_parts.append(get_audio_from_page(link, language))
@@ -117,7 +119,7 @@ def process_word_links(links, language, sleeptime=3):
     return audio_parts
 
 
-def get_word_links(landing, sleeptime=3):
+def get_word_links(landing, sleeptime=10):
     links = []
     next_page = landing
     while next_page is not None:
@@ -127,6 +129,55 @@ def get_word_links(landing, sleeptime=3):
         next_page = get_next_link(soup)
         sleep(sleeptime)
     return links
+
+
+def proc_ipa_hungarian(ipa_string):
+    if ipa_string.startswith('[') and ipa_string.endswith(']'):
+        ipa_string = ipa_string[1:-1]
+    ipa_string = ipa_string.replace("ˈ", "")
+    expanded = " ".join(list(ipa_string))
+    expanded = expanded.replace(" ː", "ː").replace(" ͡ ", "͡")
+    expanded = expanded.replace("ɱ", "m")
+    expanded = expanded.replace(" u ̯",  "u̯")
+    expanded = expanded.replace("ˌ", "")
+    return expanded
+
+
+PROC_IPA = {
+    "Hungarian": proc_ipa_hungarian,
+}
+
+
+def process_pronunciations(audio_parts, proc_ipa):
+    pronunciations = []
+
+    for item in audio_parts:
+        word = item["word"]
+        for ipa in item["ipa"]:
+            pronunciations.append(f"{word}\t{proc_ipa(ipa)}")
+    return pronunciations
+
+
+def write_items(grabber_sh: Path, outdir: Path, audio_parts):
+    if not outdir.is_dir():
+        outdir.mkdir()
+
+    with open(str(grabber_sh), "w") as grab:
+        for item in audio_parts:
+            word = item["word"]
+            i = 0
+            for i in range(0, len(item["audio"])):
+                num = str(i) if i != 0 else ""
+                ext = item['audio'][i].split(".")[-1]
+                if item['ipa'] == []:
+                    comment = "# "
+                else:
+                    comment = ""
+                grab.write(f"{comment}wget {item['audio'][i].replace('https//', 'https://')} -O /home/joregan/wiktionary_hu/{word}{num}.{ext}\n")
+                grab.write(f"{comment}sleep 10\n")
+                outfile = outdir / f"{word}{num}.txt"
+                with open(str(outfile), "w") as of:
+                    of.write(word.replace("_", " "))
 
 
 def get_args():
@@ -139,4 +190,56 @@ def get_args():
     parser.add_argument("--output",
                         type=str,
                         help="Output directory")
+    parser.add_argument("--links",
+                        type=Path,
+                        help="Output text file containing word links from category")
+    parser.add_argument("--save-json",
+                        type=Path,
+                        help="Output json containing results")
+    parser.add_argument("--write-dict",
+                        type=Path,
+                        help="Output dict file containing pronunciations")
+    
     return parser
+
+
+def main():
+    args = get_args()
+
+    if args.language and args.language in LANGUAGE_PAGES:
+        LANG = args.language
+        PAGE = LANGUAGE_PAGES[LANG]
+    else:
+        PAGE = f"https://en.wiktionary.org/wiki/Category:{args.language}_terms_with_audio_links"
+        LANG = args.language
+        req = requests.get(PAGE)
+        if req.status_code != 200:
+            print(f"No Wiktionary pronunciation category found for {args.language}")
+            exit(1)
+
+    links = get_word_links(PAGE)
+
+    if args.links:
+        with open(str(args.links), "w") as of:
+            for link in links:
+                of.write(link + "\n")
+
+    if LANG in PROC_IPA:
+        proc_ipa = PROC_IPA[LANG]
+    else:
+        proc_ipa = lambda x: x
+
+    audio_parts = process_word_links(links, LANG)
+
+    if args.write_dict:
+        pronunciations = process_pronunciations(audio_parts, proc_ipa)
+        with open(args.write_dict, "w") as of:
+            for pr in pronunciations:
+                of.write(pr + "\n")
+
+    grabber_sh = args.output / "grab.sh"
+    write_items(grabber_sh, args.output, audio_parts)
+
+
+if __name__ == '__main__':
+        main()
