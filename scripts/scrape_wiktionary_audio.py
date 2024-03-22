@@ -131,20 +131,35 @@ def get_word_links(landing, sleeptime=10):
     return links
 
 
-def proc_ipa_hungarian(ipa_string):
+def proc_ipa_base(ipa_string):
     if ipa_string.startswith('[') and ipa_string.endswith(']'):
         ipa_string = ipa_string[1:-1]
+    elif ipa_string.startswith('/') and ipa_string.endswith('/'):
+        ipa_string = ipa_string[1:-1]
     ipa_string = ipa_string.replace("ˈ", "")
+    ipa_string = ipa_string.replace("ˌ", "")
+    ipa_string = ipa_string.replace(" ː", "ː").replace(" ͡ ", "͡")
+    return ipa_string
+
+
+def proc_ipa_hungarian(ipa_string):
+    ipa_string = proc_ipa_base(ipa_string)
     expanded = " ".join(list(ipa_string))
-    expanded = expanded.replace(" ː", "ː").replace(" ͡ ", "͡")
     expanded = expanded.replace("ɱ", "m")
     expanded = expanded.replace(" u ̯",  "u̯")
-    expanded = expanded.replace("ˌ", "")
+    return expanded
+
+
+def proc_ipa_polish(ipa_string):
+    ipa_string = proc_ipa_base(ipa_string)
+    expanded = " ".join(list(ipa_string))
+    expanded = expanded.replace(".", "")
     return expanded
 
 
 PROC_IPA = {
     "Hungarian": proc_ipa_hungarian,
+    "Polish": proc_ipa_polish,
 }
 
 
