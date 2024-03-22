@@ -215,7 +215,7 @@ def get_args():
                         type=Path,
                         help="Output dict file containing pronunciations")
     
-    return parser
+    return parser.parse_args()
 
 
 def main():
