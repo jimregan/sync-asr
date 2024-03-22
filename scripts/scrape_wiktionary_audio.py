@@ -15,6 +15,7 @@ import requests
 from bs4 import BeautifulSoup
 from time import sleep
 from urllib.parse import unquote
+import argparse
 
 
 LANGUAGE_PAGES = {
@@ -126,3 +127,17 @@ def get_word_links(landing, sleeptime=3):
         next_page = get_next_link(soup)
         sleep(sleeptime)
     return links
+
+
+def get_args():
+    parser = argparse.ArgumentParser(description="""
+    Scrape (English) Wiktionary for audio links
+    """)
+    parser.add_argument("--extension",
+                        type=str,
+                        default="wav",
+                        help="Audio file extension")
+    parser.add_argument("--model",
+                        type=str,
+                        help="Huggingface model ID")
+    return parser
