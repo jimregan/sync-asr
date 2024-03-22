@@ -133,11 +133,10 @@ def get_args():
     parser = argparse.ArgumentParser(description="""
     Scrape (English) Wiktionary for audio links
     """)
-    parser.add_argument("--extension",
+    parser.add_argument("--language",
                         type=str,
-                        default="wav",
-                        help="Audio file extension")
-    parser.add_argument("--model",
+                        help="Language to scrape")
+    parser.add_argument("--output",
                         type=str,
-                        help="Huggingface model ID")
+                        help="Output directory")
     return parser
