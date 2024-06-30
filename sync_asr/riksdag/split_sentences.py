@@ -195,7 +195,11 @@ def main():
         "three": preprocess_num2words,
         "four": preprocess_abbrev,
         "five": preprocess_merge_eps,
+        "six": preprocess_merge_eps,
     }
+    RD_USE_CONJUNCTIONS = [
+        "six",
+    ]
 
     # if args.rdapi_in and check_dir(args.rdapi_in):
     #     INDIR = args.rdapi_in
@@ -211,6 +215,10 @@ def main():
 
     if args.run_stage and args.run_stage in RD_PROCESSING_STAGES:
         preprocess = RD_PROCESSING_STAGES[args.run_stage]
+    if args.run_stage and args.run_stage in RD_USE_CONJUNCTIONS:
+        inner_all_correct = lambda x: all_correct(x, CONJUNCTIONS)
+    else:
+        inner_all_correct = lambda x: all_correct(x)
 
     noisy = []
     for file in INDIR.glob("H*"):
@@ -229,7 +237,7 @@ def main():
                     of.write(str(line) + "\n")
 
         for split in splits:
-            if all_correct(split):
+            if inner_all_correct(split):
                 fn = generate_filename(split)
                 with open(CLEANDIR / fn, "w") as of:
                     for line in split:
