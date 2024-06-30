@@ -28,15 +28,15 @@ perczczel\tperccel
 """
 
 _NORMALISATIONS = """
-1-ső    első
-1-év,   első év,
-3-ik    harmadik
-3   három
-5   öt
-1879.   ezernyolcszázhetvenkilenc
-126.    százhuszonhat
-XL. negyvenedik
-§-a paragrafusa
+1-ső\telső
+1-év,\telső év,
+3-ik\tharmadik
+3\thárom
+5\töt
+1879.\tezernyolcszázhetvenkilenc
+126.\tszázhuszonhat
+XL.\tnegyvenedik
+§-a\tparagrafusa
 """
 
 
@@ -54,12 +54,8 @@ def mkdict(multiline):
         if line.strip() == "":
             continue
         parts = line.split("\t")
-        if len(parts) == 2:
-            output[parts[0]] = parts[1]
-        elif len(parts) > 2:
-            output[parts[0]] = " ".join(parts[1:])
-        else:
-            raise Exception("Incorrect number of fields: " + line)
+        assert len(parts) == 2, line
+        output[parts[0]] = parts[1]
     return output
 
 
