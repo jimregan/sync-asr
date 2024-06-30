@@ -20,11 +20,11 @@ START = "A gizehi pergamen-lapok."
 END = "A nagyapó."
 
 _MODERNISATIONS = """
-franczia    francia
-Bukfenczet  Bukfencet
-finánczokat fináncokat
-arczomat,   arcomat,
-perczczel   perccel
+franczia\tfrancia
+Bukfenczet\tBukfencet
+finánczokat\tfináncokat
+arczomat,\tarcomat,
+perczczel\tperccel
 """
 
 _NORMALISATIONS = """
@@ -54,8 +54,12 @@ def mkdict(multiline):
         if line.strip() == "":
             continue
         parts = line.split("\t")
-        assert len(parts) == 2, parts
-        output[parts[0]] = parts[1]
+        if len(parts) == 2:
+            output[parts[0]] = parts[1]
+        elif len(parts) > 2:
+            output[parts[0]] = " ".join(parts[1:])
+        else:
+            raise Exception("Incorrect number of fields: " + line)
     return output
 
 
