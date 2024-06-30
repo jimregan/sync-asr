@@ -73,12 +73,22 @@ def _process_list(text, inlist):
     return " ".join(output)
 
 
+def _process_list_maybe_mult(text, inlist):
+    if type(text) == str:
+        return _process_list(text, inlist)
+    elif type(text) == list:
+        output = []
+        for line in text:
+            output.append(_process_list(line, inlist))
+        return output
+
+
 def normalise(text):
-    return _process_list(text, NORMALISATIONS)
+    return _process_list_maybe_mult(text, NORMALISATIONS)
 
 
 def modernise(text):
-    return _process_list(text, MODERNISATIONS)
+    return _process_list_maybe_mult(text, MODERNISATIONS)
 
 
 def get_raw_text():
