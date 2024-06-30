@@ -62,15 +62,23 @@ MODERNISATIONS = mkdict(_MODERNISATIONS)
 NORMALISATIONS = mkdict(_NORMALISATIONS)
 
 
-def normalise(text):
+def _process_list(text, inlist):
     words = text.split(" ")
     output = []
     for word in words:
-        if word in NORMALISATIONS:
-            output.append(NORMALISATIONS[word])
+        if word in inlist:
+            output.append(inlist[word])
         else:
             output.append(word)
     return " ".join(output)
+
+
+def normalise(text):
+    return _process_list(text, NORMALISATIONS)
+
+
+def modernise(text):
+    return _process_list(text, MODERNISATIONS)
 
 
 def get_raw_text():
