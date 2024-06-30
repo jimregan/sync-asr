@@ -34,6 +34,8 @@ DIALECT_MU = {
     "dtús": "dtúis",
     "tosú": "tosnú",
     "tosóidh": "tosnóidh",
+    "dtosú": "dtosnú",
+    "dtosóidh": "dtosnóidh",
     "atá": "athá",
     "atá tú": "athánn tú",
     "léi": "léithe",
@@ -45,10 +47,14 @@ DIALECT_MU = {
 }
 
 
+GENERAL = {
+    "Cabidil": "Caibidil",
+}
+
+
 PAGE_SPECIFIC = {
     "181": {
         "Mar 'Tháinig": "Mar a Tháinig",
-        "Cabidil": "Caibidil",
         "mar Chuir": "mar a Chuir"
     },
     "190": {
