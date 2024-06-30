@@ -53,8 +53,9 @@ def mkdict(multiline):
     for line in multiline.split("\n"):
         if line.strip() == "":
             continue
-        a, b = line.split()
-        output[a] = b
+        parts = line.split()
+        assert len(parts) == 2, parts
+        output[parts[0]] = parts[1]
     return output
 
 
