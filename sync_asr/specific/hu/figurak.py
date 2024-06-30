@@ -14,6 +14,7 @@
 import requests
 
 TEXT = "https://www.gutenberg.org/cache/epub/41683/pg41683.txt"
+AUDIO = "https://ia803008.us.archive.org/16/items/multilingual_short_works_collection_010_1312_librivox/msw010_gizehipergamenlapok_gardonyi_dii_64kb.mp3"
 
 START = "A gizehi pergamen-lapok."
 END = "A nagyapó."
@@ -39,8 +40,25 @@ XL.	negyvenedik
 """
 
 
-def get_text():
+JUNK = [
+    "*",
+    "* * *"
+]
+
+
+def get_raw_text():
     req = requests.get(TEXT)
     if req.status_code != 200:
         return ""
-    
+    the_text = START + req.text.split(START)[1].split(END)[0]
+    # basic cleaning
+    the_text = the_text.replace("_", "")
+    return the_text
+
+
+def get_paragraphs():
+    the_text = get_raw_text()
+
+    paragraphs = the_text.split("\r\n\r\n")
+    paragraphs = [x.replace("\r\n", " ") for x in paragraphs if x not in JUNK]
+    return paragraphs
