@@ -91,7 +91,7 @@ class CTMEditLine(TimedWord):
         self.from_list(parts, False)
 
     def from_list(self, parts, kaldi_list=False):
-        EDITS = ["cor", "ins", "del", "sub", "sil"]
+        EDITS = ["cor", "ins", "del", "sub", "sil", "ins-conj", "<sil>"]
         self.id = parts[0]
         self.channel = parts[1]
         if kaldi_list:
