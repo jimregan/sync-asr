@@ -20,23 +20,23 @@ START = "A gizehi pergamen-lapok."
 END = "A nagyapó."
 
 _MODERNISATIONS = """
-franczia francia
-Bukfenczet Bukfencet
+franczia    francia
+Bukfenczet  Bukfencet
 finánczokat fináncokat
-arczomat, arcomat,
-perczczel perccel
+arczomat,   arcomat,
+perczczel   perccel
 """
 
 _NORMALISATIONS = """
-1-ső	első
-1-év,	első év,
-3-ik	harmadik
-3	három
-5	öt
-1879.	ezernyolcszázhetvenkilenc
-126.	százhuszonhat
-XL.	negyvenedik
-§-a	paragrafusa
+1-ső    első
+1-év,   első év,
+3-ik    harmadik
+3   három
+5   öt
+1879.   ezernyolcszázhetvenkilenc
+126.    százhuszonhat
+XL. negyvenedik
+§-a paragrafusa
 """
 
 
@@ -53,7 +53,7 @@ def mkdict(multiline):
     for line in multiline.split("\n"):
         if line.strip() == "":
             continue
-        parts = line.split()
+        parts = line.split("\t")
         assert len(parts) == 2, parts
         output[parts[0]] = parts[1]
     return output
