@@ -4,6 +4,65 @@ import requests
 from bs4 import BeautifulSoup
 
 
+COUNT_DIGITS = {
+    1: "a haon",
+    2: "a dó",
+    3: "a trí",
+    4: "a ceathair",
+    5: "a cúig",
+    6: "a sé",
+    7: "a seacht",
+    8: "a hocht",
+    9: "a naoi"
+}
+
+
+DIALECT_MU = {
+    "anseo": "anso",
+    "ansin": "ansan",
+    "dtús": "dtúis",
+    "tosú": "tosnú",
+    "tosóidh": "tosnóidh",
+    "atá": "athá",
+    "atá tú": "athánn tú",
+    "léi": "léithe",
+    "arís": "aríst",
+    "cloisteáil": "cloisint",
+    "faoi": "fé",
+    "an-suim": "an-shuim",
+    "scríofa": "scríte",
+}
+
+
+PAGE_SPECIFIC = {
+    "181": {
+        "Mar 'Tháinig": "Mar a Tháinig",
+        "Cabidil": "Caibidil",
+        "mar Chuir": "mar a Chuir"
+    },
+    "190": {
+        "nuair d'fhéach": "nuair a d'fhéach"
+    },
+    "191": {
+        "le mo": "lem"
+    }
+}
+
+
+def skip_if_colon(text):
+    if ":" in text:
+        return ""
+    else:
+      return text
+
+
+def skip_art(text):
+    if text.startswith("(Ealaín:"):
+        return ""
+    else:
+        return text
+
+
 def get_page_list(url: str):
     PAGE_REQ = requests.get(url)
     if PAGE_REQ.status_code != 200:
@@ -17,6 +76,7 @@ def get_page_list(url: str):
             if anchor["href"].startswith("/pages/"):
                 pages.add(f'https://www.leighleat.com{anchor["href"]}')
     return list(pages)
+
 
 def get_page(url: str, getnext: bool = False):
     PAGE_REQ = requests.get(url)
