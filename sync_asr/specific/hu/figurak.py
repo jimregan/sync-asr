@@ -19,7 +19,7 @@ AUDIO = "https://ia803008.us.archive.org/16/items/multilingual_short_works_colle
 START = "A gizehi pergamen-lapok."
 END = "A nagyapó."
 
-MODERNISATIONS = """
+_MODERNISATIONS = """
 franczia francia
 Bukfenczet Bukfencet
 finánczokat fináncokat
@@ -27,7 +27,7 @@ arczomat, arcomat,
 perczczel perccel
 """
 
-NORMALISATIONS = """
+_NORMALISATIONS = """
 1-ső	első
 1-év,	első év,
 3-ik	harmadik
@@ -46,6 +46,31 @@ JUNK = [
     "",
     " "
 ]
+
+
+def mkdict(multiline):
+    output = {}
+    for line in multiline.split("\n"):
+        if line.strip() == "":
+            continue
+        a, b = line.split()
+        output[a] = b
+    return output
+
+
+MODERNISATIONS = mkdict(_MODERNISATIONS)
+NORMALISATIONS = mkdict(_NORMALISATIONS)
+
+
+def normalise(text):
+    words = text.split(" ")
+    output = []
+    for word in words:
+        if word in NORMALISATIONS:
+            output.append(NORMALISATIONS[word])
+        else:
+            output.append(word)
+    return " ".join(output)
 
 
 def get_raw_text():
