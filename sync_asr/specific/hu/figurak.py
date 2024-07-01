@@ -31,12 +31,14 @@ _NORMALISATIONS = """
 1-ső\telső
 1-év,\telső év,
 3-ik\tharmadik
+13-ik\ttizenharmadik
 3\thárom
 5\töt
 1879.\tezernyolcszázhetvenkilenc
 126.\tszázhuszonhat
 XL.\tnegyvenedik
 §-a\tparagrafusa
+t.-cz.\ttörvénycikk
 """
 
 
