@@ -26,6 +26,9 @@ MFA_DIR = "/home/joregan/hsi_mfa"
 TSV_DIR = "/home/joregan/hsi_segments"
 EG = AUDIO_PATH / "hsi_3_0715_227_001_inter-002.wav"
 
+# %%
+from whisperx.audio import load_audio, SAMPLE_RATE
+
 # %% [markdown]
 # This next part is just to confirm that the output of `merge_chunks` is similar in terms of timestamps to the diarisation output
 
