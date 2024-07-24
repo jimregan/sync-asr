@@ -24,6 +24,37 @@ diar_pipe = DiarizationPipeline(use_auth_token=TOKEN, device=DEVICE)
 AUDIO_PATH = Path("/home/joregan/hsi/audio")
 MFA_DIR = "/home/joregan/hsi_mfa"
 TSV_DIR = "/home/joregan/hsi_segments"
+EG = AUDIO_PATH / "hsi_3_0715_227_001_inter-002.wav"
+
+# %% [markdown]
+# This next part is just to confirm that the output of `merge_chunks` is similar in terms of timestamps to the diarisation output
+
+# %%
+# from whisperx.vad import load_vad_model, merge_chunks
+# from whisperx.audio import load_audio, SAMPLE_RATE
+
+# # https://github.com/m-bain/whisperX/blob/58f00339af7dcc9705ef49d97a1f40764b7cf555/whisperx/asr.py#L336
+# default_vad_options = {
+#     "vad_onset": 0.500,
+#     "vad_offset": 0.363
+# }
+
+# audio = load_audio(str(EG))
+
+# chunk_size = 30
+
+# # https://github.com/m-bain/whisperX/blob/58f00339af7dcc9705ef49d97a1f40764b7cf555/whisperx/asr.py#L186
+# vad_model = load_vad_model(torch.device(DEVICE), use_auth_token=None, **default_vad_options)
+# vad_segments = vad_model({"waveform": torch.from_numpy(audio).unsqueeze(0), "sample_rate": SAMPLE_RATE})
+# vad_segments = merge_chunks(
+#     vad_segments,
+#     chunk_size,
+#     onset=default_vad_options["vad_onset"],
+#     offset=default_vad_options["vad_offset"],
+# )
+
+# %%
+# vad_segments[0]
 
 # %%
 def get_diarised_chunks(filename):
@@ -54,6 +85,17 @@ def write_wave(filename, data):
     output.close()
 
 # %%
+# just for my reference
+_FORMATS = """
+hsi_N_NNNN_NNN_NNN-mic.wav
+hsi_N_NNNN_NNN_NNN-micN-NNN.wav
+hsi_N_NNNN_NNN_NNN_NNN_inter.wav
+hsi_N_NNNN_NNN_NNN_NNN_main.wav
+hsi_N_NNNN_NNN_NNN_inter.wav
+hsi_N_NNNN_NNN_NNN_main.wav
+hsi_N_NNNN_NNN_inter.wav
+hsi_N_NNNN_NNN_main.wav
+"""
 def get_speaker_id(filename, detected_speaker):
     detected_speaker = detected_speaker.replace("SPEAKER_", "")
     if "inter" in filename or "mic2" in filename:
@@ -94,8 +136,8 @@ def transcribe(
         for seg in segments:
             f1 = int(seg['start'] * SAMPLE_RATE)
             f2 = int(seg['end'] * SAMPLE_RATE)
-            # print(f2-f1)
-            yield {'inputs': audio[f1:f2]}
+            if (seg['end'] - seg['start']) < 30.0:
+                yield {'inputs': audio[f1:f2]}
 
     # vad_segments = self.vad_model({"waveform": torch.from_numpy(audio).unsqueeze(0), "sample_rate": SAMPLE_RATE})
     # vad_segments = merge_chunks(
