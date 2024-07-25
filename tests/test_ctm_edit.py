@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from sync_asr.ctm_edit import CTMEditLine, shift_epsilons
+from sync_asr.ctm_edit import CTMEditLine, shift_epsilons, split_sentences, all_correct
 from sync_asr.riksdag.riksdag_align import rd_equals
 
 
@@ -67,6 +67,43 @@ _EXP8 = """
 AJJacobs_2007P-0001605-0003029 1 0 0.09 Foo. 1.0 Foo. cor
 AJJacobs_2007P-0001605-0003029 1 0.1 0.09 bar 1.0 <eps> ins
 AJJacobs_2007P-0001605-0003029 1 0.2 0.09 bar 1.0 <eps> ins
+"""
+_SAMPLE9 = """
+AJJacobs_2007P-0001605-0003029 1 0 0.09 foo 1.0 Foo ins
+AJJacobs_2007P-0001605-0003029 1 0.1 0.09 bar 1.0 bar. ins
+AJJacobs_2007P-0001605-0003029 1 0.2 0.09 bar 1.0 Foo. sub
+"""
+_SAMPLE9A = """
+AJJacobs_2007P-0001605-0003029 1 0 0.09 foo 1.0 Foo ins
+AJJacobs_2007P-0001605-0003029 1 0.1 0.09 bar 1.0 bar. ins
+AJJacobs_2007P-0001605-0003029 1 0.2 0.09 bar 1.0 Foo. sub
+AJJacobs_2007P-0001605-0003029 1 0 0.09 foo 1.0 Foo ins
+"""
+_SAMPLE10 = """
+AJJacobs_2007P-0001605-0003029 1 0 0.09 foo 1.0 Foo cor
+AJJacobs_2007P-0001605-0003029 1 0.1 0.09 bar 1.0 bar. cor
+AJJacobs_2007P-0001605-0003029 1 0.2 0.09 foo 1.0 Foo. cor
+AJJacobs_2007P-0001605-0003029 1 0 0.09 foo 1.0 Foo cor
+"""
+
+PARAPHRASE_EXAMPLE = """
+2442207020017513221 1 2032.34 0.08 Det 1.0 Det cor
+2442207020017513221 1 2032.46 0.339 handlar 1.0 handlar cor
+2442207020017513221 1 2032.94 0.079 som 1.0 <eps> ins
+2442207020017513221 1 2033.06 0.059 vi 1.0 <eps> ins
+2442207020017513221 1 2033.18 0.419 debatterade 1.0 <eps> ins
+2442207020017513221 1 2033.68 0.2 förra 1.0 <eps> ins
+2442207020017513221 1 2033.96 0.399 veckan 1.0 <eps> ins
+2442207020017513221 1 2035.0 0.119 om 1.0 om cor
+2442207020017513221 1 2035.38 1.119 brottsoffrets 1.0 brottsoffrets cor
+2442207020017513221 1 2036.6 0.12 och 1.0 och cor
+2442207020017513221 1 2036.84 0.48 samhällets 1.0 samhällets cor
+2442207020017513221 1 2037.32 0.0 <eps> 1.0 upprättelse, del
+2442207020017513221 1 2037.32 0.0 <eps> 1.0 som del
+2442207020017513221 1 2037.32 0.0 <eps> 1.0 vi del
+2442207020017513221 1 2037.32 0.0 <eps> 1.0 debatterade del
+2442207020017513221 1 2037.32 0.0 <eps> 1.0 förra del
+2442207020017513221 1 2037.38 0.659 upprättelse 1.0 veckan. sub
 """
 
 
@@ -124,3 +161,19 @@ def test_shift_epsilons():
     explines8 = [CTMEditLine(x) for x in _EXP8.split("\n") if x != ""]
     ctmout = shift_epsilons(ctmlines8, comparison=rd_equals, backward=False, ref=True)
     assert explines8 == ctmout
+
+
+def test_split_sentences():
+    lines = [CTMEditLine(x) for x in _SAMPLE9.split("\n") if x != ""]
+    sentences = split_sentences(lines)
+    assert len(sentences) == 2
+    lines = [CTMEditLine(x) for x in _SAMPLE9A.split("\n") if x != ""]
+    sentences = split_sentences(lines)
+    assert len(sentences) == 3
+
+
+def test_split_sentences():
+    lines = [CTMEditLine(x) for x in _SAMPLE9.split("\n") if x != ""]
+    assert all_correct(lines) == False
+    lines = [CTMEditLine(x) for x in _SAMPLE10.split("\n") if x != ""]
+    assert all_correct(lines) == True
