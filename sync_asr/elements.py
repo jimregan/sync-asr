@@ -15,7 +15,7 @@ from typing import List
 
 
 class TimedElement():
-    def __init__(self, start_time="", end_time="", text=""):
+    def __init__(self, start_time=0, end_time=0, text=""):
         self.start_time = start_time
         self.end_time = end_time
         self.text = text
@@ -92,7 +92,7 @@ class TimedElement():
 
 
 class TimedSentence(TimedElement):
-    def __init__(self, start_time="", end_time="", text=""):
+    def __init__(self, start_time=0, end_time=0, text=""):
         super().__init__(start_time, end_time, text)
 
     def get_words(self):
@@ -102,7 +102,7 @@ class TimedSentence(TimedElement):
 
 
 class TimedWord(TimedElement):
-    def __init__(self, start_time="", end_time="", text=""):
+    def __init__(self, start_time=0, end_time=0, text=""):
         super().__init__(start_time, end_time, text)
 
 
