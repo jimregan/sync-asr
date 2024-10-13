@@ -17,7 +17,7 @@ import json
 
 
 class WhisperXWord(TimedWord):
-    def __init__(self, start_time="", end_time="", text="", speaker=None):
+    def __init__(self, start_time=0, end_time=0, text="", speaker=None):
         super().__init__(start_time, end_time, text)
         if speaker:
             self.speaker = speaker
