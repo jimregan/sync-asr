@@ -11,16 +11,25 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from .elements import TimedWordSentence, TimedWord
+from .elements import TimedWordSentence, TimedWord, TimedElement
 from pathlib import Path
 import json
 
 
 class GentleWord(TimedWord):
-    def __init__(self, start_time="", end_time="", text="", speaker=None):
+    def __init__(self, start_time=0, end_time=0, text=0, aligned_word=None, case="", start_offset=0, end_offset=0, phones=[]):
         super().__init__(start_time, end_time, text)
-        if speaker:
-            self.speaker = speaker
+        if aligned_word:
+            self.aligned_word = aligned_word
+        if case == "success":
+            self.success = True
+        else:
+            self.success = False
+
+
+class GentlePhone(TimedElement):
+    def __init__(self, start_relative=0, duration=0, phone=""):
+        super().__init__(start_relative, start_relative + duration, phone)
 
 
 class GentleJSON(TimedWordSentence):
