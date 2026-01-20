@@ -52,9 +52,9 @@ def get_args():
 
 def main():
     args = get_args()
-    if args.write_ffmpeg_script:
-         with open(str(args.write_ffmpeg_script), "w"):
-              pass
+    # if args.write_ffmpeg_script:
+    #      with open(str(args.write_ffmpeg_script), "w"):
+    #           pass
 
 
 if __name__ == '__main__':
