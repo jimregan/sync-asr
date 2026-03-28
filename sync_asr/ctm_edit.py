@@ -15,15 +15,17 @@ from .elements import TimedWord
 from typing import List
 import copy
 from string import punctuation
+import unicodedata
 
 
-def _clean_text(work_ref, PUNCT, lower=True):
+def clean_text(work_ref, lower=True):
     i = 0
     l = len(work_ref)
-    while i < l and work_ref[i] in PUNCT:
+    cats = set(['Pc', 'Pd', 'Ps', 'Pe', 'Pi', 'Pf', 'Po'])
+    while i < l and unicodedata.category(work_ref[i]) in cats:
         i += 1
     j = -1
-    while j >= -l and work_ref[j] in PUNCT:
+    while j >= -l and unicodedata.category(work_ref[j]) in cats:
         j -= 1
     retval = work_ref[i:j+1]
     if lower:
@@ -32,13 +34,14 @@ def _clean_text(work_ref, PUNCT, lower=True):
 
 
 def _approx_match(texta, textb):
-    punct = set(punctuation)
-    return texta == _clean_text(textb, punct)
+    if texta == textb.lower():
+        return True
+    return texta == clean_text(textb)
 
 
 def possible_false_start(text, ref, fillers=[], mark_filler=False):
     punct = set(punctuation)
-    clean = _clean_text(ref, punct)
+    clean = clean_text(ref)
     if text.endswith(clean):
         fs = text[:-len(clean)]
         if fs in fillers:
@@ -55,7 +58,7 @@ def possible_false_start(text, ref, fillers=[], mark_filler=False):
 
 
 class CTMEditLine(TimedWord):
-    def __init__(self, from_line="", from_kaldi_list=None, verbose=False):
+    def __init__(self, from_line="", from_kaldi_list=None, epsilon="<eps>", verbose=False):
         if from_line != "":
             self.from_line(from_line)
         elif from_kaldi_list is not None:
@@ -66,6 +69,7 @@ class CTMEditLine(TimedWord):
         super().__init__(start_time, end_time, text)
         self.verbose = verbose
         self.PUNCT = set(punctuation)
+        self.epsilon = epsilon
 
     def __str__(self) -> str:
         return " ".join(self.as_list())
@@ -87,7 +91,7 @@ class CTMEditLine(TimedWord):
         self.from_list(parts, False)
 
     def from_list(self, parts, kaldi_list=False):
-        EDITS = ["cor", "ins", "del", "sub", "sil"]
+        EDITS = ["cor", "ins", "del", "sub", "sil", "ins-conj", "<sil>"]
         self.id = parts[0]
         self.channel = parts[1]
         if kaldi_list:
@@ -131,32 +135,54 @@ class CTMEditLine(TimedWord):
             out.append(";".join([f"{a[0]}:{a[1]}" for a in self.props.items()]))
         return out
     
-    def mark_correct_from_list(self, collisions, case_punct=False):
+    def mark_correct_from_list(self, collisions, case_punct=False, make_equal=True):
         def checksout(ref, col):
             return ((type(col) == str and ref == col) or \
                 (type(col) == list and ref in col))
         work_ref = self.ref
         if case_punct:
-            work_ref = _clean_text(self.ref, self.PUNCT)
+            work_ref = clean_text(self.ref)
         if self.text in collisions:
             orig_text = self.text
             collision = collisions[self.text]
             if checksout(work_ref, collision):
-                self.text = self.ref
+                if make_equal:
+                    self.text = self.ref
                 self.edit = "cor"
                 if self.verbose:
                     self.set_prop("collision", f"{orig_text}_{work_ref}")
 
-    def mark_correct_from_function(self, comparison_function):
+    def mark_correct_from_function(self, comparison_function, make_equal=True):
         if comparison_function(self.text, self.ref):
             self.edit = "cor"
-            self.text = self.ref        
+            if make_equal:
+                self.text = self.ref        
+
+    def mark_correct_ignore_punct(self, make_equal=True):
+        self.mark_correct_from_function(_approx_match, make_equal)
 
     def check_filler_or_false_starts(self, fillers=[], mark_filler=True):
         pfs = possible_false_start(self.text, self.ref, fillers, mark_filler)
         if pfs is not None:
             self.text = self.ref = pfs
             self.edit = "cor"
+
+    def get_ref(self, cleaned=False, lower=False):
+        if cleaned:
+            return clean_text(self.ref, lower)
+        else:
+            return self.ref
+
+    def reset_start(self, start: int):
+        end = self.end_time
+        self.start_time = start
+        self.duration = end - start
+
+    def nullify(self):
+        self.duration = 0
+        self.edit = "sil"
+        self.ref = self.epsilon
+        self.text = self.epsilon
 
     def set_correct_ref(self):
         self.text = self.ref
@@ -167,7 +193,7 @@ class CTMEditLine(TimedWord):
         self.edit = "cor"
 
     def fix_case_difference(self):
-        comp = _clean_text(self.ref, self.PUNCT)
+        comp = clean_text(self.ref)
         if self.text == comp:
             self.set_correct_ref()
 
@@ -189,13 +215,19 @@ class CTMEditLine(TimedWord):
         else:
             return None
 
-    def has_eps(self, eps="<eps>"):
-        return self.text == eps or self.ref == eps
+    def ref_eps(self):
+        return self.ref == self.epsilon
+
+    def text_eps(self):
+        return self.text == self.epsilon
+
+    def has_eps(self):
+        return self.ref_eps() or self.text_eps()
 
     def has_initial_capital(self):
         if len(self.ref) >= 1 and self.ref[0].isupper():
             return True
-        work = _clean_text(self.ref, self.PUNCT, False)
+        work = clean_text(self.ref, False)
         if work == "":
             return False
         return work[0].isupper()
@@ -315,6 +347,17 @@ def check_and_swap_ending(first: CTMEditLine, second: CTMEditLine, conjunctions:
     second.set_inserted_conjunction()
 
 
+def all_correct(ctmedits: List[CTMEditLine], acceptable: List[str] = None):
+    def is_acceptable(a):
+        return acceptable is not None and a in acceptable
+    def is_correct(a):
+        return a == "cor" or is_acceptable(a)
+    for line in ctmedits:
+        if not is_correct(line.edit):
+            return False
+    return True
+
+
 def split_sentences(ctmedits: List[CTMEditLine], conjunctions: List[str] = []):
     sentences = []
     current = []
@@ -331,7 +374,10 @@ def split_sentences(ctmedits: List[CTMEditLine], conjunctions: List[str] = []):
         else:
             current.append(window[0])
             sentences.append(current)
+            current = []
         i += 1
+    if current != []:
+        sentences.append(current)
     return sentences
 
 
@@ -340,5 +386,5 @@ def generate_filename(ctmlines: List[CTMEditLine]):
     start = ctmlines[0].start_time
     end = ctmlines[-1].end_time
     seg_dur = end - start
-    filename = f"{file_id}_{start}_{seg_dur:.2f}.ctmedit"
+    filename = f"{file_id}_{start}_{seg_dur}.ctmedit"
     return filename

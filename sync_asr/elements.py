@@ -15,7 +15,7 @@ from typing import List
 
 
 class TimedElement():
-    def __init__(self, start_time="", end_time="", text=""):
+    def __init__(self, start_time=0, end_time=0, text=""):
         self.start_time = start_time
         self.end_time = end_time
         self.text = text
@@ -92,7 +92,7 @@ class TimedElement():
 
 
 class TimedSentence(TimedElement):
-    def __init__(self, start_time="", end_time="", text=""):
+    def __init__(self, start_time=0, end_time=0, text=""):
         super().__init__(start_time, end_time, text)
 
     def get_words(self):
@@ -102,17 +102,19 @@ class TimedSentence(TimedElement):
 
 
 class TimedWord(TimedElement):
-    def __init__(self, start_time="", end_time="", text=""):
+    def __init__(self, start_time=0, end_time=0, text=""):
         super().__init__(start_time, end_time, text)
 
 
 class TimedWordSentence(TimedElement):
-    def __init__(self, words: List[TimedWord]):
+    def __init__(self, words: List[TimedWord], fileid=None):
         assert type(words) == list
         start_time = words[0].start_time
         end_time = words[-1].end_time
         text = " ".join([w.text for w in words])
         super().__init__(start_time, end_time, text)
+        if fileid is not None:
+            self.fileid = fileid
         self.words = words
 
     def words_indexed(self, zipped=False):
@@ -120,3 +122,14 @@ class TimedWordSentence(TimedElement):
             return zip(self.words, range(0, len(self.words)))
         else:
             return [w for w in zip(self.words, range(0, len(self.words)))]
+    
+    def write_ctm(self, outfile):
+        if self.fileid is None:
+            fileid = "[MISSING]"
+        else:
+            fileid = self.fileid
+        with open(outfile, "w") as of:
+            for word in self.words:
+                dur = float(word.duration / 1000)
+                start = float(word.start_time / 1000)
+                of.write(f"{fileid} 1 {start} {dur} {word.text} 1.0\n")
