@@ -20,7 +20,8 @@ def convert_google_asr_file_to_textgrid_times(filename, output_words=True):
 
     with open(filename) as inf:
         data = json.load(inf)
-    assert "results" in data, "no 'results' list, this is maybe not from Google ASR"
+    if "results" not in data:
+        raise ValueError("no 'results' list, this is maybe not from Google ASR")
     for result in data["results"]:
         if len(result["alternatives"]) != 1:
             print("More than one alternative", result["alternatives"])
