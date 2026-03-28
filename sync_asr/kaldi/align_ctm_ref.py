@@ -192,8 +192,8 @@ def read_ctm(ctm_file, file_and_channel2reco=None):
 
             if file_and_channel2reco is None:
                 reco = parts[0]
-                if parts[1] != '1':
-                    raise ValueError("Channel should be 1, "
+                if parts[1] not in ['0', '1']:
+                    raise ValueError("Channel should be 0 or 1, "
                                      "got {0}".format(parts[1]))
             else:
                 reco = file_and_channel2reco[(parts[0], parts[1])]
