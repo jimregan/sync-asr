@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# flake8: noqa
 
 
 # Copyright 2016   Vimal Manohar
