@@ -25,12 +25,15 @@ class WhisperXWord(TimedWord):
 
 class WhisperXJSON(TimedWordSentence):
     def __init__(self, data=None, filename=""):
-        if data is None:
+        # Prefer explicit data when provided, optionally using filename only for fileid.
+        if data is not None:
+            words = self._grab(data)
+            fileid = Path(filename).stem if filename else None
+        elif filename:
             words = self._load(filename)
             fileid = Path(filename).stem
-        elif filename == "":
-            words = self._grab(data)
-            fileid = None
+        else:
+            raise ValueError("Either 'data' or a non-empty 'filename' must be provided to WhisperXJSON")
         super().__init__(words, fileid=fileid)
 
     def _load(self, filename):
