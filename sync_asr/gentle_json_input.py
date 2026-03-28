@@ -17,9 +17,7 @@ import json
 
 
 class GentleWord(TimedWord):
-    def __init__(self, start_time=0, end_time=0, text=0, aligned_word=None, case="", start_offset=0, end_offset=0, phones=None):
-        if phones is None:
-            phones = []
+    def __init__(self, start_time=0, end_time=0, text=0, aligned_word=None, case="", start_offset=0, end_offset=0, phones=[]):
         super().__init__(start_time, end_time, text)
         if aligned_word:
             self.aligned_word = aligned_word
@@ -36,22 +34,12 @@ class GentlePhone(TimedElement):
 
 class GentleJSON(TimedWordSentence):
     def __init__(self, data=None, filename=""):
-        words = []
-        fileid = None
         if data is None:
             words = self._load(filename)
             fileid = Path(filename).stem
         elif filename == "":
             words = self._grab(data)
             fileid = None
-        else:
-            # Both data and filename provided: parse data and use filename for fileid
-            words = self._grab(data)
-            fileid = Path(filename).stem
-        elif data is None and filename == "":
-            raise ValueError("Either 'data' or 'filename' must be provided")
-        else:
-            raise ValueError("Provide exactly one of 'data' or 'filename', not both")
         super().__init__(words, fileid=fileid)
 
     def _load(self, filename):
@@ -69,17 +57,8 @@ class GentleJSON(TimedWordSentence):
             raise ValueError(f"Data does not appear to contain Gentle JSON")
         for chunk in data["words"]:
             if warn:
-                print(
-                    f'Reading word: {chunk.get("start")}:{chunk.get("end")} {chunk.get("word")}'
-                )
-            # Gentle JSON times are in seconds; convert to integer milliseconds
-            start_time_ms = int(round(float(chunk["start"]) * 1000.0))
-            end_time_ms = int(round(float(chunk["end"]) * 1000.0))
-            words.append(
-                GentleWord(
-                    start_time=start_time_ms,
-                    end_time=end_time_ms,
-                    text=chunk["word"],
-                )
-            )
+                print(f'Reading word: {chunk["timestamp"][0]}:{chunk["timestamp"][1]} {chunk["text"]}')
+            words.append(GentleWord(start_time=float(chunk["start"]),
+                                        end_time=int(chunk["end"]),
+                                        text=chunk["word"]))
         return words
