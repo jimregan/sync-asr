@@ -50,11 +50,35 @@ def get_args():
     return args
 
 
+def get_video_id(ctmedit_file):
+    with open(ctmedit_file) as f:
+        for line in f:
+            line = line.strip()
+            if line:
+                return line.split()[0]
+    return None
+
+
+def write_ffmpeg_script(script_path, input_dir, video_dir, wav_dir):
+    seen = set()
+    lines = ["#!/bin/bash\n"]
+    for ctmedit_file in sorted(input_dir.iterdir()):
+        vidid = get_video_id(ctmedit_file)
+        if vidid is None or vidid in seen:
+            continue
+        seen.add(vidid)
+        src = video_dir / f"{vidid}_480p.mp4"
+        dst = wav_dir / f"{vidid}.wav"
+        lines.append(f"ffmpeg -i {src} -acodec pcm_s16le -ac 1 -ar 16000 {dst}\n")
+    with open(script_path, "w") as f:
+        f.writelines(lines)
+    script_path.chmod(0o755)
+
+
 def main():
     args = get_args()
     if args.write_ffmpeg_script:
-         with open(str(args.write_ffmpeg_script), "w"):
-              pass
+        write_ffmpeg_script(args.write_ffmpeg_script, args.input_dir, args.video_dir, args.wav_dir)
 
 
 if __name__ == '__main__':
