@@ -17,7 +17,9 @@ import json
 
 
 class GentleWord(TimedWord):
-    def __init__(self, start_time=0, end_time=0, text=0, aligned_word=None, case="", start_offset=0, end_offset=0, phones=[]):
+    def __init__(self, start_time=0, end_time=0, text=0, aligned_word=None, case="", start_offset=0, end_offset=0, phones=None):
+        if phones is None:
+            phones = []
         super().__init__(start_time, end_time, text)
         if aligned_word:
             self.aligned_word = aligned_word
