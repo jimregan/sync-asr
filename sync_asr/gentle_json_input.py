@@ -34,12 +34,14 @@ class GentlePhone(TimedElement):
 
 class GentleJSON(TimedWordSentence):
     def __init__(self, data=None, filename=""):
-        if data is None:
+        if data is None and filename:
             words = self._load(filename)
             fileid = Path(filename).stem
-        elif filename == "":
+        elif data is not None and filename == "":
             words = self._grab(data)
             fileid = None
+        else:
+            raise ValueError("GentleJSON requires exactly one of 'data' or 'filename' to be provided")
         super().__init__(words, fileid=fileid)
 
     def _load(self, filename):
@@ -57,7 +59,7 @@ class GentleJSON(TimedWordSentence):
             raise ValueError(f"Data does not appear to contain Gentle JSON")
         for chunk in data["words"]:
             if warn:
-                print(f'Reading word: {chunk["timestamp"][0]}:{chunk["timestamp"][1]} {chunk["text"]}')
+                print(f'Reading word: {chunk.get("start")}:{chunk.get("end")} {chunk.get("word")}')
             words.append(GentleWord(start_time=float(chunk["start"]),
                                         end_time=int(chunk["end"]),
                                         text=chunk["word"]))
