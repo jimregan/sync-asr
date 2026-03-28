@@ -25,12 +25,14 @@ class GentleWord(TimedWord):
 
 class GentleJSON(TimedWordSentence):
     def __init__(self, data=None, filename=""):
-        if data is None:
+        if data is None and filename:
             words = self._load(filename)
             fileid = Path(filename).stem
-        elif filename == "":
+        elif data is not None and filename == "":
             words = self._grab(data)
             fileid = None
+        else:
+            raise ValueError("GentleJSON requires exactly one of 'data' or 'filename' to be provided")
         super().__init__(words, fileid=fileid)
 
     def _load(self, filename):
