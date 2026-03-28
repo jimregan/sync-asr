@@ -23,7 +23,7 @@ class WhisperXWord(TimedWord):
             self.speaker = speaker
 
 
-class HuggingFaceJSON(TimedWordSentence):
+class WhisperXJSON(TimedWordSentence):
     def __init__(self, data=None, filename=""):
         if data is None:
             words = self._load(filename)
@@ -36,20 +36,27 @@ class HuggingFaceJSON(TimedWordSentence):
     def _load(self, filename):
         with open(filename) as jsonf:
             data = json.load(jsonf)
-            if not "chunks" in data:
+            if "segments" not in data:
                 raise ValueError(f"File {filename} does not appear to contain WhisperX JSON")
-            return self._grab(data, False)
+            return self._grab(data)
 
-    def _grab(self, data, warn=False):
+    def _grab(self, data):
         words = []
         if type(data) == str:
             data = json.loads(data)
-        if not "chunks" in data or type(data["chunks"]) != list:
-            raise ValueError(f"Data does not appear to contain WhisperX JSON")
-        for chunk in data["chunks"]:
-            if warn:
-                print(f'Reading chunk: {chunk["timestamp"][0]}:{chunk["timestamp"][1]} {chunk["text"]}')
-            words.append(TimedWord(start_time=int(chunk["timestamp"][0] * 1000),
-                                        end_time=int(chunk["timestamp"][1] * 1000),
-                                        text=chunk["text"]))
+        if "segments" not in data or type(data["segments"]) != list:
+            raise ValueError("Data does not appear to contain WhisperX JSON")
+        for segment in data["segments"]:
+            segment_speaker = segment.get("speaker")
+            for word in segment.get("words", []):
+                start = word.get("start")
+                end = word.get("end")
+                if start is None or end is None:
+                    continue
+                words.append(WhisperXWord(
+                    start_time=int(start * 1000),
+                    end_time=int(end * 1000),
+                    text=word.get("word", ""),
+                    speaker=word.get("speaker") or segment_speaker,
+                ))
         return words
