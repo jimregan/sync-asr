@@ -23,7 +23,7 @@ class WhisperXWord(TimedWord):
             self.speaker = speaker
 
 
-class HuggingFaceJSON(TimedWordSentence):
+class WhisperXJSON(TimedWordSentence):
     def __init__(self, data=None, filename=""):
         if data is None:
             words = self._load(filename)
