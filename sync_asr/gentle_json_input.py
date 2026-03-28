@@ -50,7 +50,7 @@ class GentleJSON(TimedWordSentence):
             raise ValueError(f"Data does not appear to contain Gentle JSON")
         for chunk in data["words"]:
             if warn:
-                print(f'Reading word: {chunk["timestamp"][0]}:{chunk["timestamp"][1]} {chunk["text"]}')
+                print(f'Reading word: {chunk.get("start")}:{chunk.get("end")} {chunk.get("word")}')
             words.append(GentleWord(start_time=float(chunk["start"]),
                                         end_time=int(chunk["end"]),
                                         text=chunk["word"]))
