@@ -34,10 +34,18 @@ class GentlePhone(TimedElement):
 
 class GentleJSON(TimedWordSentence):
     def __init__(self, data=None, filename=""):
-        if data is None:
+        words = []
+        fileid = None
+        if data is None and filename == "":
+            raise ValueError("Either 'data' or 'filename' must be provided")
+        elif data is not None and filename != "":
+            # Both data and filename provided: parse data and use filename for fileid
+            words = self._grab(data)
+            fileid = Path(filename).stem
+        elif data is None:
             words = self._load(filename)
             fileid = Path(filename).stem
-        elif filename == "":
+        else:
             words = self._grab(data)
             fileid = None
         super().__init__(words, fileid=fileid)
