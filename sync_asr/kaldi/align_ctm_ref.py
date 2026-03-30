@@ -16,6 +16,7 @@ from __future__ import print_function
 import argparse
 import logging
 import sys
+import unicodedata
 
 
 logger = logging.getLogger(__name__)
@@ -108,6 +109,12 @@ def get_args():
                         from the normal Smith-Waterman alignment, where the
                         traceback will be from the maximum score.""")
 
+    parser.add_argument("--ignore-punctuation", type=str,
+                        action=StrToBoolAction,
+                        choices=["true", "false"], default=True,
+                        help="""Ignore punctuation on either side of the
+                        words when computing similarity.""")
+
     parser.add_argument("--debug-only", type=str, default="false",
                         choices=["true", "false"],
                         help="Run test functions only")
@@ -141,6 +148,21 @@ def get_args():
     logger.addHandler(handler)
 
     return args
+
+
+def clean_text(work_ref, lower=True):
+    i = 0
+    l = len(work_ref)
+    cats = set(['Pc', 'Pd', 'Ps', 'Pe', 'Pi', 'Pf', 'Po'])
+    while i < l and unicodedata.category(work_ref[i]) in cats:
+        i += 1
+    j = -1
+    while j >= -l and unicodedata.category(work_ref[j]) in cats:
+        j -= 1
+    retval = work_ref[i:j+1]
+    if lower:
+        retval = retval.lower()
+    return retval
 
 
 def read_text(text_file):
@@ -396,8 +418,11 @@ def print_alignment(recording, alignment, out_file_handle):
 
 
 def get_edit_type(hyp_word, ref_word, duration=-1, eps_symbol='<eps>',
-                  oov_word=None, symbol_table=None):
-    if hyp_word == ref_word and hyp_word != eps_symbol:
+                  oov_word=None, symbol_table=None, ignore_punctuation=True):
+    hyp_compare = hyp_word
+    if ignore_punctuation:
+        hyp_compare = clean_text(hyp_word)
+    if (hyp_compare == ref_word or hyp_word == ref_word) and hyp_word != eps_symbol:
         return 'cor'
     if hyp_word != eps_symbol and ref_word == eps_symbol:
         return 'ins'
@@ -417,7 +442,7 @@ def get_edit_type(hyp_word, ref_word, duration=-1, eps_symbol='<eps>',
 
 
 def get_ctm_edits(alignment_output, ctm_array, eps_symbol="<eps>",
-                  oov_word=None, symbol_table=None):
+                  oov_word=None, symbol_table=None, ignore_punctuation=True):
     """
     This function takes two lists
         alignment_output = The output of smith_waterman_alignment() which is a
@@ -467,7 +492,8 @@ def get_ctm_edits(alignment_output, ctm_array, eps_symbol="<eps>",
                 edit_type = get_edit_type(
                     hyp_word=eps_symbol, ref_word=ref_word,
                     duration=0.0, eps_symbol=eps_symbol,
-                    oov_word=oov_word, symbol_table=symbol_table)
+                    oov_word=oov_word, symbol_table=symbol_table,
+                    ignore_punctuation=ignore_punctuation)
                 ctm_line = [current_time, 0.0, eps_symbol, 1.0,
                             ref_word, edit_type]
                 ctm_edits.append(ctm_line)
@@ -485,7 +511,8 @@ def get_ctm_edits(alignment_output, ctm_array, eps_symbol="<eps>",
                     edit_type = get_edit_type(
                         hyp_word=eps_symbol, ref_word=ref_word,
                         duration=0.0, eps_symbol=eps_symbol,
-                        oov_word=oov_word, symbol_table=symbol_table)
+                        oov_word=oov_word, symbol_table=symbol_table,
+                        ignore_punctuation=ignore_punctuation)
                     assert edit_type == 'del'
                     ctm_edits.append([current_time, 0.0, eps_symbol, 1.0,
                                       ref_word, edit_type])
@@ -493,7 +520,8 @@ def get_ctm_edits(alignment_output, ctm_array, eps_symbol="<eps>",
                     edit_type = get_edit_type(
                         hyp_word=eps_symbol, ref_word=eps_symbol,
                         duration=ctm_line[1], eps_symbol=eps_symbol,
-                        oov_word=oov_word, symbol_table=symbol_table)
+                        oov_word=oov_word, symbol_table=symbol_table,
+                        ignore_punctuation=ignore_punctuation)
                     assert edit_type == 'sil'
                     ctm_line.extend([eps_symbol, edit_type])
                     ctm_edits.append(ctm_line)
@@ -501,7 +529,8 @@ def get_ctm_edits(alignment_output, ctm_array, eps_symbol="<eps>",
                     edit_type = get_edit_type(
                         hyp_word=hyp_word, ref_word=ref_word,
                         duration=ctm_line[1], eps_symbol=eps_symbol,
-                        oov_word=oov_word, symbol_table=symbol_table)
+                        oov_word=oov_word, symbol_table=symbol_table,
+                        ignore_punctuation=ignore_punctuation)
                     ctm_line.extend([ref_word, edit_type])
                     ctm_edits.append(ctm_line)
                 current_time = (ctm_array[ctm_pos][0]
@@ -547,10 +576,19 @@ def run(args):
         test_alignment(args.align_full_hyp)
         raise SystemExit("Exiting since --debug-only was true")
 
-    def similarity_score_function(x, y):
+    def similarity_score_function_bare(x, y):
         if x == y:
             return args.correct_score
         return -args.substitution_penalty
+    
+    def similarity_ignoring_punctuation(x, y):
+        if x == clean_text(y):
+            return args.correct_score
+        return -args.substitution_penalty
+
+    similarity_score_function = similarity_ignoring_punctuation
+    if not args.ignore_punctuation:
+        similarity_score_function = similarity_score_function_bare
 
     del_score = -args.deletion_penalty
     ins_score = -args.insertion_penalty
@@ -614,7 +652,8 @@ def run(args):
                 ctm_edits = get_ctm_edits(output, hyp_lines[reco],
                                           eps_symbol=args.eps_symbol,
                                           oov_word=args.oov_word,
-                                          symbol_table=symbol_table)
+                                          symbol_table=symbol_table,
+                                          ignore_punctuation=args.ignore_punctuation)
                 for line in ctm_edits:
                     ctm_line = list(reco2file_and_channel[reco])
                     ctm_line.extend(line)
