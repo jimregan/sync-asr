@@ -74,6 +74,10 @@ class PronunciationPair:
     district: str
     year: Optional[int]
     speech_id: Optional[str]
+    audio_filepath: Optional[str]
+    audio_start: Optional[int]
+    audio_end: Optional[int]
+    filestem: Optional[str] = None
 
 
 def extract_pairs(
@@ -133,6 +137,9 @@ def extract_pairs(
             if not ipa:
                 continue
 
+            filepath = meta_rec.get("audio_filepath", "")
+            filestem = Path(filepath).stem if filepath else ""
+
             pairs.append(PronunciationPair(
                 word=ref_word,
                 ipa=ipa,
@@ -143,6 +150,10 @@ def extract_pairs(
                 district=meta_rec.get("district", ""),
                 year=meta_rec.get("year"),
                 speech_id=meta_rec.get("speech_id"),
+                audio_filepath=meta_rec.get("audio_filepath"),
+                audio_start=meta_rec.get("start"),
+                audio_end=meta_rec.get("end"),
+                filestem=filestem,
             ))
 
     return pairs
