@@ -20,7 +20,9 @@ normalisation), phonetic tokens whose midpoint falls within the word's
 time window are collected and concatenated to form the IPA pronunciation.
 
 Special tokens:
-  <hes>  - hesitation; skipped entirely
+  <hes>  - hesitation; treated as epsilon in word alignment (will not
+           consume a transcript word) and passed through into the IPA
+           output when it falls within a word's time window
   <v>    - word-final epenthetic vowel; stripped from IPA output but
            flagged in the record so callers can filter or keep it
 """
@@ -50,9 +52,6 @@ def _normalize(text):
 def _strip_special(text):
     return text.replace(_EPENTHETIC, "").strip()
 
-
-def _is_skip(text):
-    return text.strip() == _HESITATION
 
 
 def _midpoint(timestamp):
@@ -103,7 +102,7 @@ def extract_pairs(
         meta_rec.get("text_normalized") or _normalize(meta_rec.get("text", ""))
     ).split()
 
-    w2v_items = [c for c in wav2vec_chunks if not _is_skip(c["text"])]
+    w2v_items = list(wav2vec_chunks)
     w2v_words = [_normalize(c["text"]) for c in w2v_items]
 
     matcher = SequenceMatcher(None, ref_words, w2v_words, autojunk=False)
@@ -124,8 +123,7 @@ def extract_pairs(
 
             phon_tokens = [
                 c for c in phonetic_chunks
-                if not _is_skip(c["text"])
-                and c["timestamp"][0] is not None
+                if c["timestamp"][0] is not None
                 and c["timestamp"][1] is not None
                 and _within(_midpoint(c["timestamp"]), start_s, end_s)
             ]
