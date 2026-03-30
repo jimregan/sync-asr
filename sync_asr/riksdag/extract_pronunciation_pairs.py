@@ -1,4 +1,4 @@
-# Copyright (c) 2024 Jim O'Regan for Språkbanken Tal
+# Copyright (c) 2026 Jim O'Regan for Språkbanken Tal
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -166,6 +166,10 @@ def get_args():
                         help="Directory containing phonetic model jsonl files")
     parser.add_argument("--wav2vec-dir", type=Path, required=True,
                         help="Directory containing wav2vec2-nolm jsonl files")
+    parser.add_argument("--phonetic-ext", type=str, default=".phn.json",
+                        help="Extension for wav2vec2 phonetic json files")
+    parser.add_argument("--wav2vec-ext", type=str, default=".w2v2.json",
+                        help="Extension for wav2vec2-nolm json files")
     parser.add_argument(
         "--key-field", default="audio_filepath",
         help="Metadata field whose stem is used as the filename key "
@@ -209,13 +213,8 @@ def main():
                     continue
 
                 key = _resolve_key(rec, args.key_field)
-                phon_file = phon_dir / f"{key}.json"
-                w2v_file = w2v_dir / f"{key}.json"
-
-                if not phon_file.exists():
-                    phon_file = phon_dir / f"{key}.jsonl"
-                if not w2v_file.exists():
-                    w2v_file = w2v_dir / f"{key}.jsonl"
+                phon_file = phon_dir / f"{key}{args.phonetic_ext}"
+                w2v_file = w2v_dir / f"{key}{args.wav2vec_ext}"
 
                 if not phon_file.exists() or not w2v_file.exists():
                     skipped_no_file += 1
