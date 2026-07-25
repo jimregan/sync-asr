@@ -11,136 +11,191 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import numpy as np
+"""
+Two-pass alignment of two chronologically-ordered timed sequences (e.g.
+wav2vec output aligned against phonetic-model output over the same audio).
+
+Pass 1 anchors elements whose start time and duration both match within
+tolerance: high-confidence 1:1 correspondences.
+
+Pass 2 covers everything between anchors by grouping elements that overlap
+in time, preferring 1:1 pairs and only falling back to 1:N / N:1 groups
+where the overlap is genuinely ambiguous.
+"""
+from bisect import bisect_left
+from dataclasses import dataclass
+from typing import List
+
+from ..elements import TimedElement
 
 
-def end_cost(a, b):
-    return abs(a["end"] - b["end"])
+@dataclass
+class AlignedGroup:
+    a_indices: List[int]
+    b_indices: List[int]
+    kind: str  # "exact", "overlap", "unmatched_a", "unmatched_b"
 
 
-def start_cost(a, b):
-    return abs(a["start"] - b["start"])
+def _is_tight_match(a: TimedElement, b: TimedElement, start_tolerance, duration_tolerance):
+    return (abs(a.start_time - b.start_time) <= start_tolerance and
+            abs(a.get_duration() - b.get_duration()) <= duration_tolerance)
 
 
-def total_cost(a, b):
-    starts = start_cost(a, b)
-    ends = end_cost(a, b)
-    return starts + ends
+def _find_anchors(a: List[TimedElement], b: List[TimedElement], start_tolerance, duration_tolerance):
+    b_starts = [item.start_time for item in b]
+    anchors = []
+    last_j = -1
+    for i, a_item in enumerate(a):
+        lo = bisect_left(b_starts, a_item.start_time - start_tolerance, last_j + 1)
+        candidates = []
+        j = lo
+        while j < len(b) and b[j].start_time <= a_item.start_time + start_tolerance:
+            if _is_tight_match(a_item, b[j], start_tolerance, duration_tolerance):
+                candidates.append(j)
+            j += 1
+        if candidates:
+            best_j = min(
+                candidates,
+                key=lambda j: abs(a_item.start_time - b[j].start_time) + abs(a_item.get_duration() - b[j].get_duration()),
+            )
+            anchors.append((i, best_j))
+            last_j = best_j
+    return anchors
 
 
-def in_start_range(a, b, range=0.2):
-    return abs(a["start"] - b["start"]) <= range
+def _union_find(n):
+    parent = list(range(n))
+
+    def find(x):
+        while parent[x] != x:
+            parent[x] = parent[parent[x]]
+            x = parent[x]
+        return x
+
+    def union(x, y):
+        rx, ry = find(x), find(y)
+        if rx != ry:
+            parent[rx] = ry
+
+    return find, union
 
 
-def in_end_range(a, b, range=0.2):
-    return abs(a["end"] - b["end"]) <= range
+def _components(a_slice, b_slice):
+    na = len(a_slice)
+    find, union = _union_find(na + len(b_slice))
+    for ai, a_item in enumerate(a_slice):
+        for bi, b_item in enumerate(b_slice):
+            if a_item.overlap(b_item) > 0:
+                union(ai, na + bi)
+
+    groups = {}
+    for ai in range(na):
+        groups.setdefault(find(ai), {"a": [], "b": []})["a"].append(ai)
+    for bi in range(len(b_slice)):
+        groups.setdefault(find(na + bi), {"a": [], "b": []})["b"].append(bi)
+    return sorted(groups.values(), key=lambda g: (g["a"][0] if g["a"] else g["b"][0]))
 
 
-def in_range(a, b, range=0.2):
-    r_start = in_start_range(a, b, range)
-    r_end = in_end_range(a, b, range)
-    return r_start or r_end
+def _decompose_component(a_slice, b_slice, comp_a, comp_b):
+    pairs = []
+    for ai in comp_a:
+        for bi in comp_b:
+            ov = a_slice[ai].overlap(b_slice[bi])
+            if ov > 0:
+                pairs.append((ov, ai, bi))
+    pairs.sort(key=lambda p: p[0], reverse=True)
 
+    matched = []
+    a_to_group = {}
+    b_to_group = {}
+    for _, ai, bi in pairs:
+        if ai in a_to_group or bi in b_to_group:
+            continue
+        group = {"a": [ai], "b": [bi]}
+        matched.append(group)
+        a_to_group[ai] = group
+        b_to_group[bi] = group
 
-def falls_between(a1, a2, b):
-    if b["end"] <= a2["start"] and b["start"] >= a1["end"]:
-        return True
-    return False
-
-
-def approx_eq(start1, start2, factor=0.04):
-    return start1 == start2 or abs(start1 - start2) < factor
-
-
-def align_times(new_a, new_b, merge_end_flexibility=0.06):
-    s1 = len(new_a)
-    s2 = len(new_b)
-
-    additionals = []
-    merges = {}
-
-    dist_matrix = np.matrix(np.ones((s1, s2)))
-    pair_cost = 0.0
-
-    for i in range(s1):
-        for j in range(s2):
-            if not in_range(new_a[i], new_b[j]):
+    def attach_leftover(index, own_side, own_to_group, other_slice, other_comp, other_to_group):
+        best_group, best_overlap = None, 0
+        own_item = a_slice[index] if own_side == "a" else b_slice[index]
+        for other_index in other_comp:
+            if other_index not in other_to_group:
                 continue
+            other_item = other_slice[other_index]
+            ov = own_item.overlap(other_item)
+            if ov > best_overlap:
+                best_overlap = ov
+                best_group = other_to_group[other_index]
+        if best_group is None:
+            best_group = {"a": [], "b": []}
+            matched.append(best_group)
+        best_group[own_side].append(index)
+        own_to_group[index] = best_group
 
-            if i == 0 and new_b[j]["end"] < new_a[0]["start"]:
-                additionals.append((-1, 0, j))
-                dist_matrix[i, j] = 1.0
-                continue
-            elif i < (s1 - 1) and falls_between(new_a[i], new_a[i + 1], new_b[j]):
-                additionals.append((i, i + 1, j))
-                dist_matrix[i, j] = 1.0
-                continue
-            elif i == s1 and new_b[j]["start"] >= new_a[i]["end"]:
-                additionals.append((i, -1, j))
-                dist_matrix[i, j] = 1.0
-                continue
+    for ai in comp_a:
+        if ai not in a_to_group:
+            attach_leftover(ai, "a", a_to_group, b_slice, comp_b, b_to_group)
+    for bi in comp_b:
+        if bi not in b_to_group:
+            attach_leftover(bi, "b", b_to_group, a_slice, comp_a, a_to_group)
 
-            if approx_eq(new_a[i]["start"], new_b[j]["start"]):
-                tmp_j = j
-                fwd = []
-                extent = new_b[tmp_j]
-                if i < (s1 - 2) and new_b[tmp_j]["end"] < new_a[i + 1]["end"]:
-                    extent = new_a[i + 1]
-                while tmp_j < (s2 - 1) and not in_end_range(new_a[i], extent, merge_end_flexibility):
-                    fwd.append((end_cost(new_a[i], new_b[tmp_j]), tmp_j))
-                    tmp_j += 1
-                if len(fwd) > 1:
-                    sfwd = sorted(fwd)
-                    new_j = sfwd[0][1]
-                    if new_j != j:
-                        pair_cost = sfwd[0][0]
-                        merges[i] = [x for x in range(j, new_j + 1)]
-                        j = new_j
-            if pair_cost != 1.:
-                pair_cost = total_cost(new_a[i], new_b[j])
-            dist_matrix[i, j] = pair_cost
-    return dist_matrix, additionals, merges
+    groups = []
+    for g in matched:
+        g["a"].sort()
+        g["b"].sort()
+        groups.append(g)
+    return groups
 
 
-def walk_matrix(dist_matrix, additions, merges):
-    i = 0
-    j = 0
+def _align_gap(a_slice, b_slice, a_offset, b_offset):
+    if not a_slice and not b_slice:
+        return []
+    if not a_slice:
+        return [AlignedGroup([], list(range(b_offset, b_offset + len(b_slice))), "unmatched_b")]
+    if not b_slice:
+        return [AlignedGroup(list(range(a_offset, a_offset + len(a_slice))), [], "unmatched_a")]
 
-    s1 = dist_matrix.shape[0]
-    s2 = dist_matrix.shape[1]
+    groups = []
+    for comp in _components(a_slice, b_slice):
+        if not comp["a"]:
+            groups.append(AlignedGroup([], [b_offset + i for i in comp["b"]], "unmatched_b"))
+            continue
+        if not comp["b"]:
+            groups.append(AlignedGroup([a_offset + i for i in comp["a"]], [], "unmatched_a"))
+            continue
+        for g in _decompose_component(a_slice, b_slice, comp["a"], comp["b"]):
+            groups.append(AlignedGroup(
+                [a_offset + i for i in g["a"]],
+                [b_offset + i for i in g["b"]],
+                "overlap",
+            ))
+    groups.sort(key=lambda g: (g.a_indices[0] if g.a_indices else a_offset + len(a_slice),
+                                g.b_indices[0] if g.b_indices else b_offset + len(b_slice)))
+    return groups
 
-    path = []
-    def do_additions(i, j):
-        if (i-1, i, j) in additions:
-            return True
-        if i+1 < s1 and (i, i + 1, j) in additions:
-            return True
-        if i == s1 and (i, -1, j) in additions:
-            return True
-        return False
 
-    while i < s1:
-        while j < s2:
-            if not i in merges:
-                if do_additions(i, j):
-                    j += 1
-                    continue
-                pairs = []
-                tmpj = j
-                while tmpj < s2 - 1 and dist_matrix[i,tmpj] != 1.0:
-                    pairs.append((dist_matrix[i,tmpj], tmpj))
-                    tmpj += 1
-                if pairs != []:
-                    spairs = sorted(pairs)
-                    j = spairs[0][1]
-                path.append((i, j))
-                i += 1
-                j += 1
-                continue
-            else:
-                path += [(i, x) for x in merges[i]]
-                j = merges[i][-1] + 1
-                i += 1
-                continue
-    return path
+def align(
+    a: List[TimedElement],
+    b: List[TimedElement],
+    start_tolerance: float = 0.02,
+    duration_tolerance: float = 0.03,
+) -> List[AlignedGroup]:
+    """
+    Align two chronologically-ordered sequences of TimedElement.
 
+    `start_tolerance` and `duration_tolerance` are in whatever unit `a`
+    and `b`'s start_time/end_time use (seconds or milliseconds); they
+    control pass 1's exact-anchor matching only. Pass 2 falls back to
+    pure time-overlap for everything anchors don't cover.
+    """
+    anchors = _find_anchors(a, b, start_tolerance, duration_tolerance)
+
+    groups = []
+    prev_i, prev_j = -1, -1
+    for ai, bj in anchors:
+        groups.extend(_align_gap(a[prev_i + 1:ai], b[prev_j + 1:bj], prev_i + 1, prev_j + 1))
+        groups.append(AlignedGroup([ai], [bj], "exact"))
+        prev_i, prev_j = ai, bj
+    groups.extend(_align_gap(a[prev_i + 1:], b[prev_j + 1:], prev_i + 1, prev_j + 1))
+    return groups

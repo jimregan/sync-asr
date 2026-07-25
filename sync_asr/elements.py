@@ -54,10 +54,7 @@ class TimedElement():
             return NotImplemented
         if not self._is_valid_comparison(other):
             return NotImplemented
-        if self.end_time < other.end_time:
-            return self.end_time > other.start_time
-        elif self.start_time > other.start_time:
-            return self.start_time < other.end_time
+        return self.start_time < other.end_time and other.start_time < self.end_time
 
     def contained_duration(self, other):
         # FIXME
