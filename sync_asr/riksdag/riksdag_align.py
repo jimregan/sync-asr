@@ -132,7 +132,7 @@ def rd_equals(x, y):
             right = right[:-1]
     if left == right:
         return True
-    elif left in corr and corr[left] == right:
+    elif right in corr and left in corr[right]:
         return True
     return False
 

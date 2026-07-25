@@ -14,6 +14,7 @@
 import json
 
 from sync_asr.utils.pronunciation_dict import (
+    BraxenDictionary,
     CompositeDictionary,
     DictPronunciationDictionary,
     NSTLexiconDictionary,
@@ -76,4 +77,23 @@ def test_nst_lexicon_dictionary_from_cleaned_json(tmp_path):
     path.write_text(json.dumps({"hej": ["hɛj", "hej"]}), encoding="utf-8")
     d = NSTLexiconDictionary.from_cleaned_json(path)
     assert d.lookup("hej") == {"hɛj", "hej"}
+    assert d.lookup("missing") == set()
+
+
+def test_braxen_dictionary_from_tsv(tmp_path):
+    # real rows, verbatim, from braxen-sv.tsv
+    rows = [
+        "björn\tb j 'oe: rn\tNN UTR SIN IND NOM\tswe\t-\t-\t-\t-\t-\t-\t-\t-\t-\t-\t-\t-\t0\t-\t-\t-\t-\t-\t-\t-\t-\t-\t50051",
+        "Caroline\tk a . r oh . l 'i: n\tPM NOM\tswe\t-\t-\t-\t-\t-\t-\t-\t-\t-\t-\t-\t-\t0\t-\t-\t-\t-\t-\t-\t-\t-\t-\t626438",
+    ]
+    path = tmp_path / "braxen-sv.tsv"
+    path.write_text("\n".join(rows) + "\n", encoding="utf-8")
+
+    d = BraxenDictionary.from_tsv(path)
+
+    assert d.lookup("björn") == {"bjœːɳ"}
+    # extract_pronunciation_pairs.py always looks up lowercased ref words,
+    # so BraxenDictionary keys are lowercase-folded (see braxen_lexicon.py)
+    assert d.lookup("caroline") == {"karoliːn"}
+    assert d.lookup("Caroline") == set()
     assert d.lookup("missing") == set()

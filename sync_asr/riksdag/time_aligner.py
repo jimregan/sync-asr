@@ -179,7 +179,7 @@ def align(
     a: List[TimedElement],
     b: List[TimedElement],
     start_tolerance: float = 0.02,
-    duration_tolerance: float = 0.03,
+    duration_tolerance: float = 0.05,
 ) -> List[AlignedGroup]:
     """
     Align two chronologically-ordered sequences of TimedElement.

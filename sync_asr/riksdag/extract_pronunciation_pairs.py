@@ -25,9 +25,12 @@ ambiguous. The assigned tokens are concatenated to form the IPA
 pronunciation.
 
 Special tokens:
-  <hes>  - hesitation; treated as epsilon in word alignment (will not
-           consume a transcript word) and passed through into the IPA
-           output when it falls within a word's time window
+  <tag>  - any bracketed phonetic-model tag (e.g. <hes> hesitation, <pa>
+           pause) is never dropped. If it lands in a word's aligned
+           group, it's kept in that word's tokens and appears literally
+           in the ipa string. If it falls in a gap between words (no
+           corresponding wav2vec word), it is emitted as its own
+           PhoneticMarker record instead of being discarded.
   <v>    - word-final epenthetic vowel; stripped from IPA output but
            flagged in the record so callers can filter or keep it
 """
@@ -41,14 +44,13 @@ from pathlib import Path
 from typing import List, Optional
 
 from ..elements import TimedElement
-from ..utils.pronunciation_dict import CompositeDictionary, NSTLexiconDictionary, best_match_score
+from ..utils.pronunciation_dict import BraxenDictionary, CompositeDictionary, NSTLexiconDictionary, best_match_score
 from .time_aligner import align
 
 
 _PUNCT_RE = re.compile(r"[^\w\s]", re.UNICODE)
 _SPACE_RE = re.compile(r"\s+")
 _EPENTHETIC = "<v>"
-_HESITATION = "<hes>"
 
 
 def _normalize(text):
@@ -62,12 +64,37 @@ def _strip_special(text):
     return text.replace(_EPENTHETIC, "").strip()
 
 
+def _is_marker_token(text):
+    """A standalone bracketed tag, e.g. <hes> or <pa> -- not the inline <v> marker."""
+    t = text.strip()
+    return t.startswith("<") and t.endswith(">") and t != _EPENTHETIC
+
 
 @dataclass
 class PhoneticToken:
     text: str
     start_ms: int
     end_ms: int
+
+
+@dataclass
+class PhoneticMarker:
+    """A bracketed phonetic-model tag with no corresponding wav2vec word."""
+    text: str
+    start_ms: int
+    end_ms: int
+    speaker_id: str
+    name: str
+    gender: str
+    role: str
+    party: str
+    district: str
+    year: Optional[int]
+    speech_id: Optional[str]
+    audio_file: Optional[str]
+    audio_start: Optional[int]
+    audio_end: Optional[int]
+    filestem: Optional[str] = None
 
 
 @dataclass
@@ -115,14 +142,19 @@ def _valid_timed_elements(chunks, exclude_text=None):
 def _align_words_to_phones(wav2vec_chunks, phonetic_chunks, start_tolerance, duration_tolerance):
     """
     Two-pass time alignment of word-level wav2vec chunks against
-    phone-level phonetic-model chunks for one segment.
+    phonetic-model chunks for one segment.
 
-    Returns a dict mapping wav2vec_chunks index -> sorted list of
-    phonetic_chunks indices assigned to that word. Words with no assigned
-    phones (silence, or consumed entirely by a neighbour) are absent.
+    Returns:
+      word_to_phones : dict mapping wav2vec_chunks index -> sorted list of
+        phonetic_chunks indices assigned to that word. Words with no
+        assigned tokens (silence, or consumed entirely by a neighbour)
+        are absent.
+      orphan_markers : sorted list of phonetic_chunks indices for
+        bracketed tag tokens (see _is_marker_token) that fall in a gap
+        between words rather than inside any word's aligned group.
     """
     a_indexed = _valid_timed_elements(wav2vec_chunks)
-    b_indexed = _valid_timed_elements(phonetic_chunks, exclude_text=_HESITATION)
+    b_indexed = _valid_timed_elements(phonetic_chunks)
 
     a_elems = [e for _, e in a_indexed]
     b_elems = [e for _, e in b_indexed]
@@ -132,15 +164,20 @@ def _align_words_to_phones(wav2vec_chunks, phonetic_chunks, start_tolerance, dur
     groups = align(a_elems, b_elems, start_tolerance=start_tolerance, duration_tolerance=duration_tolerance)
 
     word_to_phones = {}
+    orphan_markers = []
     for g in groups:
-        if not g.a_indices or not g.b_indices:
+        if not g.b_indices:
             continue
         phon_orig = [b_orig[bi] for bi in g.b_indices]
+        if not g.a_indices:
+            orphan_markers.extend(oi for oi in phon_orig if _is_marker_token(phonetic_chunks[oi]["text"]))
+            continue
         for ai in g.a_indices:
             word_to_phones.setdefault(a_orig[ai], []).extend(phon_orig)
     for indices in word_to_phones.values():
         indices.sort()
-    return word_to_phones
+    orphan_markers.sort()
+    return word_to_phones, orphan_markers
 
 
 def extract_pairs(
@@ -148,8 +185,8 @@ def extract_pairs(
     phonetic_chunks: list,
     wav2vec_chunks: list,
     start_tolerance: float = 0.02,
-    duration_tolerance: float = 0.03,
-) -> List[PronunciationPair]:
+    duration_tolerance: float = 0.05,
+):
     """
     Extract pronunciation pairs from one metadata record.
 
@@ -165,6 +202,10 @@ def extract_pairs(
         Each element: {"text": "<word>", "timestamp": [start_s, end_s]}
     start_tolerance, duration_tolerance : float
         Passed to the two-pass time aligner's exact-anchor pass (seconds).
+
+    Returns
+    -------
+    (pairs, markers) : (List[PronunciationPair], List[PhoneticMarker])
     """
     ref_words = (
         meta_rec.get("text_normalized") or _normalize(meta_rec.get("text", ""))
@@ -173,8 +214,32 @@ def extract_pairs(
     w2v_items = list(wav2vec_chunks)
     w2v_words = [_normalize(c["text"]) for c in w2v_items]
 
+    filepath = meta_rec.get("audio_filepath", "")
+    filestem = Path(filepath).stem if filepath else ""
+
     matcher = SequenceMatcher(None, ref_words, w2v_words, autojunk=False)
-    word_to_phones = _align_words_to_phones(w2v_items, phonetic_chunks, start_tolerance, duration_tolerance)
+    word_to_phones, orphan_markers = _align_words_to_phones(w2v_items, phonetic_chunks, start_tolerance, duration_tolerance)
+
+    markers = [
+        PhoneticMarker(
+            text=phonetic_chunks[idx]["text"],
+            start_ms=int(phonetic_chunks[idx]["timestamp"][0] * 1000),
+            end_ms=int(phonetic_chunks[idx]["timestamp"][1] * 1000),
+            speaker_id=meta_rec.get("speaker_id", ""),
+            name=meta_rec.get("name", ""),
+            gender=meta_rec.get("gender", ""),
+            role=meta_rec.get("role", ""),
+            party=meta_rec.get("party", ""),
+            district=meta_rec.get("district", ""),
+            year=meta_rec.get("year"),
+            speech_id=meta_rec.get("speech_id"),
+            audio_file=meta_rec.get("audio_file"),
+            audio_start=meta_rec.get("start"),
+            audio_end=meta_rec.get("end"),
+            filestem=filestem,
+        )
+        for idx in orphan_markers
+    ]
 
     pairs = []
     for tag, i1, i2, j1, j2 in matcher.get_opcodes():
@@ -207,9 +272,6 @@ def extract_pairs(
             if not any(_strip_special(t.text) for t in tokens):
                 continue
 
-            filepath = meta_rec.get("audio_filepath", "")
-            filestem = Path(filepath).stem if filepath else ""
-
             pairs.append(PronunciationPair(
                 word=ref_word,
                 word_start_ms=int(start_s * 1000),
@@ -230,7 +292,7 @@ def extract_pairs(
                 filestem=filestem,
             ))
 
-    return pairs
+    return pairs, markers
 
 
 def _load_chunks(path: Path) -> list:
@@ -278,14 +340,20 @@ def get_args():
         help="Time-aligner exact-anchor start-time tolerance, in seconds (default: 0.02)"
     )
     parser.add_argument(
-        "--duration-tolerance", type=float, default=0.03,
-        help="Time-aligner exact-anchor duration tolerance, in seconds (default: 0.03)"
+        "--duration-tolerance", type=float, default=0.05,
+        help="Time-aligner exact-anchor duration tolerance, in seconds (default: 0.05)"
+    )
+    parser.add_argument(
+        "--braxen-dict", type=Path, action="append", default=[],
+        help="Braxen lexicon TSV file to validate extracted pronunciations against "
+             "(the main pronunciation dictionary). May be given more than once; "
+             "adds a dict_match_score field (0-1, null if the word is OOV) to output."
     )
     parser.add_argument(
         "--pronunciation-dict", type=Path, action="append", default=[],
         help="Cleaned NST-lexicon-style JSON file ({word: [ipa, ...]}) to validate "
-             "extracted pronunciations against. May be given more than once; "
-             "adds a dict_match_score field (0-1, null if the word is OOV) to output."
+             "extracted pronunciations against, as a fallback dictionary alongside "
+             "--braxen-dict. May be given more than once."
     )
     return parser.parse_args()
 
@@ -296,9 +364,10 @@ def main():
     phon_dir = args.phonetic_dir
     w2v_dir = args.wav2vec_dir
 
+    dictionaries = [BraxenDictionary.from_tsv(p) for p in args.braxen_dict]
+    dictionaries += [NSTLexiconDictionary.from_cleaned_json(p) for p in args.pronunciation_dict]
     pron_dict = None
-    if args.pronunciation_dict:
-        dictionaries = [NSTLexiconDictionary.from_cleaned_json(p) for p in args.pronunciation_dict]
+    if dictionaries:
         pron_dict = dictionaries[0] if len(dictionaries) == 1 else CompositeDictionary(dictionaries)
 
     total = skipped_filter = skipped_no_file = emitted = 0
@@ -333,7 +402,7 @@ def main():
                     skipped_no_file += 1
                     continue
 
-                pairs = extract_pairs(
+                pairs, markers = extract_pairs(
                     rec, phon_chunks, w2v_chunks,
                     start_tolerance=args.start_tolerance,
                     duration_tolerance=args.duration_tolerance,
@@ -343,6 +412,7 @@ def main():
                         continue
                     d = asdict(pair)
                     d["ipa"] = pair.ipa
+                    d["record_type"] = "word"
                     if pron_dict is not None:
                         score = best_match_score(pair.ipa, pron_dict.lookup(pair.word))
                         d["dict_match_score"] = score
@@ -350,6 +420,10 @@ def main():
                             dict_scores.append(score)
                     print(json.dumps(d, ensure_ascii=False))
                     emitted += 1
+                for marker in markers:
+                    d = asdict(marker)
+                    d["record_type"] = "marker"
+                    print(json.dumps(d, ensure_ascii=False))
 
     if args.stats:
         msg = (
