@@ -39,6 +39,11 @@ def test_real_sample_tack_fru_talman():
         ("talman", "tɑːlman"),
     ]
     assert markers == []
+    # all three anchor exactly (pass 1) at duration_tolerance=0.05
+    assert all(
+        p.annotations == {"match_method": "exact_timing", "ref_match_method": "text_equal"}
+        for p in pairs
+    )
 
 
 def test_real_sample_forste_talare_with_splits_and_markers():
@@ -89,6 +94,26 @@ def test_real_sample_forste_talare_with_splits_and_markers():
         ("<hes>", 20, 40),
         ("<pa>", 900, 940),
     ]
+    assert all(m.annotations == {"match_method": "unmatched_gap"} for m in markers)
+
+    # TJUVER/ɕyːlɔ misses pass 1's exact-anchor tolerance (its duration
+    # drifts 0.10s from the wav2vec word) and is recovered by pass 2 instead.
+    by_word = {p.word: p for p in pairs}
+    assert by_word["tjuver"].annotations == {
+        "match_method": "time_overlap",
+        "ref_match_method": "text_equal",
+    }
+    # KDE and VARSÅ are genuine 1:2 splits, flagged as such.
+    assert by_word["kde"].annotations == {
+        "match_method": "time_overlap",
+        "multi_token_span": True,
+        "ref_match_method": "text_equal",
+    }
+    assert by_word["varså"].annotations == {
+        "match_method": "time_overlap",
+        "multi_token_span": True,
+        "ref_match_method": "text_equal",
+    }
 
 
 def test_bracket_token_inside_word_span_is_kept_in_ipa():
@@ -109,3 +134,4 @@ def test_bracket_token_inside_word_span_is_kept_in_ipa():
     assert markers == []
     assert len(pairs) == 1
     assert pairs[0].ipa == "wo <hes> rd"
+    assert pairs[0].annotations["meta_speech_noise_included"] is True

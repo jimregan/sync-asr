@@ -11,15 +11,19 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import List
+from typing import Any, Dict, List, Optional
 
 
 class TimedElement():
-    def __init__(self, start_time=0, end_time=0, text=""):
+    def __init__(self, start_time=0, end_time=0, text="", annotations: Optional[Dict[str, Any]] = None):
         self.start_time = start_time
         self.end_time = end_time
         self.text = text
         self.duration = end_time - start_time
+        # open bag for whatever a transformation/alignment pass wants to
+        # record about this node (match method, quality flags, etc.) --
+        # mirrors the open `metadata` dict a corpus-build artifact carries.
+        self.annotations: Dict[str, Any] = annotations if annotations is not None else {}
 
     def __str__(self) -> str:
         return f"[{self.start_time},{self.end_time}] {self.text}"
@@ -35,11 +39,25 @@ class TimedElement():
         else:
             return self.end_time - self.start_time
 
-    def within(self, other):
+    def within(self, other, tolerance=0):
+        """
+        Whether self falls inside other's span. `tolerance` loosens both
+        boundaries by that amount (same unit as start_time/end_time),
+        for sources whose timing is approximate or a known conservative
+        bound rather than exact (e.g. Whisper output, Riksdag speech API
+        windows) -- controlled explicitly by the caller per comparison,
+        not inferred from any per-node flag.
+        """
         if not self._is_valid_comparison(other):
             return NotImplemented
-        return (self.end_time <= other.end_time and
-                self.start_time >= other.start_time)
+        return (self.end_time <= other.end_time + tolerance and
+                self.start_time >= other.start_time - tolerance)
+
+    def contains(self, other, tolerance=0):
+        """Whether `other` is entirely within self -- the inverse of within()."""
+        if not self._is_valid_comparison(other):
+            return NotImplemented
+        return other.within(self, tolerance=tolerance)
 
     def __gt__(self, other):
         """Strictly greater than: self completely contains other"""
@@ -49,43 +67,45 @@ class TimedElement():
         """Strictly less than: other completely contains self"""
         return (self.start_time > other.start_time and self.end_time < other.end_time)
 
-    def has_overlap(self, other):
+    def has_overlap(self, other, tolerance=0):
         if not hasattr(other, "duration"):
             return NotImplemented
         if not self._is_valid_comparison(other):
             return NotImplemented
-        return self.start_time < other.end_time and other.start_time < self.end_time
+        return self.start_time < other.end_time + tolerance and other.start_time < self.end_time + tolerance
 
     def contained_duration(self, other):
         # FIXME
         if not hasattr(other, "duration"):
             return NotImplemented
 
-    def overlap(self, other):
+    def overlap(self, other, tolerance=0):
         if not self._is_valid_comparison(other):
             return NotImplemented
-        if self.start_time < other.start_time:
-            min1, min2 = self.start_time, other.start_time
+        self_start, self_end = self.start_time - tolerance, self.end_time + tolerance
+        other_start, other_end = other.start_time - tolerance, other.end_time + tolerance
+        if self_start < other_start:
+            min1, min2 = self_start, other_start
         else:
-            min2, min1 = self.start_time, other.start_time
-        if self.end_time > other.end_time:
-            max1, max2 = self.end_time, other.end_time
+            min2, min1 = self_start, other_start
+        if self_end > other_end:
+            max1, max2 = self_end, other_end
         else:
-            max2, max1 = self.end_time, other.end_time
+            max2, max1 = self_end, other_end
         return max(0, min(max1, max2) - max(min1, min2))
 
-    def pct_overlap(self, other):
+    def pct_overlap(self, other, tolerance=0):
         """Percentage of how much of this is contained by other"""
         if not hasattr(other, "duration"):
             return NotImplemented
-        if not self.has_overlap(other):
+        if not self.has_overlap(other, tolerance=tolerance):
             return 0.0
-        if self.within(other):
+        if self.within(other, tolerance=tolerance):
             return 100.0
-        return (self.overlap(other) / self.get_duration()) * 100
+        return (self.overlap(other, tolerance=tolerance) / self.get_duration()) * 100
 
-    def has_enough_overlap(self, other, cutoff=90):
-        return self.pct_overlap(other) >= cutoff
+    def has_enough_overlap(self, other, cutoff=90, tolerance=0):
+        return self.pct_overlap(other, tolerance=tolerance) >= cutoff
 
 
 class TimedSentence(TimedElement):

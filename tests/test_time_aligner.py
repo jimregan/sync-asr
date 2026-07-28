@@ -12,7 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from sync_asr.elements import TimedElement
-from sync_asr.riksdag.time_aligner import align
+from sync_asr.riksdag.time_aligner import (
+    MATCH_METHOD_EXACT_TIMING,
+    MATCH_METHOD_TIME_OVERLAP,
+    align,
+)
 
 
 def E(start, end, text=""):
@@ -26,6 +30,7 @@ def test_all_exact():
     assert [g.kind for g in groups] == ["exact", "exact", "exact"]
     assert [g.a_indices for g in groups] == [[0], [1], [2]]
     assert [g.b_indices for g in groups] == [[0], [1], [2]]
+    assert all(g.metadata == {"match_method": MATCH_METHOD_EXACT_TIMING} for g in groups)
 
 
 def test_one_to_many():
@@ -36,6 +41,7 @@ def test_one_to_many():
     assert groups[0].kind == "overlap"
     assert groups[0].a_indices == [0]
     assert groups[0].b_indices == [0, 1, 2]
+    assert groups[0].metadata == {"match_method": MATCH_METHOD_TIME_OVERLAP, "multi_token_span": True}
 
 
 def test_many_to_one():
@@ -46,6 +52,7 @@ def test_many_to_one():
     assert groups[0].kind == "overlap"
     assert groups[0].a_indices == [0, 1]
     assert groups[0].b_indices == [0]
+    assert groups[0].metadata == {"match_method": MATCH_METHOD_TIME_OVERLAP, "multi_token_span": True}
 
 
 def test_prefers_one_to_one_within_ambiguous_component():
@@ -60,6 +67,8 @@ def test_prefers_one_to_one_within_ambiguous_component():
     assert groups[0].b_indices == [0]
     assert groups[1].a_indices == [1]
     assert groups[1].b_indices == [1]
+    # clean 1:1 pairs within the component: no multi_token_span flag
+    assert all(g.metadata == {"match_method": MATCH_METHOD_TIME_OVERLAP} for g in groups)
 
 
 def test_unmatched_trailing_b():
@@ -69,6 +78,7 @@ def test_unmatched_trailing_b():
     assert [g.kind for g in groups] == ["exact", "unmatched_b"]
     assert groups[1].a_indices == []
     assert groups[1].b_indices == [1]
+    assert groups[1].metadata == {}  # nothing established for an orphan
 
 
 def test_unmatched_leading_a():
@@ -78,6 +88,7 @@ def test_unmatched_leading_a():
     assert [g.kind for g in groups] == ["unmatched_a", "exact"]
     assert groups[0].a_indices == [0]
     assert groups[0].b_indices == []
+    assert groups[0].metadata == {}
 
 
 def test_ordering_across_multiple_gaps():

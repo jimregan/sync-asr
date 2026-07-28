@@ -38,10 +38,10 @@ import argparse
 import json
 import re
 import sys
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass, asdict, field
 from difflib import SequenceMatcher
 from pathlib import Path
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 
 from ..elements import TimedElement
 from ..utils.pronunciation_dict import BraxenDictionary, CompositeDictionary, NSTLexiconDictionary, best_match_score
@@ -51,6 +51,13 @@ from .time_aligner import align
 _PUNCT_RE = re.compile(r"[^\w\s]", re.UNICODE)
 _SPACE_RE = re.compile(r"\s+")
 _EPENTHETIC = "<v>"
+
+# Match-method vocabulary for PronunciationPair/PhoneticMarker.annotations,
+# same rationale as time_aligner.py's MATCH_METHOD_* constants: read
+# directly as correspondence-artifact metadata without translation.
+MATCH_METHOD_TEXT_EQUAL = "text_equal"
+MATCH_METHOD_TEXT_NORMALIZED_EQUAL = "text_normalized_equal"
+MATCH_METHOD_UNMATCHED_GAP = "unmatched_gap"
 
 
 def _normalize(text):
@@ -75,6 +82,10 @@ class PhoneticToken:
     text: str
     start_ms: int
     end_ms: int
+    # open bag for phonetic-token-level transforms (e.g. phonetic_rule.py
+    # rule application, dictionary-variant matching) -- same convention as
+    # AlignedGroup.metadata / PronunciationPair.annotations.
+    annotations: Dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -95,6 +106,10 @@ class PhoneticMarker:
     audio_start: Optional[int]
     audio_end: Optional[int]
     filestem: Optional[str] = None
+    # how this record was established -- see time_aligner.AlignedGroup's
+    # own `metadata` field for the parallel convention. Maps directly onto
+    # a corpus-build correspondence artifact's `metadata`.
+    annotations: Dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -116,6 +131,11 @@ class PronunciationPair:
     audio_start: Optional[int]
     audio_end: Optional[int]
     filestem: Optional[str] = None
+    # ref_match_method (how the ref word matched the wav2vec word) plus
+    # whatever the underlying AlignedGroup.metadata recorded (phone
+    # match_method, multi_token_span) and meta_speech_noise_included when
+    # a bracket tag (see _is_marker_token) landed inside this word's span.
+    annotations: Dict[str, Any] = field(default_factory=dict)
 
     @property
     def ipa(self) -> str:
@@ -149,6 +169,9 @@ def _align_words_to_phones(wav2vec_chunks, phonetic_chunks, start_tolerance, dur
         phonetic_chunks indices assigned to that word. Words with no
         assigned tokens (silence, or consumed entirely by a neighbour)
         are absent.
+      word_group_metadata : dict mapping wav2vec_chunks index -> the
+        AlignedGroup.metadata of the group that assigned it its phones
+        (match_method, multi_token_span).
       orphan_markers : sorted list of phonetic_chunks indices for
         bracketed tag tokens (see _is_marker_token) that fall in a gap
         between words rather than inside any word's aligned group.
@@ -164,6 +187,7 @@ def _align_words_to_phones(wav2vec_chunks, phonetic_chunks, start_tolerance, dur
     groups = align(a_elems, b_elems, start_tolerance=start_tolerance, duration_tolerance=duration_tolerance)
 
     word_to_phones = {}
+    word_group_metadata = {}
     orphan_markers = []
     for g in groups:
         if not g.b_indices:
@@ -174,10 +198,11 @@ def _align_words_to_phones(wav2vec_chunks, phonetic_chunks, start_tolerance, dur
             continue
         for ai in g.a_indices:
             word_to_phones.setdefault(a_orig[ai], []).extend(phon_orig)
+            word_group_metadata[a_orig[ai]] = g.metadata
     for indices in word_to_phones.values():
         indices.sort()
     orphan_markers.sort()
-    return word_to_phones, orphan_markers
+    return word_to_phones, word_group_metadata, orphan_markers
 
 
 def extract_pairs(
@@ -218,7 +243,9 @@ def extract_pairs(
     filestem = Path(filepath).stem if filepath else ""
 
     matcher = SequenceMatcher(None, ref_words, w2v_words, autojunk=False)
-    word_to_phones, orphan_markers = _align_words_to_phones(w2v_items, phonetic_chunks, start_tolerance, duration_tolerance)
+    word_to_phones, word_group_metadata, orphan_markers = _align_words_to_phones(
+        w2v_items, phonetic_chunks, start_tolerance, duration_tolerance
+    )
 
     markers = [
         PhoneticMarker(
@@ -237,6 +264,7 @@ def extract_pairs(
             audio_start=meta_rec.get("start"),
             audio_end=meta_rec.get("end"),
             filestem=filestem,
+            annotations={"match_method": MATCH_METHOD_UNMATCHED_GAP},
         )
         for idx in orphan_markers
     ]
@@ -272,6 +300,13 @@ def extract_pairs(
             if not any(_strip_special(t.text) for t in tokens):
                 continue
 
+            annotations = dict(word_group_metadata.get(j1 + offset, {}))
+            annotations["ref_match_method"] = (
+                MATCH_METHOD_TEXT_EQUAL if tag == "equal" else MATCH_METHOD_TEXT_NORMALIZED_EQUAL
+            )
+            if any(_is_marker_token(c["text"]) for c in phon_tokens):
+                annotations["meta_speech_noise_included"] = True
+
             pairs.append(PronunciationPair(
                 word=ref_word,
                 word_start_ms=int(start_s * 1000),
@@ -290,6 +325,7 @@ def extract_pairs(
                 audio_start=meta_rec.get("start"),
                 audio_end=meta_rec.get("end"),
                 filestem=filestem,
+                annotations=annotations,
             ))
 
     return pairs, markers

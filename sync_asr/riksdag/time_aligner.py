@@ -23,10 +23,17 @@ in time, preferring 1:1 pairs and only falling back to 1:N / N:1 groups
 where the overlap is genuinely ambiguous.
 """
 from bisect import bisect_left
-from dataclasses import dataclass
-from typing import List
+from dataclasses import dataclass, field
+from typing import Any, Dict, List
 
 from ..elements import TimedElement
+
+# Match-method vocabulary for AlignedGroup.metadata["match_method"], chosen
+# to read directly as a correspondence artifact's metadata (see corpus-build
+# ADR 0008 and alignment/ctm_align.py's MATCH_METHOD constant) without
+# translation at wrap time.
+MATCH_METHOD_EXACT_TIMING = "exact_timing"
+MATCH_METHOD_TIME_OVERLAP = "time_overlap"
 
 
 @dataclass
@@ -34,6 +41,12 @@ class AlignedGroup:
     a_indices: List[int]
     b_indices: List[int]
     kind: str  # "exact", "overlap", "unmatched_a", "unmatched_b"
+    # open bag for how this correspondence was established and any quality
+    # flags -- e.g. {"match_method": MATCH_METHOD_TIME_OVERLAP,
+    # "multi_token_span": True}. Empty for unmatched_a/unmatched_b: nothing
+    # was established. Maps directly onto a corpus-build correspondence
+    # artifact's `metadata` field.
+    metadata: Dict[str, Any] = field(default_factory=dict)
 
 
 def _is_tight_match(a: TimedElement, b: TimedElement, start_tolerance, duration_tolerance):
@@ -165,10 +178,14 @@ def _align_gap(a_slice, b_slice, a_offset, b_offset):
             groups.append(AlignedGroup([a_offset + i for i in comp["a"]], [], "unmatched_a"))
             continue
         for g in _decompose_component(a_slice, b_slice, comp["a"], comp["b"]):
+            metadata = {"match_method": MATCH_METHOD_TIME_OVERLAP}
+            if len(g["a"]) > 1 or len(g["b"]) > 1:
+                metadata["multi_token_span"] = True
             groups.append(AlignedGroup(
                 [a_offset + i for i in g["a"]],
                 [b_offset + i for i in g["b"]],
                 "overlap",
+                metadata,
             ))
     groups.sort(key=lambda g: (g.a_indices[0] if g.a_indices else a_offset + len(a_slice),
                                 g.b_indices[0] if g.b_indices else b_offset + len(b_slice)))
@@ -195,7 +212,7 @@ def align(
     prev_i, prev_j = -1, -1
     for ai, bj in anchors:
         groups.extend(_align_gap(a[prev_i + 1:ai], b[prev_j + 1:bj], prev_i + 1, prev_j + 1))
-        groups.append(AlignedGroup([ai], [bj], "exact"))
+        groups.append(AlignedGroup([ai], [bj], "exact", {"match_method": MATCH_METHOD_EXACT_TIMING}))
         prev_i, prev_j = ai, bj
     groups.extend(_align_gap(a[prev_i + 1:], b[prev_j + 1:], prev_i + 1, prev_j + 1))
     return groups

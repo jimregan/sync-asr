@@ -25,6 +25,19 @@ def test_timed_element():
     assert f"{te}" == "[0,200] test"
 
 
+def test_timed_element_annotations_default_empty_and_independent():
+    te = TimedElement(0, 200, "test")
+    assert te.annotations == {}
+    te2 = TimedElement(10, 180, "es")
+    te.annotations["match_method"] = "exact_timing"
+    assert te2.annotations == {}  # not a shared mutable default
+
+
+def test_timed_element_annotations_constructor():
+    te = TimedElement(0, 200, "test", annotations={"match_method": "time_overlap"})
+    assert te.annotations == {"match_method": "time_overlap"}
+
+
 def test_has_overlap():
     te1 = TimedElement(0, 100, "test")
     te2 = TimedElement(10, 110, "test")
@@ -37,6 +50,51 @@ def test_within():
     assert te1.within(te2) == False
     te3 = TimedElement(00, 120, "test")
     assert te2.within(te3) == True
+
+
+def test_contains():
+    te2 = TimedElement(10, 110, "test")
+    te3 = TimedElement(0, 120, "test")
+    assert te3.contains(te2) == True
+    assert te2.contains(te3) == False
+
+
+def test_within_tolerance():
+    # a word spilling 2 units past a conservative-bound window's end
+    word = TimedElement(5, 22, "word")
+    window = TimedElement(0, 20, "window")
+    assert word.within(window) is False
+    assert word.within(window, tolerance=1) is False
+    assert word.within(window, tolerance=2) is True
+
+
+def test_contains_tolerance():
+    word = TimedElement(5, 22, "word")
+    window = TimedElement(0, 20, "window")
+    assert window.contains(word) is False
+    assert window.contains(word, tolerance=2) is True
+
+
+def test_has_overlap_tolerance():
+    te1 = TimedElement(0, 10, "a")
+    te2 = TimedElement(13, 20, "b")  # a 3-unit gap, no true overlap
+    assert te1.has_overlap(te2) is False
+    assert te1.has_overlap(te2, tolerance=2) is False
+    assert te1.has_overlap(te2, tolerance=4) is True
+
+
+def test_overlap_tolerance_bridges_a_gap():
+    te1 = TimedElement(0, 10, "a")
+    te2 = TimedElement(13, 20, "b")
+    assert te1.overlap(te2) == 0
+    assert te1.overlap(te2, tolerance=3) > 0
+
+
+def test_default_tolerance_is_zero_and_backward_compatible():
+    te1 = TimedElement(0, 100, "test")
+    te2 = TimedElement(10, 110, "test")
+    assert te1.has_overlap(te2) == te1.has_overlap(te2, tolerance=0)
+    assert te1.within(te2) == te1.within(te2, tolerance=0)
 
 
 def test_overlap():
