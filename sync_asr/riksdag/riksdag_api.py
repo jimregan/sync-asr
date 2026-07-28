@@ -16,6 +16,7 @@ from typing import Tuple
 from bs4 import BeautifulSoup
 import copy
 import re
+import requests
 from sync_asr.elements import TimedElement
 
 
@@ -75,7 +76,7 @@ class SpeakerElement(TimedElement):
         super().__init__(self.start_time, self.end_time, self.text)
 
 
-class RiksdagAPI():
+class RiksdagAPI2022():
     def __init__(self, data=None, filename="", verbose=False, nullify=False):
         api_data = data
         if data is None:
@@ -90,7 +91,7 @@ class RiksdagAPI():
                 print(f"Reading data from {filename}")
 
         if not "videodata" in api_data:
-            raise ValueError("Data does not appear to contain Riksdag API output")
+            raise ValueError("Data does not appear to contain 2022 Riksdag API output")
 
         video_data_tmp = []
         for videodata in api_data["videodata"]:
@@ -138,6 +139,122 @@ class RiksdagAPI():
                     paragraph_num += 1
                 speaker_turn += 1
         return output
+
+
+class RiksdagAPI2026(RiksdagAPI2022):
+    def __init__(self, data=None, filename="", verbose=False, nullify=False):
+        api_data = data
+        if data is None:
+            with open(filename) as fp:
+                api_data = json.load(fp)
+        elif isinstance(data, str):
+            api_data = json.loads(data)
+
+        if not isinstance(api_data, dict) or not (
+            "props" in api_data or "pageProps" in api_data
+        ):
+            raise ValueError("Data does not appear to contain 2026 Riksdag page output")
+
+        normalized = next_data_to_api_data(api_data)
+        super().__init__(
+            data=normalized,
+            filename=filename,
+            verbose=verbose,
+            nullify=nullify,
+        )
+
+    @classmethod
+    def from_url(cls, url, **kwargs):
+        return cls(data=get_embedded_json(url), **kwargs)
+
+
+RiksdagAPI = RiksdagAPI2022
+
+
+def get_embedded_json(url, timeout=30):
+    response = requests.get(url, timeout=timeout)
+    response.raise_for_status()
+    content_type = response.headers.get("content-type", "")
+    if "application/json" in content_type or url.rstrip("/").endswith(".json"):
+        return response.json()
+    soup = BeautifulSoup(response.content, "html.parser")
+    script_tag = soup.find("script", {"type": "application/json", "id": "__NEXT_DATA__"})
+    if script_tag is None:
+        raise ValueError("Page does not contain __NEXT_DATA__")
+    return json.loads(script_tag.string or script_tag.get_text())
+
+
+def next_data_to_api_data(data):
+    try:
+        page_props = data.get("props", data)["pageProps"]
+        content = page_props["contentApiData"]
+    except (KeyError, TypeError) as exc:
+        raise ValueError("Data does not contain Riksdag page content") from exc
+
+    document = content.get("document") or {}
+    debate = document.get("debate") or {}
+    source_speakers = content.get("speakers") or debate.get("speeches") or []
+    source_videos = document.get("videos") or []
+    page_video = content.get("video") or {}
+    video = page_video
+    if source_videos:
+        source_video = source_videos[0]
+        video = {
+            "url": source_video.get("videoFileUrl", ""),
+            "downloadUrl": source_video.get("downloadFileUrl", ""),
+            "duration": source_video.get("videoSeconds", 0),
+            "poster": source_video.get("thumbnailUrl", ""),
+            "isLive": source_video.get("videoStatus") == 1,
+        }
+
+    speakers = []
+    for speaker in source_speakers:
+        speakers.append({
+            "start": speaker.get("startPosition", 0),
+            "duration": speaker.get("speechSeconds", 0),
+            "party": speaker.get("party", ""),
+            "subid": speaker.get("stakeholderId", ""),
+            "active": False,
+            "number": speaker.get("speechNumber", 0),
+            "text": speaker.get("speaker", speaker.get("speakerShort", "")),
+            "anftext": speaker.get("speechText", ""),
+        })
+
+    first_speaker = source_speakers[0] if source_speakers else {}
+    stream_url = video.get("url", "")
+    stream_id = first_speaker.get("debateId", "")
+    if not stream_id:
+        match = re.search(r"/(\d+)(?:\.smil)?/", stream_url)
+        stream_id = match.group(1) if match else stream_url
+    title = debate.get("title", content.get("title", content.get("name", "")))
+    document_id = first_speaker.get("documentId", content.get("documentId", ""))
+    document_type = first_speaker.get("debateType", content.get("documentType", ""))
+    videodata = {
+        "videostatus": "live" if video.get("isLive") else "recorded",
+        "committee": "",
+        "type": document_type,
+        "debatepreamble": content.get("summary", ""),
+        "debatetexthtml": content.get("body", ""),
+        "livestreamurl": stream_url if video.get("isLive") else "",
+        "activelivespeaker": None,
+        "id": stream_id,
+        "dokid": document_id,
+        "title": title,
+        "debatename": title,
+        "debatedate": content.get("date", first_speaker.get("speechDate", "")),
+        "debatetype": document_type,
+        "debateurl": content.get("url", ""),
+        "fromchamber": False,
+        "thumbnailurl": video.get("poster", ""),
+        "debateseconds": video.get("duration", 0),
+        "streams": {"files": [{
+            "url": stream_id,
+            "videofileurl": stream_url,
+            "downloadfileurl": video.get("downloadUrl", ""),
+        }]},
+        "speakers": speakers,
+    }
+    return {"videodata": [videodata]}
 
 
 def read_videodata(videodata, filename="", verbose=False, nullify=True):
@@ -236,4 +353,3 @@ def clean_text(text):
     text = re.sub("  +", " ", text)
     text = text.lower()
     return text
-
