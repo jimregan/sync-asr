@@ -27,7 +27,7 @@ tokens. braxen_to_ipa() drops all of these to produce a flat phone
 sequence, matching the bare-phone style this pipeline's phonetic-model
 output uses (no stress or boundary marks) -- see extract_pronunciation_pairs.py.
 """
-from typing import Dict, Set
+from typing import Dict, Set, Tuple
 
 # Base -> IPA, transcribed from Braxen's own phoneme table
 # (docs/adoc/includes/phonemes.tsv in the Braxen repository).
@@ -75,9 +75,12 @@ def braxen_to_ipa(pron: str) -> str:
     return "".join(phones)
 
 
-def parse_braxen_tsv(path) -> Dict[str, Set[str]]:
+def parse_braxen_tsv(path) -> Dict[str, Set[Tuple[str, str]]]:
     """
-    Parse a Braxen TSV lexicon into {orthography.lower(): {ipa, ...}}.
+    Parse a Braxen TSV lexicon into {orthography.lower(): {(raw, ipa), ...}},
+    `raw` being the unmodified Base-notation field exactly as it appears
+    in the source TSV (e.g. "k a . r oh . l 'i: n") and `ipa` its
+    braxen_to_ipa() conversion.
 
     Keys are lowercase-folded: this pipeline's reference words are always
     lowercase (see extract_pronunciation_pairs.py's _normalize()), and
@@ -91,7 +94,7 @@ def parse_braxen_tsv(path) -> Dict[str, Set[str]]:
     Comment lines ("#...", blank) and rows that don't have exactly 27
     fields (the documented Braxen field count) are skipped.
     """
-    lexicon: Dict[str, Set[str]] = {}
+    lexicon: Dict[str, Set[Tuple[str, str]]] = {}
     with open(path, encoding="utf-8") as f:
         for line in f:
             if line.startswith("#") or not line.strip():
@@ -100,5 +103,5 @@ def parse_braxen_tsv(path) -> Dict[str, Set[str]]:
             if len(fields) != _FIELD_COUNT:
                 continue
             word, pron = fields[0], fields[1]
-            lexicon.setdefault(word.lower(), set()).add(braxen_to_ipa(pron))
+            lexicon.setdefault(word.lower(), set()).add((pron, braxen_to_ipa(pron)))
     return lexicon

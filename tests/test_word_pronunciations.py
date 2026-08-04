@@ -21,6 +21,7 @@ invented.
 import json
 
 from sync_asr.elements import TimedWord
+from sync_asr.utils.pronunciation_dict import DictPronunciationDictionary
 from sync_asr.word_pronunciations import (
     WordPronunciation,
     align_reference_timing,
@@ -136,3 +137,58 @@ def test_reference_word_with_no_hyp_correspondence_gets_no_timing():
     timed = align_reference_timing(ref, hyp)
 
     assert [w.text for w in timed] == ["hej", "då"]
+
+
+def test_build_word_pronunciations_no_dictionaries_leaves_dict_matches_empty():
+    timed = align_reference_timing(_REF_WORDS, _HYP_WORDS)
+    pairs = build_word_pronunciations(timed, _PHONES)
+
+    assert all(p.dict_matches == [] for p in pairs)
+
+
+def test_build_word_pronunciations_scores_against_multiple_sources_separately():
+    # abstract, source-agnostic wiring test -- not a claim about real
+    # Swedish pronunciations, just that both sources get their own entry.
+    source_a = DictPronunciationDictionary(
+        {"information": {("raw-a", "ɪnfɔmaʂuːn")}}, source="a"
+    )
+    source_b = DictPronunciationDictionary(
+        {"information": {("raw-b", "ɪnfɔmaʃuːn")}}, source="b"
+    )
+
+    timed = align_reference_timing(_REF_WORDS, _HYP_WORDS)
+    pairs = build_word_pronunciations(timed, _PHONES, dictionaries=[source_a, source_b])
+
+    information = next(p for p in pairs if p.word == "information")
+    assert len(information.dict_matches) == 2
+    by_source = {m.source: m for m in information.dict_matches}
+    assert by_source["a"].score == 1.0
+    assert by_source["a"].raw == "raw-a"
+    assert by_source["b"].score < 1.0
+
+
+def test_build_word_pronunciations_all_variants_flag():
+    source_a = DictPronunciationDictionary(
+        {"om": {("raw-1", "ɔm"), ("raw-2", "om")}}, source="a"
+    )
+
+    timed = align_reference_timing(_REF_WORDS, _HYP_WORDS)
+    best = build_word_pronunciations(timed, _PHONES, dictionaries=[source_a])
+    all_variants = build_word_pronunciations(timed, _PHONES, dictionaries=[source_a], best_only=False)
+
+    om_best = next(p for p in best if p.word == "om")
+    om_all = next(p for p in all_variants if p.word == "om")
+    assert len(om_best.dict_matches) == 1
+    assert len(om_all.dict_matches) == 2
+
+
+def test_extract_word_pronunciations_threads_dictionaries_through():
+    source = DictPronunciationDictionary(
+        {"talboken": {("raw", "tɑːlbuːkən")}}, source="a"
+    )
+
+    pairs = extract_word_pronunciations(_REF_WORDS, _HYP_WORDS, _PHONES, dictionaries=[source])
+
+    talboken = next(p for p in pairs if p.word == "talboken")
+    assert len(talboken.dict_matches) == 1
+    assert talboken.dict_matches[0].score == 1.0

@@ -44,7 +44,13 @@ from typing import Any, Dict, List, Optional, Tuple
 from .alignment import AlignmentHeuristic, MergedTokenHeuristic, align_smith_waterman
 from .elements import TimedElement, TimedWord
 from .riksdag.time_aligner import align
-from .utils.pronunciation_dict import BraxenDictionary, CompositeDictionary, best_match_score
+from .utils.pronunciation_dict import (
+    BraxenDictionary,
+    DictionaryMatch,
+    NSTLexiconDictionary,
+    PronunciationDictionary,
+    score_against_dictionaries,
+)
 
 _EPENTHETIC = "<v>"
 _PUNCT_RE = re.compile(r"[^\w\s]", re.UNICODE)
@@ -79,6 +85,10 @@ class WordPronunciation:
     has_epenthetic: bool
     annotations: Dict[str, Any] = field(default_factory=dict)
     metadata: Dict[str, Any] = field(default_factory=dict)
+    # one entry per dictionary source checked against (see
+    # utils.pronunciation_dict.score_against_dictionaries) -- empty if no
+    # dictionaries were supplied, not a null placeholder.
+    dict_matches: List[DictionaryMatch] = field(default_factory=list)
 
     @property
     def ipa(self) -> str:
@@ -185,11 +195,19 @@ def build_word_pronunciations(
     metadata: Optional[Dict[str, Any]] = None,
     start_tolerance: float = 0.02,
     duration_tolerance: float = 0.05,
+    dictionaries: Optional[List[PronunciationDictionary]] = None,
+    best_only: bool = True,
 ) -> List[WordPronunciation]:
     """
     Two-pass time-align `timed_words` (already-timed, e.g. from
     align_reference_timing()) against `phones`, and build one
     WordPronunciation per word with at least one assigned phone.
+
+    If `dictionaries` is given, each word is scored against every
+    dictionary in the list separately (source attribution preserved --
+    see score_against_dictionaries()); `best_only` controls whether each
+    source contributes its single best-matching variant (default) or
+    every variant it has for the word.
     """
     word_to_phones, groups = _align_words_to_phones(timed_words, phones, start_tolerance, duration_tolerance)
     group_by_a: Dict[int, Any] = {}
@@ -212,7 +230,7 @@ def build_word_pronunciations(
         has_epenthetic = any(_EPENTHETIC in t.text for t in tokens)
         annotations = dict(group_by_a[i].metadata) if i in group_by_a else {}
 
-        pairs.append(WordPronunciation(
+        pair = WordPronunciation(
             word=word.text,
             word_start_ms=int(word.start_time * 1000),
             word_end_ms=int(word.end_time * 1000),
@@ -220,7 +238,10 @@ def build_word_pronunciations(
             has_epenthetic=has_epenthetic,
             annotations=annotations,
             metadata=dict(metadata) if metadata else {},
-        ))
+        )
+        if dictionaries:
+            pair.dict_matches = score_against_dictionaries(pair.ipa, pair.word, dictionaries, best_only=best_only)
+        pairs.append(pair)
     return pairs
 
 
@@ -232,12 +253,15 @@ def extract_word_pronunciations(
     smith_waterman_kwargs: Optional[Dict[str, Any]] = None,
     start_tolerance: float = 0.02,
     duration_tolerance: float = 0.05,
+    dictionaries: Optional[List[PronunciationDictionary]] = None,
+    best_only: bool = True,
 ) -> List[WordPronunciation]:
-    """The full pipeline: reference timing, then phone assignment."""
+    """The full pipeline: reference timing, then phone assignment (+ optional dictionary scoring)."""
     timed_words = align_reference_timing(ref_words, hyp_words, **(smith_waterman_kwargs or {}))
     return build_word_pronunciations(
         timed_words, phones, metadata=metadata,
         start_tolerance=start_tolerance, duration_tolerance=duration_tolerance,
+        dictionaries=dictionaries, best_only=best_only,
     )
 
 
@@ -267,8 +291,14 @@ def get_args():
     parser.add_argument("--duration-tolerance", type=float, default=0.05,
                         help="Time-aligner exact-anchor duration tolerance, in seconds (default: 0.05)")
     parser.add_argument("--braxen-dict", type=Path, action="append", default=[],
-                        help="Braxen lexicon TSV file to validate against. May be given more than once; "
-                             "adds a dict_match_score field (0-1, null if the word is OOV) to output.")
+                        help="Braxen lexicon TSV file to validate against, as its own dictionary source. "
+                             "May be given more than once.")
+    parser.add_argument("--pronunciation-dict", type=Path, action="append", default=[],
+                        help="Cleaned NST-lexicon-style JSON file ({word: [ipa, ...]}) to validate against, "
+                             "as its own source alongside --braxen-dict. May be given more than once.")
+    parser.add_argument("--all-variants", action="store_true",
+                        help="Report every matching variant per dictionary source in dict_matches, "
+                             "not just each source's single best-scoring one.")
     parser.add_argument("--stats", action="store_true", help="Print summary counts to stderr")
     return parser.parse_args()
 
@@ -276,15 +306,13 @@ def get_args():
 def main():
     args = get_args()
 
-    dictionaries = [BraxenDictionary.from_tsv(p) for p in args.braxen_dict]
-    pron_dict = None
-    if dictionaries:
-        pron_dict = dictionaries[0] if len(dictionaries) == 1 else CompositeDictionary(dictionaries)
+    dictionaries: List[PronunciationDictionary] = [BraxenDictionary.from_tsv(p) for p in args.braxen_dict]
+    dictionaries += [NSTLexiconDictionary.from_cleaned_json(p) for p in args.pronunciation_dict]
 
     reference = _load_reference(args.reference)
 
     total = skipped_no_file = emitted = 0
-    dict_scores = []
+    scores_by_source: Dict[str, List[float]] = {}
 
     for item_id, ref_text in sorted(reference.items()):
         total += 1
@@ -308,24 +336,21 @@ def main():
         pairs = extract_word_pronunciations(
             ref_words, hyp_words, phones, metadata={"id": item_id},
             start_tolerance=args.start_tolerance, duration_tolerance=args.duration_tolerance,
+            dictionaries=dictionaries or None, best_only=not args.all_variants,
         )
         for pair in pairs:
             d = asdict(pair)
             d["ipa"] = pair.ipa
-            if pron_dict is not None:
-                score = best_match_score(pair.ipa, pron_dict.lookup(pair.word))
-                d["dict_match_score"] = score
-                if score is not None:
-                    dict_scores.append(score)
+            for match in pair.dict_matches:
+                scores_by_source.setdefault(match.source, []).append(match.score)
             print(json.dumps(d, ensure_ascii=False))
             emitted += 1
 
     if args.stats:
         msg = f"\nitems: {total}  skipped (no file): {skipped_no_file}  pairs emitted: {emitted}"
-        if pron_dict is not None:
-            checked = len(dict_scores)
-            avg = sum(dict_scores) / checked if checked else 0.0
-            msg += f"  dict-checked: {checked}  avg dict_match_score: {avg:.3f}"
+        for source, scores in sorted(scores_by_source.items()):
+            avg = sum(scores) / len(scores)
+            msg += f"  {source}: checked={len(scores)} avg_score={avg:.3f}"
         print(msg, file=sys.stderr)
 
 

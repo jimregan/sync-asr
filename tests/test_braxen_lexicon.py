@@ -57,10 +57,14 @@ def test_parse_braxen_tsv(tmp_path):
 
     lexicon = parse_braxen_tsv(path)
 
-    # keys are lowercase-folded (see parse_braxen_tsv docstring)
-    assert lexicon["caroline"] == {"kæɾəlaɪn", "karoliːn"}
-    assert lexicon["karoline"] == {"karoliːn"}
-    assert lexicon["björn"] == {"bjœːɳ"}
+    # keys are lowercase-folded (see parse_braxen_tsv docstring); values
+    # are (raw, ipa) pairs -- raw is the unmodified Base-notation field.
+    assert lexicon["caroline"] == {
+        ("k 'ae . rh ex . l ai n", "kæɾəlaɪn"),
+        ("k a . r oh . l 'i: n", "karoliːn"),
+    }
+    assert lexicon["karoline"] == {("k a . r oh . l 'i: n", "karoliːn")}
+    assert lexicon["björn"] == {("b j 'oe: rn", "bjœːɳ")}
 
 
 def test_parse_braxen_tsv_skips_malformed_row(tmp_path):

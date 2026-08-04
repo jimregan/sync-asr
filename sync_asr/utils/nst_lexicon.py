@@ -200,6 +200,8 @@ def get_nst_lexicon():
 
 
 def clean_lexicon(lexicon):
+    """{orthography: {(raw, ipa), ...}}, `raw` being the unmodified
+    pre-transliteration SAMPA-ish string and `ipa` its cleaned form."""
     dictionary = {}
     for entry in lexicon:
         if 'garbage' in entry and entry['garbage'] == 'GARB':
@@ -210,5 +212,6 @@ def clean_lexicon(lexicon):
             if not word in dictionary:
                 dictionary[word] = set()
             for translit in entry['transliterations']:
-                dictionary[word].add(translit['ipa'].replace(".", "").replace("¤", "").replace("_", " ").replace("\u0361", ""))
+                ipa = translit['ipa'].replace(".", "").replace("¤", "").replace("_", " ").replace("\u0361", "")
+                dictionary[word].add((translit['transliteration'], ipa))
     return dictionary
