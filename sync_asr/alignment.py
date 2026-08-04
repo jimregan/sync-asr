@@ -28,6 +28,7 @@ from difflib import SequenceMatcher
 from typing import Any, Callable, Dict, Iterable, List, Optional, Sequence, Tuple
 
 from .elements import TimedElement
+from .kaldi.align_ctm_ref import smith_waterman_alignment as _smith_waterman_alignment
 from .riksdag.time_aligner import AlignedGroup
 
 # Edit-kind vocabulary for text alignment, matching corpus-build's
@@ -228,18 +229,107 @@ class WordPairDictionaryHeuristic(AlignmentHeuristic):
         )]
 
 
+class MergedTokenHeuristic(AlignmentHeuristic):
+    """
+    Recognises a span where a single hypothesis token's text equals the
+    concatenation of the span's 2+ reference words with no separator --
+    e.g. wav2vec recognising "Inläsningstjänst AB" as one word
+    "INLÄSNINGSTJÄNSTAB" -- and splits that one token's time span across
+    the reference words it represents, proportionally by character
+    count (the obvious default with no finer-grained timing available at
+    this stage). The split points are recorded as
+    metadata["split_start_time"]/["split_end_time"] on each resulting
+    group rather than invented TimedElement objects, since the parent
+    AlignedSequence's `b` list still only has the one merged token --
+    a caller building per-reference-word timing from these groups (see
+    word_pronunciations.align_reference_timing) reads the split points
+    instead of the referenced token's own full start/end.
+    """
+
+    name = "merged_token_split"
+
+    def match(self, a_span: Sequence, b_span: Sequence) -> Optional[List[AlignedGroup]]:
+        if len(a_span) < 2 or len(b_span) != 1:
+            return None
+        hyp = b_span[0]
+        if not hasattr(hyp, "start_time") or not hasattr(hyp, "end_time"):
+            return None
+        ref_texts = [_node_text(n) for n in a_span]
+        if "".join(ref_texts) != _node_text(hyp):
+            return None
+        total_chars = sum(len(t) for t in ref_texts)
+        if total_chars == 0:
+            return None
+
+        span_duration = hyp.end_time - hyp.start_time
+        groups = []
+        cursor = hyp.start_time
+        for i, text in enumerate(ref_texts):
+            is_last = i == len(ref_texts) - 1
+            end = hyp.end_time if is_last else cursor + span_duration * (len(text) / total_chars)
+            groups.append(AlignedGroup(
+                [i], [0], KIND_CORRESPONDS,
+                {"heuristic": self.name, "accepted": True,
+                 "split_start_time": cursor, "split_end_time": end},
+            ))
+            cursor = end
+        return groups
+
+
+def _gap_runs(groups: List[AlignedGroup], is_gap: Callable[[AlignedGroup], bool]):
+    """Yield maximal runs of consecutive groups where is_gap(g) is True."""
+    run: List[AlignedGroup] = []
+    for g in groups:
+        if is_gap(g):
+            run.append(g)
+        else:
+            if run:
+                yield run
+            run = []
+    if run:
+        yield run
+
+
+def _try_heuristics(sequence, a_indices, b_indices, heuristics):
+    a_span = [sequence.a[i] for i in a_indices]
+    b_span = [sequence.b[j] for j in b_indices]
+    for heuristic in heuristics:
+        bridge = heuristic.match(a_span, b_span)
+        if bridge is None:
+            continue
+        return [
+            AlignedGroup(
+                a_indices=[a_indices[i] for i in bg.a_indices],
+                b_indices=[b_indices[j] for j in bg.b_indices],
+                kind=bg.kind,
+                metadata=bg.metadata,
+            )
+            for bg in bridge
+        ]
+    return None
+
+
 def bridge_gaps(
     sequence: AlignedSequence,
     heuristics: Iterable[AlignmentHeuristic],
     is_gap: Callable[[AlignedGroup], bool],
 ) -> AlignedSequence:
     """
-    Try each heuristic, in order, against every group in `sequence` for
-    which `is_gap(group)` is True. The first heuristic that returns a
-    match has its bridge groups appended to `sequence.groups`
-    (index-rebased onto the parent sequence); the original gap group is
-    left untouched -- bridging is additive, both interpretations remain
-    queryable.
+    Try each heuristic against every maximal run of consecutive groups in
+    `sequence` for which `is_gap(group)` is True -- first against the
+    *whole run* combined (needed for aligners like align_smith_waterman
+    that produce one group per del/ins/sub step rather than a block, so
+    a pattern spanning several adjacent steps, e.g. a merged hypothesis
+    token covering two reference words split across a del+sub pair,
+    is visible as one span), then, if nothing matched the combined run,
+    against each group in the run individually (align_text()'s existing,
+    already-block-level "sub" gaps keep working exactly as before, since
+    a run of length 1 skips straight to this fallback).
+
+    The first heuristic that matches has its bridge groups appended to
+    `sequence.groups` (index-rebased onto the parent sequence); the
+    original gap group(s) are left untouched -- bridging is additive,
+    both interpretations remain queryable.
 
     `is_gap` is caller-supplied because what counts as "unresolved" is
     domain-specific (time_aligner's own "unmatched_a"/"unmatched_b"
@@ -247,23 +337,20 @@ def bridge_gaps(
     Mutates and returns `sequence`.
     """
     new_groups = []
-    for g in sequence.groups:
-        if not is_gap(g):
+    heuristics = list(heuristics)
+    for run in _gap_runs(sequence.groups, is_gap):
+        bridged = None
+        if len(run) > 1:
+            a_indices = [i for g in run for i in g.a_indices]
+            b_indices = [j for g in run for j in g.b_indices]
+            bridged = _try_heuristics(sequence, a_indices, b_indices, heuristics)
+        if bridged is not None:
+            new_groups.extend(bridged)
             continue
-        a_span = [sequence.a[i] for i in g.a_indices]
-        b_span = [sequence.b[j] for j in g.b_indices]
-        for heuristic in heuristics:
-            bridge = heuristic.match(a_span, b_span)
-            if bridge is None:
-                continue
-            for bg in bridge:
-                new_groups.append(AlignedGroup(
-                    a_indices=[g.a_indices[i] for i in bg.a_indices],
-                    b_indices=[g.b_indices[j] for j in bg.b_indices],
-                    kind=bg.kind,
-                    metadata=bg.metadata,
-                ))
-            break
+        for g in run:
+            bridged = _try_heuristics(sequence, g.a_indices, g.b_indices, heuristics)
+            if bridged is not None:
+                new_groups.extend(bridged)
     sequence.groups = sequence.groups + new_groups
     sequence.groups.sort(key=lambda g: (
         g.a_indices[0] if g.a_indices else float("inf"),
@@ -314,6 +401,71 @@ def align_text(
             groups.append(AlignedGroup(list(range(i1, i2)), list(range(j1, j2)), KIND_SUBSTITUTE, {}))
 
     sequence = AlignedSequence(a, b, groups, method="text_sequence_matcher")
+    if heuristics:
+        bridge_gaps(sequence, heuristics, is_gap=is_text_gap)
+    return sequence
+
+
+MATCH_METHOD_SMITH_WATERMAN = "smith_waterman_ctm_alignment"
+_SW_EPS = "\x00<eps>\x00"  # sentinel; must not collide with a real token
+
+
+def align_smith_waterman(
+    ref: Sequence,
+    hyp: Sequence,
+    *,
+    correct_score: int = 1,
+    substitution_penalty: int = 1,
+    deletion_penalty: int = 1,
+    insertion_penalty: int = 1,
+    align_full_hyp: bool = True,
+    heuristics: Optional[Iterable[AlignmentHeuristic]] = None,
+) -> AlignedSequence:
+    """
+    Smith-Waterman alignment of `ref` against `hyp` -- the Kaldi-derived
+    local aligner in kaldi/align_ctm_ref.py, unchanged (its core DP
+    is shared, tested code; see test_align_ctm_ref.py) -- wrapped into
+    an AlignedSequence/AlignedGroup so it composes with the rest of this
+    module (bridge_gaps, comparability, annotations) instead of
+    align_ctm_ref.py's own CLI's legacy flat CTM-edit-line format.
+
+    ref, hyp: plain strings or richer objects with a `.text` attribute
+    (e.g. TimedWord) -- hyp's timing, if any, flows through to the
+    resulting AlignedSequence's span the same way align_text()'s does,
+    since `hyp` itself (not just its text) becomes AlignedSequence.b.
+
+    `align_full_hyp=True` (the default, matching align_ctm_ref.py's own
+    default) tracks back from the end of `hyp`, giving the reference
+    span that best matches the *entire* hypothesis -- appropriate when
+    `hyp` is one complete utterance, as opposed to finding the best-
+    matching reference subsequence for a hypothesis fragment.
+    """
+    ref_text = [_node_text(n) for n in ref]
+    hyp_text = [_node_text(n) for n in hyp]
+
+    def similarity(a, b):
+        return correct_score if a == b else -substitution_penalty
+
+    raw, _score = _smith_waterman_alignment(
+        ref_text, hyp_text, similarity_score_function=similarity,
+        del_score=-deletion_penalty, ins_score=-insertion_penalty,
+        eps_symbol=_SW_EPS, align_full_hyp=align_full_hyp,
+    )
+
+    groups: List[AlignedGroup] = []
+    for ref_word, hyp_word, _prev_ref_i, _prev_hyp_i, cur_ref_i, cur_hyp_i in raw:
+        a_indices = [] if ref_word == _SW_EPS else [cur_ref_i - 1]
+        b_indices = [] if hyp_word == _SW_EPS else [cur_hyp_i - 1]
+        if a_indices and b_indices:
+            kind = KIND_CORRESPONDS if ref_word == hyp_word else KIND_SUBSTITUTE
+        elif b_indices:
+            kind = KIND_INSERT
+        else:
+            kind = KIND_DELETE
+        groups.append(AlignedGroup(a_indices, b_indices, kind,
+                                    {"match_method": MATCH_METHOD_SMITH_WATERMAN}))
+
+    sequence = AlignedSequence(list(ref), list(hyp), groups, method=MATCH_METHOD_SMITH_WATERMAN)
     if heuristics:
         bridge_gaps(sequence, heuristics, is_gap=is_text_gap)
     return sequence

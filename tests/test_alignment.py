@@ -15,6 +15,7 @@ from sync_asr.alignment import (
     AlignedSequence,
     RepeatedTokenHeuristic,
     WordPairDictionaryHeuristic,
+    align_smith_waterman,
     align_text,
     bridge_gaps,
     is_text_gap,
@@ -205,3 +206,60 @@ def test_align_text_heuristics_can_be_applied_later_instead():
 
     bridged = [g for g in seq.groups if g.metadata.get("heuristic") == "grammatical_alternation"]
     assert len(bridged) == 1
+
+
+def test_align_smith_waterman_matches_the_classic_test_vectors():
+    # same ref/hyp already used to test the underlying DP in
+    # test_align_ctm_ref.py::test_smith_waterman_alignment -- reused here
+    # rather than invented, to verify this wrapper's index mapping and
+    # kind classification against a result already known to be correct.
+    ref = list("AGCACACA")
+    hyp = list("GCCAT")
+
+    seq = align_smith_waterman(ref, hyp)
+
+    got = [(g.kind, g.a_indices, g.b_indices) for g in seq.groups]
+    assert got == [
+        ("cor", [1], [0]),
+        ("cor", [2], [1]),
+        ("del", [3], []),
+        ("cor", [4], [2]),
+        ("cor", [5], [3]),
+        ("sub", [6], [4]),
+    ]
+    assert all(g.metadata["match_method"] == "smith_waterman_ctm_alignment" for g in seq.groups)
+
+
+def test_align_smith_waterman_hyp_timing_flows_through():
+    ref = ["x", "y"]
+    hyp = [TimedElement(0, 100, "x"), TimedElement(100, 250, "y")]
+
+    seq = align_smith_waterman(ref, hyp)
+
+    assert [g.kind for g in seq.groups] == ["cor", "cor"]
+    assert seq.start_time == 0
+    assert seq.end_time == 250
+
+
+def test_align_smith_waterman_applies_heuristics():
+    # Note: unlike align_text()'s SequenceMatcher-based "replace" blocks,
+    # this DP produces position-by-position sub/ins/del steps, never a
+    # multi-hyp-token block in one step -- so a heuristic here can only
+    # bridge what one single del/ins/sub group already spans. A ref word
+    # that really did become two hyp words (e.g. "gjorde" -> "har gjort")
+    # comes back as a separate ins + sub, and no single group carries the
+    # full span a WordPairDictionaryHeuristic keyed on ("gjorde",) needs --
+    # a real limitation of this aligner's output shape, not something to
+    # paper over with a convenient example.
+    ref = ["x", "gjorde", "y"]
+    hyp = ["x", "gjort", "y"]
+    heuristic = WordPairDictionaryHeuristic(
+        "grammatical_alternation", {("gjorde",): ("gjort",)}
+    )
+
+    seq = align_smith_waterman(ref, hyp, heuristics=[heuristic])
+
+    bridged = [g for g in seq.groups if g.metadata.get("heuristic") == "grammatical_alternation"]
+    assert len(bridged) == 1
+    assert bridged[0].a_indices == [1]
+    assert bridged[0].b_indices == [1]
