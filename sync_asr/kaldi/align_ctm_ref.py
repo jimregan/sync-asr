@@ -582,7 +582,8 @@ def run(args):
         return -args.substitution_penalty
     
     def similarity_ignoring_punctuation(x, y):
-        if x == clean_text(y):
+        # Normalize both tokens so punctuation is ignored on either side.
+        if clean_text(x) == clean_text(y):
             return args.correct_score
         return -args.substitution_penalty
 
