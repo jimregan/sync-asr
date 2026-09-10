@@ -1,0 +1,17 @@
+rules:
+  - following_context: 'h'  # Stenholm
+    preceding_context: ''
+    replacement: ''
+    segment: 'n'
+  - following_context: 'm'  # Schleiermacher
+    preceding_context: 'ə'
+    replacement: ''
+    segment: 'r'
+  - following_context: $  # ordning
+    preceding_context: ''
+    replacement: ɑ
+    segment: ɒ
+  - following_context: 'l'  # svårhanterliga
+    preceding_context: ''
+    replacement: ''
+    segment: r
