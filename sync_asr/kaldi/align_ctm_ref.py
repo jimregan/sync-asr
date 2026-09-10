@@ -418,7 +418,7 @@ def print_alignment(recording, alignment, out_file_handle):
 
 
 def get_edit_type(hyp_word, ref_word, duration=-1, eps_symbol='<eps>',
-                  oov_word=None, symbol_table=None, ignore_punctuation=True):
+                  oov_word=None, symbol_table=None, ignore_punctuation=False):
     hyp_compare = hyp_word
     if ignore_punctuation:
         hyp_compare = clean_text(hyp_word)
